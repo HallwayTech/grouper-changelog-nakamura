@@ -2,9 +2,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.nyu.grouper</groupId>
-  <artifactId>edu.nyu.grouper.esb</artifactId>
+  <artifactId>edu.nyu.grouper.nakamura-changelog</artifactId>
   <packaging>jar</packaging>
-  <name>NYU Grouper :: ESB Components</name>
+  <name>NYU Grouper :: Nakamura Changelog Consumer</name>
   <version>0.1</version>
 
   <build>
