@@ -181,11 +181,12 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	 */
 	public void addMembership(String groupId, String groupName, String subjectId)
 			throws GroupModificationException {
-		PostMethod method = new PostMethod(url.toString() + getUpdatePath(groupId));
+		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(groupName);
+		PostMethod method = new PostMethod(url.toString() + getUpdatePath(nakamuraGroupName));
 	    method.addParameter(":member", subjectId);
 	    updateGroupMembership(groupId, subjectId, method);
 	    if (log.isInfoEnabled()){
-	    	log.info("SUCCESS: add subjectId=" + subjectId + " to group=" + groupId );
+	    	log.info("SUCCESS: add subjectId=" + subjectId + " to group=" + nakamuraGroupName );
 	    }
 	}
 
@@ -223,6 +224,9 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 
 	    	switch (returnCode){
 			case HttpStatus.SC_OK:
+				break;
+			case HttpStatus.SC_CREATED:
+				errorMessage = "FAILURE: Encountered a 201 created error while modifing group=" + groupName;
 				break;
 			case HttpStatus.SC_INTERNAL_SERVER_ERROR:
 				errorMessage = "FAILURE: Encountered a 500 error while modifing group=" + groupName;
