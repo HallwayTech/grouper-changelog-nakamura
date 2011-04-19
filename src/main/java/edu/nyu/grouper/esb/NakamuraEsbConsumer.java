@@ -1,5 +1,6 @@
 package edu.nyu.grouper.esb;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -18,6 +19,7 @@ import edu.internet2.middleware.grouper.exception.GrouperException;
 import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
+import edu.nyu.grouper.exceptions.UnsupportedGroupException;
 import edu.nyu.grouper.util.AggregateGroupIdAdapter;
 import edu.nyu.grouper.util.StaticInitialGroupPropertiesProvider;
 
@@ -33,6 +35,8 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 	private GrouperSession grouperSession;
 
 	private Subject grouperSystemSubject;
+	
+	private String[] supportedStems = new String[] { "nyu:apps:atlas" };
 	
 	public NakamuraEsbConsumer(){
 		super();
@@ -68,12 +72,12 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					if (log.isDebugEnabled()){
 						log.debug(ChangeLogTypeBuiltin.GROUP_ADD + ": name=" + groupName);
 					}
-
+					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 
 					// Nakamura creates the -managers groups on its own.
 					if (group != null && !group.getExtension().equals("managers")){
-						getNakamuraGroupAdapter().createGroup(group);
+						nakamuraGroupAdapter.createGroup(group);
 					}
 				}
 
@@ -84,9 +88,10 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					if (log.isDebugEnabled()){
 						log.debug(ChangeLogTypeBuiltin.GROUP_DELETE+ ": name=" + groupName);
 					}
+					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 					if (group == null){
-						getNakamuraGroupAdapter().deleteGroup(groupId, groupName);
+						nakamuraGroupAdapter.deleteGroup(groupId, groupName);
 					}
 					else {
 						log.error("Received a delete event for a group that still exists!");
@@ -95,10 +100,11 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_UPDATE)) {
 					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.id);
+					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.name);
 					String propertyName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.propertyChanged);
 					String oldValue = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.propertyOldValue);
 					String newValue = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.propertyNewValue);
-					
+					checkSupportedGroup(groupName);
 					// TODO implement updateProperty
 					// nakamuraGroupAdapter.updateProperty(groupId, propertyName, oldValue, newValue);
 					log.debug("Group update, name: "  + groupId + ", property: " + propertyName
@@ -110,18 +116,23 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 					String subjectId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 					log.debug("Membership add, name: " + groupName + " subjectId: " + subjectId);
-					getNakamuraGroupAdapter().addMembership(groupId, groupName, subjectId);
+					checkSupportedGroup(groupName);
+					nakamuraGroupAdapter.addMembership(groupId, groupName, subjectId);
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
-					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupId);
-					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
-					String subjectId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
+					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupId);
+					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
+					String subjectId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 					log.debug("Membership delete, name: " + groupName + " subjectId: " + subjectId);
-					getNakamuraGroupAdapter().deleteMembership(groupId, groupName, subjectId);
+					checkSupportedGroup(groupName);
+					nakamuraGroupAdapter.deleteMembership(groupId, groupName, subjectId);
 				}
 				// we successfully processed this record
 			}
+		}
+		catch(UnsupportedGroupException e){
+			log.error(e.getMessage());
 		}
 		catch (Exception e) {
 			changeLogProcessorMetadata.registerProblem(e, "Error processing record", currentId);
@@ -132,6 +143,20 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 			throw new RuntimeException("Couldn't process any records");
 		}
 		return currentId;
+	}
+	
+	private void checkSupportedGroup(String groupName) throws UnsupportedGroupException {
+		boolean supported = false;
+		
+		for (int i = 0; i < supportedStems.length; i++){
+			if (groupName.startsWith(supportedStems[i])) {
+				supported = true;
+				break;
+			}
+		}
+		if (!supported){
+			throw new UnsupportedGroupException("Not configured to handle " + groupName + ". Check the elfilter.");
+		}
 	}
 
 	/**
@@ -150,10 +175,6 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 			}
 		}
 		return grouperSession;
-	}
-
-	public HttpNakamuraGroupAdapter getNakamuraGroupAdapter() {
-		return nakamuraGroupAdapter;
 	}
 
 	public void setNakamuraGroupAdapter(HttpNakamuraGroupAdapter nakamuraGroupAdapter) {
