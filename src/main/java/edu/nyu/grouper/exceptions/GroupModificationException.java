@@ -10,6 +10,4 @@ public class GroupModificationException extends Exception {
 	public GroupModificationException(String message) {
 		super(message);
 	}
-	
-	
 }
