@@ -2,6 +2,7 @@ package edu.nyu.grouper.esb;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.UUID;
 
 import net.sf.json.JSONObject;
 
@@ -10,6 +11,7 @@ import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -213,12 +215,12 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	 * @return
 	 */
 	private void updateGroupMembership(String groupName, String subjectId, PostMethod method) throws GroupModificationException {
-		HttpClient client = getHttpClient();
 	    String errorMessage = null;
-	    
 	    String response = null;
 
 	    try{
+	    	HttpClient client = getHttpClient();
+	    	checkUserExists(subjectId);
 	    	int returnCode = client.executeMethod(method);
 	    	response = IOUtils.toString(method.getResponseBodyAsStream());
 
@@ -226,17 +228,12 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 			case HttpStatus.SC_OK:
 				break;
 			case HttpStatus.SC_CREATED:
-				errorMessage = "FAILURE: Encountered a 201 created error while modifing group=" + groupName;
-				break;
 			case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-				errorMessage = "FAILURE: Encountered a 500 error while modifing group=" + groupName;
-				break;
 			case HttpStatus.SC_NOT_FOUND:
-				errorMessage = "FAILURE: Nakamura reported that the group " + groupName + " does not exist";
+				errorMessage = "FAILURE: " + returnCode + " - group " + groupName;
 				break;
 			case HttpStatus.SC_FORBIDDEN:
-				errorMessage = "FAILURE: Unable to modify group  " + groupName
-						+ ". Received an HTTP 403 Forbidden. Check the username and password.";
+				errorMessage = "FAILURE: 403 - " + groupName + " - Check the username and password.";
 				break;
 			default:
 				errorMessage = "FAILURE: Unable to modify subject membership: subject=" + subjectId 
@@ -260,11 +257,35 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	}
 
 	private String getUpdatePath(String groupId){
-		return GROUP_UPDATE_PATH_PREFIX + groupId + ".update.html";
+		return GROUP_UPDATE_PATH_PREFIX + groupId + ".update.json";
 	}
 
 	private String getDeletePath(String groupId){
 		return GROUP_UPDATE_PATH_PREFIX + groupId + ".delete.json";
+	}
+	
+	private void checkUserExists(String userId) throws Exception {
+		HttpClient client = getHttpClient();
+		GetMethod method = new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json");
+		int returnCode = client.executeMethod(method); 
+		
+		if (returnCode == HttpStatus.SC_OK){
+			return;
+		}
+		if (returnCode == HttpStatus.SC_NOT_FOUND){
+			PostMethod post = new PostMethod(url.toString() + "/system/userManager/user.create.json");
+			post.addParameter(":name", userId);
+			String randomPassword = UUID.randomUUID().toString();
+			post.addParameter("pwd", randomPassword);
+			post.addParameter("pwdConfirm", randomPassword);
+			int userCreateResponseCode = client.executeMethod(post);
+			if (userCreateResponseCode == HttpStatus.SC_OK || userCreateResponseCode == HttpStatus.SC_CREATED){
+				log.info("Created a user for " + userId);
+			}
+			else {
+				throw new Exception("HTTP error: " + userCreateResponseCode + " while creating user for: " + userId);
+			}
+		}
 	}
 
 	/**
@@ -275,8 +296,8 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 		HttpClient client = new HttpClient();
 		HttpState state = client.getState();
 		state.setCredentials(
-			new AuthScope(getUrl().getHost(), getPort(getUrl())),
-			new UsernamePasswordCredentials(getUsername(), getPassword()));
+			new AuthScope(url.getHost(), getPort(url)),
+			new UsernamePasswordCredentials(username, password));
 		client.getParams().setAuthenticationPreemptive(true);
 		client.getParams().setParameter("http.useragent", this.getClass().getName());
 		return client;
@@ -315,10 +336,6 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 		this.groupIdAdapter = groupIdAdapter;
 	}
 
-	public URL getUrl() {
-		return url;
-	}
-
 	public void setUrl(String urlString){
 		try {
 			setUrl(new URL(urlString));
@@ -333,16 +350,8 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 		this.url = url;
 	}
 
-	public String getUsername() {
-		return username;
-	}
-
 	public void setUsername(String username) {
 		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
 	}
 
 	public void setPassword(String password) {
