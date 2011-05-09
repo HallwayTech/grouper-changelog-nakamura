@@ -41,6 +41,15 @@ Run the Grouper Loader
     cd ${GROUPER_HOME}
     ./bin/gsh.sh -loader
 
+Create a SakaiOAE user for the Grouper loader.
+
+You can use the standard registration forms to create the user and set it's password.
+
+Then add it to the administrators group to give it admin rights.
+
+    curl -uadmin:ADMIN_PASSWORD -F:member=grouper-admin \
+        http://localhost:8080/system/userManager/group/administrators.update.json
+
 ## Links
 https://spaces.internet2.edu/display/Grouper/Notifications+(change+log)
 http://groups.google.com/group/grouper-users/browse_thread/thread/e1cd180b39583acb?pli=1
