@@ -1,4 +1,4 @@
-package edu.nyu.grouper.exceptions;
+package org.sakaiproject.nakamura.grouper.changelog.exceptions;
 
 public class UnsupportedGroupException extends Exception {
 

@@ -1,9 +1,9 @@
-package edu.nyu.grouper.util;
+package org.sakaiproject.nakamura.grouper.changelog.util;
 
 import org.apache.commons.httpclient.methods.PostMethod;
 
 import edu.internet2.middleware.grouper.Group;
-import edu.nyu.grouper.util.api.InitialGroupPropertiesProvider;
+import org.sakaiproject.nakamura.grouper.changelog.util.api.InitialGroupPropertiesProvider;
 
 /**
  * Set HTTP POST params that become properties on the group in SakaiOAE

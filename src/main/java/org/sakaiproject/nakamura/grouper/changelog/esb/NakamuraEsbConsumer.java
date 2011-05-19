@@ -1,9 +1,12 @@
-package edu.nyu.grouper.esb;
+package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
+import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
+import org.sakaiproject.nakamura.grouper.changelog.util.AggregateGroupIdAdapter;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -19,9 +22,6 @@ import edu.internet2.middleware.grouper.exception.GrouperException;
 import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
-import edu.nyu.grouper.exceptions.UnsupportedGroupException;
-import edu.nyu.grouper.util.AggregateGroupIdAdapter;
-import edu.nyu.grouper.util.StaticInitialGroupPropertiesProvider;
 
 /**
  * Process changelog entries and update group information in sakai3-nakamura

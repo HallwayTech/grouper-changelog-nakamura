@@ -19,7 +19,7 @@ Copy the resulting jar to ${GROUPER_HOME}/lib/custom/
 Configure the Grouper loader to run your job. Add the following to ${GROUPER_HOME}/conf/grouper-loader.properties
 
     # The class to run
-    changeLog.consumer.nakamura.class = edu.nyu.grouper.esb.NakamuraEsbConsumer
+    changeLog.consumer.nakamura.class = org.sakaiproject.nakamura.grouper.changelog.esb.NakamuraEsbConsumer
     
     # How often to run the job
     changeLog.consumer.nakamura.quartzCron = 0 * * * * ?

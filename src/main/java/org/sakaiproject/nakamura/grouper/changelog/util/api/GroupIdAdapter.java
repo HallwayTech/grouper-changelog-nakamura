@@ -1,4 +1,4 @@
-package edu.nyu.grouper.util.api;
+package org.sakaiproject.nakamura.grouper.changelog.util.api;
 
 /**
  * A strategy to map names from grouper to Nakamura.

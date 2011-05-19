@@ -1,6 +1,6 @@
-package edu.nyu.grouper.util;
+package org.sakaiproject.nakamura.grouper.changelog.util;
 
-import edu.nyu.grouper.util.api.GroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
 /**
  * 

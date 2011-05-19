@@ -1,7 +1,7 @@
-package edu.nyu.grouper.util;
+package org.sakaiproject.nakamura.grouper.changelog.util;
 
 import junit.framework.TestCase;
-import edu.nyu.grouper.util.AggregateGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.util.AggregateGroupIdAdapter;
 
 public class AggregateGroupIdAdapterTestCase extends TestCase {
 	

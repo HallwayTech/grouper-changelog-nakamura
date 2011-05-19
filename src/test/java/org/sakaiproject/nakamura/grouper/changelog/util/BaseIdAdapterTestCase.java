@@ -1,6 +1,6 @@
-package edu.nyu.grouper.util;
+package org.sakaiproject.nakamura.grouper.changelog.util;
 
-import edu.nyu.grouper.util.BaseNakamuraGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.util.BaseNakamuraGroupIdAdapter;
 import junit.framework.TestCase;
 
 public class BaseIdAdapterTestCase extends TestCase {

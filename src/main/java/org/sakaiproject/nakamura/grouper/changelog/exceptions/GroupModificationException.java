@@ -1,4 +1,4 @@
-package edu.nyu.grouper.exceptions;
+package org.sakaiproject.nakamura.grouper.changelog.exceptions;
 
 public class GroupModificationException extends Exception {
 	private static final long serialVersionUID = -6959893265128284169L;

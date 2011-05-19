@@ -1,4 +1,4 @@
-package edu.nyu.grouper.util.api;
+package org.sakaiproject.nakamura.grouper.changelog.util.api;
 
 import org.apache.commons.httpclient.methods.PostMethod;
 

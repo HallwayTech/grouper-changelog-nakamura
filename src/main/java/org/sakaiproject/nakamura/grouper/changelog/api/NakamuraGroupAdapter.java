@@ -1,7 +1,8 @@
-package edu.nyu.grouper.api;
+package org.sakaiproject.nakamura.grouper.changelog.api;
+
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
 import edu.internet2.middleware.grouper.Group;
-import edu.nyu.grouper.exceptions.GroupModificationException;
 
 public interface NakamuraGroupAdapter {
 	

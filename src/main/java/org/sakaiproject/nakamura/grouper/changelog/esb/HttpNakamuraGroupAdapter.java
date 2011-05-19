@@ -1,4 +1,4 @@
-package edu.nyu.grouper.esb;
+package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,10 +18,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import edu.internet2.middleware.grouper.Group;
-import edu.nyu.grouper.api.NakamuraGroupAdapter;
-import edu.nyu.grouper.exceptions.GroupModificationException;
-import edu.nyu.grouper.util.api.GroupIdAdapter;
-import edu.nyu.grouper.util.api.InitialGroupPropertiesProvider;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
+import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.util.api.InitialGroupPropertiesProvider;
 
 /**
  * Responds to Grouper changelog events by HTTP POSTing to the nakamura group servlets.
