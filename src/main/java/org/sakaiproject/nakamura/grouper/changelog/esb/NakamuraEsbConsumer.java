@@ -1,12 +1,11 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
-import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
 import org.sakaiproject.nakamura.grouper.changelog.util.AggregateGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.NakamuraUtils;
 
 import edu.internet2.middleware.grouper.Group;
