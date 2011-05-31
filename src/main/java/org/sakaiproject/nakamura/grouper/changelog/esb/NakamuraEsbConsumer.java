@@ -7,6 +7,7 @@ import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
 import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
 import org.sakaiproject.nakamura.grouper.changelog.util.AggregateGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.util.api.NakamuraUtils;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -41,11 +42,11 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 	public NakamuraEsbConsumer(){
 		super();
 		nakamuraGroupAdapter = new HttpNakamuraGroupAdapter();
-		nakamuraGroupAdapter.setUrl(GrouperLoaderConfig.getPropertyString("nakamura.url", true));
-		nakamuraGroupAdapter.setUsername(GrouperLoaderConfig.getPropertyString("nakamura.username", true));
-		nakamuraGroupAdapter.setPassword(GrouperLoaderConfig.getPropertyString("nakamura.password", true));
+		nakamuraGroupAdapter.setUrl(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".url", true));
+		nakamuraGroupAdapter.setUsername(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".username", true));
+		nakamuraGroupAdapter.setPassword(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".password", true));
 		nakamuraGroupAdapter.setInitialPropertiesProvider(new StaticInitialGroupPropertiesProvider());
-		nakamuraGroupAdapter.setGroupIdAdapter(new AggregateGroupIdAdapter(GrouperLoaderConfig.getPropertyString("nakamura.basestem", true)));
+		nakamuraGroupAdapter.setGroupIdAdapter(new AggregateGroupIdAdapter(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".basestem", true)));
 	}
 
 	/**
