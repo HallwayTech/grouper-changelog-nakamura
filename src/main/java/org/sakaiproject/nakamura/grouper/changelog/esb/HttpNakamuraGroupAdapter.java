@@ -300,6 +300,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 			new UsernamePasswordCredentials(username, password));
 		client.getParams().setAuthenticationPreemptive(true);
 		client.getParams().setParameter("http.useragent", this.getClass().getName());
+		client.getParams().setParameter("_charset_", "utf-8");
 		return client;
 	}
 
