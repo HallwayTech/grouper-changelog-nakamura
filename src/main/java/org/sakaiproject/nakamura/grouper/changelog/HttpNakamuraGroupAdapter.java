@@ -7,10 +7,7 @@ import java.util.UUID;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
@@ -18,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
+import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.InitialGroupPropertiesProvider;
 
@@ -57,7 +55,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 			log.debug(group.getName() + " converted to " + nakamuraGroupName + " for nakamura.");
 		}
 
-		HttpClient client = getHttpClient();
+		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = new PostMethod(url.toString() + GROUP_CREATE_PATH);
 	    method.addParameter(":name", nakamuraGroupName);
 	    initialPropertiesProvider.addProperties(group, nakamuraGroupName,  method);
@@ -129,7 +127,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 
 		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(groupName);
 
-		HttpClient client = getHttpClient();
+		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 	    PostMethod method = new PostMethod(url.toString() + getDeletePath(nakamuraGroupName));
 	    method.addParameter("go", "1");
 	    String errorMessage = null;
@@ -169,7 +167,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	    } finally {
 	      method.releaseConnection();
 	    }
-	    
+
 	    if (errorMessage != null){
 	    	if (log.isErrorEnabled()){ 
 	    		log.error(errorMessage);
@@ -220,7 +218,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	    String response = null;
 
 	    try{
-	    	HttpClient client = getHttpClient();
+	    	HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 	    	checkUserExists(subjectId);
 	    	int returnCode = client.executeMethod(method);
 	    	response = IOUtils.toString(method.getResponseBodyAsStream());
@@ -241,14 +239,14 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 						+ " group=" + groupName;
 				logUnhandledResponse(returnCode, response);
 				break;
-	    	}
+	    	} //end switch
 	    } catch (Exception e) {
 	    	errorMessage = "An exception occurred while modifying group membership. subjectId=" + subjectId + 
 	    		  	" group=" + groupName + " Error: " + e.toString();
 	    } finally {
 	      method.releaseConnection();
 	    }
-	    
+
 	    if (errorMessage != null){
 	    	if (log.isErrorEnabled()){
 	    		log.error(errorMessage);
@@ -259,7 +257,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 
 	public boolean groupExists(String groupId){
 		boolean exists = false;
-		HttpClient client = getHttpClient();
+		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + groupId + ".json");
 
 		try {
@@ -284,12 +282,12 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	private String getDeletePath(String groupId){
 		return GROUP_PATH_PREFIX + groupId + ".delete.json";
 	}
-	
+
 	private void checkUserExists(String userId) throws Exception {
-		HttpClient client = getHttpClient();
+		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		GetMethod method = new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json");
 		int returnCode = client.executeMethod(method); 
-		
+
 		if (returnCode == HttpStatus.SC_OK){
 			return;
 		}
@@ -309,46 +307,12 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 		}
 	}
 
-	/**
-	 * Construct an {@link HttpClient} which is configured to authenticate to Nakamura.
-	 * @return the configured client.
-	 */
-	private HttpClient getHttpClient(){
-		HttpClient client = new HttpClient();
-		HttpState state = client.getState();
-		state.setCredentials(
-			new AuthScope(url.getHost(), getPort(url)),
-			new UsernamePasswordCredentials(username, password));
-		client.getParams().setAuthenticationPreemptive(true);
-		client.getParams().setParameter("http.useragent", this.getClass().getName());
-		client.getParams().setParameter("_charset_", "utf-8");
-		return client;
-	}
-
-	/**
-	 * If you don't specify a port when creating a {@link URL} {@link URL#getPort()} will return -1.
-	 * This function uses the default HTTP/s ports  
-	 * @return the port for this.url. 80 or 433 if not specified.
-	 */
-	private int getPort(URL url){
-		int port = url.getPort();
-		if (port == -1){
-			if (url.getProtocol().equals("http")){
-				port = 80;
-			}
-			else if(url.getProtocol().equals("https")){
-				port = 443;
-			}
-		}
-		return port;
-	}
-	
 	public void logUnhandledResponse(int responseCode, String response){
 		if (log.isErrorEnabled()){
 			log.error("Unhandled response. code=" + responseCode + "\nResponse: " + response);
 		}
 	}
-	
+
 	public void setInitialPropertiesProvider(
 			InitialGroupPropertiesProvider initialPropertiesProvider) {
 		this.initialPropertiesProvider = initialPropertiesProvider;
@@ -367,15 +331,13 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 			throw new RuntimeException(mfe.toString());
 		}
 	}
-	
+
 	public void setUrl(URL url) {
 		this.url = url;
 	}
-
 	public void setUsername(String username) {
 		this.username = username;
 	}
-
 	public void setPassword(String password) {
 		this.password = password;
 	}
