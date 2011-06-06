@@ -23,6 +23,9 @@ public class LastStemGroupIdAdapter extends BaseNakamuraGroupIdAdapter implement
 		String groupId = grouperName.substring(secondToLastColon + 1, lastColon);
 		String roleExtension = grouperName.substring(lastColon + 1);
 		
-		return groupId + "-" + roleExtension;
+		if (!roleExtension.equals("member")){
+			groupId += "-" + roleExtension;
+		}
+		return groupId;
 	}
 }
