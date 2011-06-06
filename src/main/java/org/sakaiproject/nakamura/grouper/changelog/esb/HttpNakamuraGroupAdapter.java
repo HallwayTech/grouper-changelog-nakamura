@@ -7,6 +7,7 @@ import java.util.UUID;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -18,6 +19,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import edu.internet2.middleware.grouper.Group;
+import edu.internet2.middleware.grouper.exception.GrouperException;
+
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
@@ -32,7 +35,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	private Log log = LogFactory.getLog(HttpNakamuraGroupAdapter.class);
 	
 	private static String GROUP_CREATE_PATH = "/system/userManager/group.create.json";
-	private static String GROUP_UPDATE_PATH_PREFIX = "/system/userManager/group/";
+	private static String GROUP_PATH_PREFIX = "/system/userManager/group/";
 
 	// Nakamura URL
 	private URL url;
@@ -256,12 +259,32 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	    }
 	}
 
+	public boolean groupExists(String groupId){
+		boolean exists = false;
+		HttpClient client = getHttpClient();
+		GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + groupId + ".json");
+
+		try {
+			int returnCode = client.executeMethod(method);
+			if (returnCode == HttpStatus.SC_OK){
+				exists = true;
+			}
+		}
+		catch (Exception e){
+			log.error(e.getMessage());
+			throw new GrouperException(e.getMessage());
+		}
+		return exists;
+	}
+
+	/**************************************************************************/
+
 	private String getUpdatePath(String groupId){
-		return GROUP_UPDATE_PATH_PREFIX + groupId + ".update.json";
+		return GROUP_PATH_PREFIX + groupId + ".update.json";
 	}
 
 	private String getDeletePath(String groupId){
-		return GROUP_UPDATE_PATH_PREFIX + groupId + ".delete.json";
+		return GROUP_PATH_PREFIX + groupId + ".delete.json";
 	}
 	
 	private void checkUserExists(String userId) throws Exception {

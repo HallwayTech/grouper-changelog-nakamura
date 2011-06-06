@@ -3,6 +3,7 @@ package org.sakaiproject.nakamura.grouper.changelog.api;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
 import edu.internet2.middleware.grouper.Group;
+import edu.internet2.middleware.grouper.exception.GrouperException;
 
 public interface NakamuraGroupAdapter {
 	
@@ -39,4 +40,11 @@ public interface NakamuraGroupAdapter {
 	 * @throws GroupModificationException
 	 */
 	public void deleteMembership(String groupId, String groupName, String subjectId) throws GroupModificationException;
+
+	/**
+	 * Does the group exist in SakaiOAE?
+	 * @param groupId
+	 * @return whether or not the group already exists.
+	 */
+	public boolean groupExists(String groupId) throws GrouperException;
 }
