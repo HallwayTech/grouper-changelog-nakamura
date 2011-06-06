@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
-import org.sakaiproject.nakamura.grouper.changelog.util.AggregateGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.util.LastStemGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.NakamuraUtils;
 
@@ -45,7 +45,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 		nakamuraGroupAdapter.setUsername(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".username", true));
 		nakamuraGroupAdapter.setPassword(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".password", true));
 		nakamuraGroupAdapter.setInitialPropertiesProvider(new StaticInitialGroupPropertiesProvider());
-		nakamuraGroupAdapter.setGroupIdAdapter(new AggregateGroupIdAdapter(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".basestem", true)));
+		nakamuraGroupAdapter.setGroupIdAdapter(new LastStemGroupIdAdapter(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".basestem", true)));
 	}
 
 	/**
