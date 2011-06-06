@@ -9,7 +9,7 @@ import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
  */
 public class BaseNakamuraGroupIdAdapter implements GroupIdAdapter {
 	
-	private String basestem;
+	protected String basestem;
 	
 	public BaseNakamuraGroupIdAdapter(String basestem){
 		this.basestem = basestem;

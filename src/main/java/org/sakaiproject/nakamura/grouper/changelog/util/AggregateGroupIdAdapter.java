@@ -3,12 +3,9 @@ package org.sakaiproject.nakamura.grouper.changelog.util;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
 public class AggregateGroupIdAdapter extends BaseNakamuraGroupIdAdapter implements GroupIdAdapter {
-	
-	private String basestem;
-	
+
 	public AggregateGroupIdAdapter(String basestem){
 		super(basestem);
-		this.basestem = basestem;
 	}
 
 	/**
