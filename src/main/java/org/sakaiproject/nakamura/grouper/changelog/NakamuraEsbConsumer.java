@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.grouper.changelog.esb;
+package org.sakaiproject.nakamura.grouper.changelog;
 
 import java.util.List;
 

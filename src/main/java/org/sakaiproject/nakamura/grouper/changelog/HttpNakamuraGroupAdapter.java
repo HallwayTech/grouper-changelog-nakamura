@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.grouper.changelog.esb;
+package org.sakaiproject.nakamura.grouper.changelog;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -7,7 +7,6 @@ import java.util.UUID;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
@@ -17,14 +16,13 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import edu.internet2.middleware.grouper.Group;
-import edu.internet2.middleware.grouper.exception.GrouperException;
-
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.InitialGroupPropertiesProvider;
+
+import edu.internet2.middleware.grouper.Group;
+import edu.internet2.middleware.grouper.exception.GrouperException;
 
 /**
  * Responds to Grouper changelog events by HTTP POSTing to the nakamura group servlets.
