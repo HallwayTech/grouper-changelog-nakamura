@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.grouper.changelog.util;
+package org.sakaiproject.nakamura.grouper.changelog;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

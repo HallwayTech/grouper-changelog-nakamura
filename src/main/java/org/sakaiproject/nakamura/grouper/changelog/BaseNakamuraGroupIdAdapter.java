@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.grouper.changelog.util;
+package org.sakaiproject.nakamura.grouper.changelog;
 
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 

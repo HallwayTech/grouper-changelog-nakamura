@@ -1,6 +1,5 @@
-package org.sakaiproject.nakamura.grouper.changelog.util;
+package org.sakaiproject.nakamura.grouper.changelog;
 
-import org.sakaiproject.nakamura.grouper.changelog.util.BaseNakamuraGroupIdAdapter;
 import junit.framework.TestCase;
 
 public class BaseIdAdapterTestCase extends TestCase {

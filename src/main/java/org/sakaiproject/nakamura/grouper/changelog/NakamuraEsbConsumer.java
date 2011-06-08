@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
-import org.sakaiproject.nakamura.grouper.changelog.util.LastStemGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.LastStemGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.NakamuraUtils;
 
