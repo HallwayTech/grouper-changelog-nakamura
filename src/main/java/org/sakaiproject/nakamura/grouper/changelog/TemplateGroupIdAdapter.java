@@ -1,5 +1,7 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,29 +27,43 @@ import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
  * Configure this component in the grouper-loader.properties
  * nakamura.groupname.regex = "pre:fix:([^:]+):([^:]+):([^:]+)"
  * nakamura.nakamuraid.template = "'sakai_' + g[0] + '_' + g[1] + '_' + g[2]"
- * 
- * @author froese
- *
  */
 public class TemplateGroupIdAdapter implements GroupIdAdapter {
 
 	private static String PROP_REGEX = NakamuraUtils.PROPERTY_KEY_PREFIX + ".groupname.regex";
-	private static String PROP_NAKID_TEMPLATE = NakamuraUtils.PROPERTY_KEY_PREFIX + ".nakamuraid.template";
+	private static String PROP_NAKID_TEMPLATE = NakamuraUtils.PROPERTY_KEY_PREFIX + ".groupid.template";
 
 	private Pattern pattern;
 	private String nakamuraIdTemplate;
+	private Set<String> pseudoGroupSuffixes;
+	private Set<String> includeExcludeSuffixes;
 
 	public TemplateGroupIdAdapter(){
 		pattern = Pattern.compile(GrouperLoaderConfig.getPropertyString(PROP_REGEX, true));
-		nakamuraIdTemplate = GrouperLoaderConfig.getPropertyString(PROP_NAKID_TEMPLATE, true); 
+		nakamuraIdTemplate = GrouperLoaderConfig.getPropertyString(PROP_NAKID_TEMPLATE, true);
+		pseudoGroupSuffixes = NakamuraUtils.getPsuedoGroupSuffixes();
+		buildIncludeExcludeSuffixes();
 	}
 
-	public TemplateGroupIdAdapter(String groupNameRegex, String nakamuraIdTemplate){
+	public TemplateGroupIdAdapter(String groupNameRegex, String nakamuraIdTemplate, Set<String> pseudoGroupSuffixes){
 		this.pattern = Pattern.compile(groupNameRegex);
 		this.nakamuraIdTemplate = nakamuraIdTemplate;
+		this.pseudoGroupSuffixes = pseudoGroupSuffixes;
+		buildIncludeExcludeSuffixes();
+	}
+
+	private void buildIncludeExcludeSuffixes(){
+		includeExcludeSuffixes = new HashSet<String>();
+		includeExcludeSuffixes.add("_systemOfRecord");
+		includeExcludeSuffixes.add("_include");
+		includeExcludeSuffixes.add("_exclude");
 	}
 
 	public String getNakamuraGroupId(String grouperName) {
+
+		if (grouperName == null){
+			return null;
+		}
 		Matcher matcher = pattern.matcher(grouperName);
 
 		if (!matcher.find()){
@@ -62,7 +78,29 @@ public class TemplateGroupIdAdapter implements GroupIdAdapter {
 		JexlContext jc = new MapContext();
 		jc.set("g", g);
 
-		return (String)e.evaluate(jc);
+		String nakamuraGroupId = (String)e.evaluate(jc);
+		if (nakamuraGroupId == null){
+			return null;
+		}
+
+		// If the groupername ends in _SUFFIX we change that to -SUFFIX
+		for (String suffix: pseudoGroupSuffixes){
+			if (nakamuraGroupId.endsWith("_" + suffix)){
+				nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_")) + "-" + suffix;
+				break;
+			}
+			// If the groupername ends in _SUFFIX_systemOfRecord we change that to -SUFFIX
+			for (String ieSuffix: includeExcludeSuffixes) {
+				if (nakamuraGroupId.endsWith("_" + suffix + ieSuffix)){
+					nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_"));
+					int newlast = nakamuraGroupId.lastIndexOf("_");
+					nakamuraGroupId = nakamuraGroupId.substring(0,newlast) + "-" + nakamuraGroupId.substring(newlast + 1);
+					break;
+				}
+			}
+		}
+
+		return nakamuraGroupId;
 	}
 
 }
