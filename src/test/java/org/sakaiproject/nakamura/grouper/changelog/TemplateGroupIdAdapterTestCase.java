@@ -49,10 +49,12 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 		assertEquals("course_MATH-GA_1410_1_001_FA11-members",
 				adaptor.getNakamuraGroupId("app:atlas:provisioned:groups:GRAD:FA11:MATH-GA:1410:1:001:members_systemOfRecord"));
 		assertEquals("course_MATH-GA_1410_1_001_FA11-student",
-				adaptor.getNakamuraGroupId("app:atlas:provisioned:groups:GRAD:FA11:MATH-GA:1410:1:001:student_include"));
+				adaptor.getNakamuraGroupId("app:atlas:provisioned:groups:GRAD:FA11:MATH-GA:1410:1:001:student_includes"));
 		assertEquals("course_MATH-GA_1410_1_001_FA11-ta",
 				adaptor.getNakamuraGroupId("app:atlas:provisioned:groups:GRAD:FA11:MATH-GA:1410:1:001:ta_systemOfRecord"));
+		assertEquals("course_MATH-GA_1410_1_001_FA11-ta",
+				adaptor.getNakamuraGroupId("app:atlas:provisioned:groups:GRAD:FA11:MATH-GA:1410:1:001:ta_systemOfRecordAndIncludes"));
 		assertEquals("course_MATH-GA_1410_1_001_FA11-lecturer",
-				adaptor.getNakamuraGroupId("app:atlas:provisioned:groups:GRAD:FA11:MATH-GA:1410:1:001:lecturer_exclude"));
+				adaptor.getNakamuraGroupId("app:atlas:provisioned:groups:GRAD:FA11:MATH-GA:1410:1:001:lecturer_excludes"));
 	}
 }
