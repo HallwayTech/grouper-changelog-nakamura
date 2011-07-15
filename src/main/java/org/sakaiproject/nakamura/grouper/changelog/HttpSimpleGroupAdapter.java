@@ -2,6 +2,7 @@ package org.sakaiproject.nakamura.grouper.changelog;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 import java.util.UUID;
 
 import net.sf.json.JSONObject;
@@ -23,26 +24,41 @@ import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 
 /**
- * Responds to Grouper changelog events by HTTP POSTing to the nakamura group servlets.
+ * Synchronize Simple group information stored in Grouper by reading the
+ * change log and provisioning OAE accordingly.
+ *
+ * This should only be used to manage "Simple Groups" as they're known in the
+ * Sakai OAE interface.
+ *
  * @see edu.internet2.middleware.grouper.changelog.*
  */
-public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
-	
-	private Log log = LogFactory.getLog(HttpNakamuraGroupAdapter.class);
-	
-	private static String GROUP_CREATE_PATH = "/system/userManager/group.create.json";
-	private static String GROUP_PATH_PREFIX = "/system/userManager/group/";
+public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
+
+	private Log log = LogFactory.getLog(HttpSimpleGroupAdapter.class);
 
 	// Nakamura URL
-	private URL url;
-	private String username;
-	private String password;
-	
-	// Sets HTTP POST params that are stored in nakamura as properties on the group. 
+	protected URL url;
+	protected String username;
+	protected String password;
+
+	// URI for the OAE user and group management servlets.
+	protected static String USER_MANAGER_URI = "/system/userManager";
+	protected static String GROUP_CREATE_URI = USER_MANAGER_URI + "/group.create.json";
+	protected static String GROUP_PATH_PREFIX = USER_MANAGER_URI + "/group";
+	protected static final String USER_CREATE_URI = USER_MANAGER_URI + "/user.create.json";
+
+	// Sets HTTP POST params that are stored in nakamura as properties on the group.
 	private InitialGroupPropertiesProvider initialPropertiesProvider;
-	
+
 	// Maps grouper gouprName -> nakamura groupId
-	private GroupIdAdapter groupIdAdapter;
+	protected GroupIdAdapter groupIdAdapter;
+
+	// uh-oh. someone's been using OSGi ConfigAdmin too long.
+	public void updated(Map<String,Object> config){
+		setUrl((String)config.get(NakamuraEsbConsumer.PROP_URL));
+		setUsername((String)config.get(NakamuraEsbConsumer.PROP_USERNAME));
+		setPassword((String)config.get(NakamuraEsbConsumer.PROP_PASSWORD));
+	}
 
 	/**
 	 * POST to http://localhost:8080/system/userManager/group.create.json
@@ -56,7 +72,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 		}
 
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-		PostMethod method = new PostMethod(url.toString() + GROUP_CREATE_PATH);
+		PostMethod method = new PostMethod(url.toString() + GROUP_CREATE_URI);
 	    method.addParameter(":name", nakamuraGroupName);
 	    initialPropertiesProvider.addProperties(group, nakamuraGroupName,  method);
 
@@ -78,7 +94,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 				break;
 			// 400
 			case HttpStatus.SC_BAD_REQUEST:
-				String statusMessage = responseJSON.getString("status.message"); 
+				String statusMessage = responseJSON.getString("status.message");
 				if (statusMessage.startsWith("A principal already exists")){
 					if (log.isInfoEnabled()){
 						log.info("Create event for a group that already exists: " + group.getName());
@@ -89,7 +105,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 				}
 				break;
 			// 403
-			case HttpStatus.SC_FORBIDDEN: 
+			case HttpStatus.SC_FORBIDDEN:
 				errorMessage = "FAILURE: 403: Unable to create a group for " + group.getName()
 						+ ". Check the username and password.";
 				break;
@@ -106,13 +122,13 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	    }
 	    catch (Exception e) {
 	    	errorMessage = "An exception occurred while creating the group. " + e.toString();
-	    } 
+	    }
 	    finally {
 	    	method.releaseConnection();
 	    }
 
 	    if (errorMessage != null){
-	    	if (log.isErrorEnabled()){ 
+	    	if (log.isErrorEnabled()){
 	    		log.error(errorMessage);
 	    	}
 	    	throw new GroupModificationException(errorMessage);
@@ -169,7 +185,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	    }
 
 	    if (errorMessage != null){
-	    	if (log.isErrorEnabled()){ 
+	    	if (log.isErrorEnabled()){
 	    		log.error(errorMessage);
 	    	}
 	    	throw new GroupModificationException(errorMessage);
@@ -235,13 +251,13 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 				errorMessage = "FAILURE: 403 - " + groupName + " - Check the username and password.";
 				break;
 			default:
-				errorMessage = "FAILURE: Unable to modify subject membership: subject=" + subjectId 
+				errorMessage = "FAILURE: Unable to modify subject membership: subject=" + subjectId
 						+ " group=" + groupName;
 				logUnhandledResponse(returnCode, response);
 				break;
 	    	} //end switch
 	    } catch (Exception e) {
-	    	errorMessage = "An exception occurred while modifying group membership. subjectId=" + subjectId + 
+	    	errorMessage = "An exception occurred while modifying group membership. subjectId=" + subjectId +
 	    		  	" group=" + groupName + " Error: " + e.toString();
 	    } finally {
 	      method.releaseConnection();
@@ -258,7 +274,7 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	public boolean groupExists(String groupId){
 		boolean exists = false;
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-		GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + groupId + ".json");
+		GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
 
 		try {
 			int returnCode = client.executeMethod(method);
@@ -273,10 +289,20 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 		return exists;
 	}
 
+	public void createCourseGroups(Group group){
+		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(group.getName());
+		if(log.isDebugEnabled()){
+			log.debug(group.getName() + " converted to " + nakamuraGroupName + " for nakamura.");
+		}
+
+		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+		PostMethod method = new PostMethod(url.toString() + GROUP_CREATE_URI);
+	}
+
 	/**************************************************************************/
 
 	private String getUpdatePath(String groupId){
-		return GROUP_PATH_PREFIX + groupId + ".update.json";
+		return GROUP_PATH_PREFIX + "/" + groupId + ".update.json";
 	}
 
 	private String getDeletePath(String groupId){
@@ -286,13 +312,13 @@ public class HttpNakamuraGroupAdapter implements NakamuraGroupAdapter {
 	private void checkUserExists(String userId) throws Exception {
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		GetMethod method = new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json");
-		int returnCode = client.executeMethod(method); 
+		int returnCode = client.executeMethod(method);
 
 		if (returnCode == HttpStatus.SC_OK){
 			return;
 		}
 		if (returnCode == HttpStatus.SC_NOT_FOUND){
-			PostMethod post = new PostMethod(url.toString() + "/system/userManager/user.create.json");
+			PostMethod post = new PostMethod(url.toString() + USER_CREATE_URI);
 			post.addParameter(":name", userId);
 			String randomPassword = UUID.randomUUID().toString();
 			post.addParameter("pwd", randomPassword);
