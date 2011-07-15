@@ -28,9 +28,10 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
+import edu.internet2.middleware.subject.Subject;
 
 /**
- * Provision 
+ * Provision Simple Groups, Courses, and memberships to Sakai OAE.
  */
 public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 
@@ -38,7 +39,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpSimpleGroupAdapter simpleGroupAdapter;
-	
+
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpCourseAdapter courseGroupAdapter;
 
@@ -61,7 +62,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 	public NakamuraEsbConsumer(){
 		super();
 
-		Builder<String,Object> config = new ImmutableMap.Builder<String, Object>(); 
+        Builder<String,Object> config = new ImmutableMap.Builder<String, Object>();
 
 		// Read and parse the settings.
 		simpleGroupAdapter = new HttpSimpleGroupAdapter();
@@ -70,19 +71,19 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 		config.put(PROP_URL, GrouperLoaderConfig.getPropertyString(PROP_URL, true));
 		config.put(PROP_USERNAME, GrouperLoaderConfig.getPropertyString(PROP_USERNAME, true));
 		config.put(PROP_PASSWORD, GrouperLoaderConfig.getPropertyString(PROP_PASSWORD, true));
-		
+
 		String supportedStemsConfig = GrouperLoaderConfig.getPropertyString(PROP_SUPPORTED_STEMS, true);
 		supportedStems = new HashSet<String>();
 		for (String stem : StringUtils.split(supportedStemsConfig, ",")){
 			supportedStems.add(stem.trim());
 		}
 		config.put(PROP_SUPPORTED_STEMS, supportedStems);
-		
+
 		Map<String,Object> configMap = config.build();
 		simpleGroupAdapter.updated(configMap);
 		simpleGroupAdapter.setInitialPropertiesProvider(new StaticInitialGroupPropertiesProvider());
 		simpleGroupAdapter.setGroupIdAdapter(new TemplateGroupIdAdapter());
-		
+
 		courseGroupAdapter.updated(configMap);
 		courseGroupAdapter.setGroupIdAdapter(new TemplateGroupIdAdapter());
 	}
@@ -113,9 +114,9 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					}
 					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
-					
+
 					if (group != null){
-						if (isCourseGroup(group)){						
+						if (isCourseGroup(group)){
 							for (GroupType groupType: group.getTypes()){
 								// Create the OAE Course objects when the student_systemOfRecord group is created.
 								// That group has the group type addIncludeExclude
@@ -125,7 +126,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 								}
 							}
 						}
-						
+
 						if (isSimpleGroup(group)){
 							simpleGroupAdapter.createGroup(group);
 						}
@@ -145,7 +146,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 					if (group == null){
-						if (groupName.endsWith("-manager")){						
+						if (groupName.endsWith("-manager")){
 							simpleGroupAdapter.deleteGroup(groupId, groupName);
 						}
 						if (groupName.endsWith(CREATE_COURSE_ROLE + SYSTEM_OF_RECORD_SUFFIX)){
@@ -174,18 +175,24 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupId);
 					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 					String subjectId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
-					log.debug("Membership add, name: " + groupName + " subjectId: " + subjectId);
-					checkSupportedGroup(groupName);
-					simpleGroupAdapter.addMembership(groupId, groupName, subjectId);
+					Subject member = SubjectFinder.findByIdentifier(subjectId, false);
+					if (member != null && "person".equals(member.getTypeName()) ){
+						log.debug("Membership add, group: " + groupName + " subjectId: " + subjectId);
+						checkSupportedGroup(groupName);
+						simpleGroupAdapter.addMembership(groupId, groupName, subjectId);
+					}
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
 					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupId);
 					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 					String subjectId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
-					log.debug("Membership delete, name: " + groupName + " subjectId: " + subjectId);
-					checkSupportedGroup(groupName);
-					simpleGroupAdapter.deleteMembership(groupId, groupName, subjectId);
+					Subject member = SubjectFinder.findByIdentifier(subjectId, false);
+					if (member != null && "person".equals(member.getTypeName()) ){
+						log.debug("Membership delete, group: " + groupName + " subjectId: " + subjectId);
+						checkSupportedGroup(groupName);
+						simpleGroupAdapter.deleteMembership(groupId, groupName, subjectId);
+					}
 				}
 				// we successfully processed this record
 			}
@@ -223,7 +230,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 			throw new UnsupportedGroupException("Not configured to handle " + groupName + ". Check the elfilter.");
 		}
 	}
-	
+
 	/**
 	 * @return is this group part of a course group in OAE?
 	 * TODO: Implement this
@@ -236,14 +243,6 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 	 * TODO: Implement this
 	 */
 	private boolean isSimpleGroup(Group group){
-		return false;
-	}
-	
-	/**
-	 * @return is this group part of a contacts group in OAE?
-	 * TODO: Implement this
-	 */
-	private boolean isContentGroup(Group group){
 		return false;
 	}
 
