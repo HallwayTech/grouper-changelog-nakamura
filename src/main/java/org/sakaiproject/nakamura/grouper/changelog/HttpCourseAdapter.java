@@ -373,7 +373,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    wikiRequest.put("parameters", wikiParams);
 
 	    batchPosts.add(syllabusRequest);
-	    batchPosts.add(contactContent);
+	    batchPosts.add(contactRequest);
 	    batchPosts.add(orgNotesRequest);
 	    batchPosts.add(wikiRequest);
 
