@@ -515,7 +515,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 			int returnCode = client.executeMethod(method);
 			responseString = IOUtils.toString(method.getResponseBodyAsStream());
 
-			boolean isJSONRequest = method.getURI().toString().endsWith(".json");
+			boolean isJSONRequest = ! method.getURI().toString().endsWith(".html");
 			if (isJSONRequest){
 				responseJSON = JSONObject.fromObject(responseString);
 			}
@@ -557,6 +557,10 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	}
 
 	private void errorToException(JSONObject response) throws GroupModificationException, GroupAlreadyExistsException {
+		if (response == null){
+			return;
+		}
+
 		String message = response.getString("status.message");
 		if (message == null){
 			return;
