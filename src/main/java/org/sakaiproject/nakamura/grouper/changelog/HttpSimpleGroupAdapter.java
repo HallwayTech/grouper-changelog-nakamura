@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
@@ -21,7 +22,6 @@ import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationE
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.InitialGroupPropertiesProvider;
-
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 
@@ -42,7 +42,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	protected URL url;
 	protected String username;
 	protected String password;
-	
+
 	private static final String HTTP_REFERER = "/system/console/grouper";
 	private static final String HTTP_USER_AGENT = "Nakamura Grouper Sync";
 
@@ -71,72 +71,21 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	 */
 	public void createGroup(Group group) throws GroupModificationException {
 
-		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(group.getName());
+		String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(group.getName());
 		if(log.isDebugEnabled()){
-			log.debug(group.getName() + " converted to " + nakamuraGroupName + " for nakamura.");
+			log.debug(group.getName() + " converted to " + nakamuraGroupId + " for nakamura.");
 		}
 
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = new PostMethod(url.toString() + GROUP_CREATE_URI);
-	    method.addParameter(":name", nakamuraGroupName);
-	    initialPropertiesProvider.addProperties(group, nakamuraGroupName,  method);
+	    method.addParameter(":name", nakamuraGroupId);
+	    initialPropertiesProvider.addProperties(group, nakamuraGroupId,  method);
 
-	    String errorMessage = null;
-	    String responseString = null;
-	    JSONObject responseJSON = null;
-
-	    try{
-	    	int returnCode = client.executeMethod(method);
-	    	responseString = IOUtils.toString(method.getResponseBodyAsStream());
-	    	responseJSON = JSONObject.fromObject(responseString);
-
-	    	switch (returnCode){
-	    	// 200
-			case HttpStatus.SC_OK:
-				if (log.isInfoEnabled()){
-					log.info("SUCCESS: created a group for " + group.getName());
-				}
-				break;
-			// 400
-			case HttpStatus.SC_BAD_REQUEST:
-				String statusMessage = responseJSON.getString("status.message");
-				if (statusMessage.startsWith("A principal already exists")){
-					if (log.isInfoEnabled()){
-						log.info("Create event for a group that already exists: " + group.getName());
-					}
-				}
-				else {
-					errorMessage = "FAILURE: 400 : Unable to create a group for " + group.getName() + ". " + statusMessage;
-				}
-				break;
-			// 403
-			case HttpStatus.SC_FORBIDDEN:
-				errorMessage = "FAILURE: 403: Unable to create a group for " + group.getName()
-						+ ". Check the username and password.";
-				break;
-			// 500
-			case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-				errorMessage = "FAILURE: 500: Unable to create a group for " + group.getName() + " response: " + responseString;
-				break;
-			// ?
-			default:
-				errorMessage = "FAILURE: " + returnCode + ": Unable to create a group for " + group.getName();
-				logUnhandledResponse(returnCode, responseString);
-				break;
-	    	}
+	    try {
+	    	JSONObject response = http(client, method);
 	    }
-	    catch (Exception e) {
-	    	errorMessage = "An exception occurred while creating the group. " + e.toString();
-	    }
-	    finally {
-	    	method.releaseConnection();
-	    }
-
-	    if (errorMessage != null){
-	    	if (log.isErrorEnabled()){
-	    		log.error(errorMessage);
-	    	}
-	    	throw new GroupModificationException(errorMessage);
+	    catch (GroupAlreadyExistsException gae){
+	    	log.debug("Tried to create a group that already exists " + nakamuraGroupId);
 	    }
 	}
 
@@ -151,50 +100,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 	    PostMethod method = new PostMethod(url.toString() + getDeleteURI(nakamuraGroupName));
 	    method.addParameter("go", "1");
-	    String errorMessage = null;
-	    String response = null;
-
-	    try{
-	    	int returnCode = client.executeMethod(method);
-	    	response = IOUtils.toString(method.getResponseBodyAsStream());
-
-	    	switch (returnCode){
-			case HttpStatus.SC_OK:
-			case HttpStatus.SC_CREATED:
-				if (log.isInfoEnabled()){
-	    			log.info("SUCCESS: deleted group " + nakamuraGroupName);
-				}
-	    		break;
-			case HttpStatus.SC_NOT_FOUND:
-				if (log.isInfoEnabled()){
-	    			log.info("SUCCESS: group " + nakamuraGroupName + " did not exist.");
-				}
-	    		break;
-			case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-				errorMessage = "FAILURE: 500: Unable to delete group " + nakamuraGroupName;
-				break;
-			case HttpStatus.SC_FORBIDDEN:
-				errorMessage = "FAILURE: 403: Unable to create a group for " + nakamuraGroupName
-						+ ". Check the username and password.";
-				break;
-			default:
-				errorMessage = "FAILURE: " + returnCode + ": Unable to delete group " + nakamuraGroupName;
-				logUnhandledResponse(returnCode, response);
-				break;
-	    	}
-	    } catch (Exception e) {
-	    	errorMessage = "An exception occurred while deleting the group. " + groupId
-	    		  			+ " Error: " + e.toString();
-	    } finally {
-	      method.releaseConnection();
-	    }
-
-	    if (errorMessage != null){
-	    	if (log.isErrorEnabled()){
-	    		log.error(errorMessage);
-	    	}
-	    	throw new GroupModificationException(errorMessage);
-	    }
+	    JSONObject response = http(client, method);
 	}
 
 	/**
@@ -235,45 +141,8 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	 * @return
 	 */
 	private void updateGroupMembership(String groupName, String subjectId, PostMethod method) throws GroupModificationException {
-	    String errorMessage = null;
-	    String response = null;
-
-	    try{
-	    	HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-	    	createOAEUser(subjectId);
-	    	int returnCode = client.executeMethod(method);
-	    	response = IOUtils.toString(method.getResponseBodyAsStream());
-
-	    	switch (returnCode){
-			case HttpStatus.SC_OK:
-				break;
-			case HttpStatus.SC_CREATED:
-			case HttpStatus.SC_INTERNAL_SERVER_ERROR:
-			case HttpStatus.SC_NOT_FOUND:
-				errorMessage = "FAILURE: " + returnCode + " - group " + groupName;
-				break;
-			case HttpStatus.SC_FORBIDDEN:
-				errorMessage = "FAILURE: 403 - " + groupName + " - Check the username and password.";
-				break;
-			default:
-				errorMessage = "FAILURE: Unable to modify subject membership: subject=" + subjectId
-						+ " group=" + groupName;
-				logUnhandledResponse(returnCode, response);
-				break;
-	    	} //end switch
-	    } catch (Exception e) {
-	    	errorMessage = "An exception occurred while modifying group membership. subjectId=" + subjectId +
-	    		  	" group=" + groupName + " Error: " + e.toString();
-	    } finally {
-	      method.releaseConnection();
-	    }
-
-	    if (errorMessage != null){
-	    	if (log.isErrorEnabled()){
-	    		log.error(errorMessage);
-	    	}
-	    	throw new GroupModificationException(errorMessage);
-	    }
+		createOAEUser(subjectId);
+		http(NakamuraHttpUtils.getHttpClient(url, groupName, subjectId), method);
 	}
 
 	/*************************************************************************
@@ -317,30 +186,43 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	 * @param userId
 	 * @throws Exception
 	 */
-	private void createOAEUser(String userId) throws Exception {
+	private void createOAEUser(String userId) throws GroupModificationException {
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-		GetMethod method = new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json");
-		int returnCode = client.executeMethod(method);
+		int returnCode = 0;
+		try {
+			returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
+		}
+		catch (IOException ioe){
+			log.error("Could not communicate with OAE to create a user.");
+			return;
+		}
 
 		if (returnCode == HttpStatus.SC_OK){
 			return;
 		}
+
 		if (returnCode == HttpStatus.SC_NOT_FOUND){
+			String randomPassword = UUID.randomUUID().toString();
 			PostMethod post = new PostMethod(url.toString() + USER_CREATE_URI);
 			post.addParameter(":name", userId);
-			String randomPassword = UUID.randomUUID().toString();
 			post.addParameter("pwd", randomPassword);
 			post.addParameter("pwdConfirm", randomPassword);
-			int userCreateResponseCode = client.executeMethod(post);
-			if (userCreateResponseCode == HttpStatus.SC_OK || userCreateResponseCode == HttpStatus.SC_CREATED){
-				log.info("Created a user for " + userId);
-			}
-			else {
-				throw new Exception("HTTP error: " + userCreateResponseCode + " while creating user for: " + userId);
+
+			try {
+				int userCreateResponseCode = client.executeMethod(post);
+
+				if (userCreateResponseCode == HttpStatus.SC_OK || userCreateResponseCode == HttpStatus.SC_CREATED){
+					log.info("Created a user for " + userId);
+				}
+				else {
+					throw new GroupModificationException("HTTP error: " + userCreateResponseCode + " while creating user for: " + userId);
+				}
+			} catch (IOException ioe){
+				throw new GroupModificationException(ioe.getMessage());
 			}
 		}
 	}
-	
+
 	public JSONObject http(HttpClient client, PostMethod method) throws GroupModificationException {
 
 		method.setRequestHeader(HttpHeaders.USER_AGENT, HTTP_USER_AGENT);
@@ -351,7 +233,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 		JSONObject responseJSON = null;
 
 		try{
-			int returnCode = client.executeMethod(method);
+			int responseCode = client.executeMethod(method);
 			responseString = IOUtils.toString(method.getResponseBodyAsStream());
 
 			boolean isJSONRequest = ! method.getURI().toString().endsWith(".html");
@@ -359,7 +241,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 				responseJSON = JSONObject.fromObject(responseString);
 			}
 
-			switch (returnCode){
+			switch (responseCode){
 
 			case HttpStatus.SC_OK: // 200
 				break;
@@ -375,7 +257,8 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 				}
 				break;
 			default:
-				errorMessage = "Unknown HTTP response " + returnCode;
+				logUnhandledResponse(responseCode, responseString);
+				errorMessage = "Unknown HTTP response " + responseCode;
 				break;
 			}
 		}
@@ -387,9 +270,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 		}
 
 		if (errorMessage != null){
-			if (log.isErrorEnabled()){
-				log.error(errorMessage);
-			}
+			log.error(errorMessage);
 			errorToException(responseJSON);
 		}
 		return responseJSON;
