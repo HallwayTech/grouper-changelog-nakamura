@@ -289,16 +289,6 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 		return exists;
 	}
 
-	public void createCourseGroups(Group group){
-		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(group.getName());
-		if(log.isDebugEnabled()){
-			log.debug(group.getName() + " converted to " + nakamuraGroupName + " for nakamura.");
-		}
-
-		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-		PostMethod method = new PostMethod(url.toString() + GROUP_CREATE_URI);
-	}
-
 	/**************************************************************************/
 
 	private String getUpdatePath(String groupId){
