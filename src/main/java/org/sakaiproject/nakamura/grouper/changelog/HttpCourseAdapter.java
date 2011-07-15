@@ -7,12 +7,9 @@ import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.mortbay.jetty.HttpHeaders;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
@@ -27,9 +24,6 @@ import edu.internet2.middleware.grouper.Group;
 public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 
 	private Log log = LogFactory.getLog(HttpCourseAdapter.class);
-
-	private static final String HTTP_REFERER = "/system/console/grouper";
-	private static final String HTTP_USER_AGENT = "Nakamura Grouper Sync";
 
 	protected static final String BATCH_URI         = "/system/batch";
 	protected static final String CREATE_FILE_URI   = "/system/pool/createfile";
@@ -91,7 +85,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 		method.setParameter("sakai:joinRole", "student");
 		method.setParameter("sakai:roles", "[{\"id\":\"student\",\"roleTitle\":\"Students\",\"title\":\"Student\",\"allowManage\":false},{\"id\":\"ta\",\"roleTitle\":\"Teaching Assistants\",\"title\":\"Teaching Assistant\",\"allowManage\":true},{\"id\":\"lecturer\",\"roleTitle\":\"Lecturers\",\"title\":\"Lecturer\",\"allowManage\":true}]");
 		try {
-			post(client, method);
+			http(client, method);
 		}
 		catch (GroupAlreadyExistsException gme){
 			log.debug(parentGroupId + " already exists. No worries.");
@@ -133,7 +127,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 		method = new PostMethod(url + BATCH_URI);
 		JSONArray json = JSONArray.fromObject(batchPosts);
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-		post(client, method);
+		http(client, method);
 		log.debug("Updated the group managers.");
 
 		// --------------------------------------------------------------------
@@ -178,7 +172,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-		post(client, method);
+		http(client, method);
 		log.debug("Updated the group members.");
 
 		// --------------------------------------------------------------------
@@ -189,7 +183,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 		method.setParameter("sakai:group-visible", "public");
 		method.setParameter("sakai:group-joinable", "yes");
 		method.setParameter("_charset_", "utf-8");
-		post(client, method);
+		http(client, method);
 		log.debug("Updated the visibilty and joinabolity.");
 
 		// --------------------------------------------------------------------
@@ -262,7 +256,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-	    JSONObject post8Response = post(client, method);
+	    JSONObject post8Response = http(client, method);
 
 	    // Go through the response and get the document UUID for the library and participants items.
 	    String syllabusDocHash = null;
@@ -380,7 +374,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-	    post(client, method);
+	    http(client, method);
 
 	    log.debug("Added initial content into the sakai documents.");
 
@@ -468,7 +462,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-	    post(client, method);
+	    http(client, method);
 
 	    log.debug("Set ACLs on sakai documents.");
 
@@ -488,7 +482,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 		method.addParameter("sakai:pseudoGroup", "true");
 		method.addParameter("sakai:pseudogroupparent", getPseudoGroupParent(nakamuraGroupId));
 		method.addParameter("grouper:name", group.getParentStemName() + ":" + nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
-		post(client, method);
+		http(client, method);
 	}
 
 	/**
@@ -504,76 +498,5 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 		else {
 			return nakamuraGroupId.substring(0, index);
 		}
-	}
-
-	public JSONObject post(HttpClient client, PostMethod method) throws GroupModificationException {
-
-		method.setRequestHeader(HttpHeaders.USER_AGENT, HTTP_USER_AGENT);
-		method.setRequestHeader(HttpHeaders.REFERER, HTTP_REFERER);
-
-		String errorMessage = null;
-		String responseString = null;
-		JSONObject responseJSON = null;
-
-		try{
-			int returnCode = client.executeMethod(method);
-			responseString = IOUtils.toString(method.getResponseBodyAsStream());
-
-			boolean isJSONRequest = ! method.getURI().toString().endsWith(".html");
-			if (isJSONRequest){
-				responseJSON = JSONObject.fromObject(responseString);
-			}
-
-			switch (returnCode){
-
-			case HttpStatus.SC_OK: // 200
-				break;
-			case HttpStatus.SC_BAD_REQUEST: // 400
-			case HttpStatus.SC_UNAUTHORIZED: // 401
-			case HttpStatus.SC_FORBIDDEN: // 404
-			case HttpStatus.SC_INTERNAL_SERVER_ERROR: // 500
-				if (isJSONRequest){
-					errorMessage = responseJSON.getString("status.message");
-				}
-				else {
-					errorMessage = responseString;
-				}
-				break;
-			default:
-				errorMessage = "Unknown HTTP response " + returnCode;
-				break;
-			}
-		}
-		catch (Exception e) {
-			errorMessage = "An exception occurred communicatingSakai OAE. " + e.toString();
-		}
-		finally {
-			method.releaseConnection();
-		}
-
-		if (errorMessage != null){
-			if (log.isErrorEnabled()){
-				log.error(errorMessage);
-			}
-			errorToException(responseJSON);
-		}
-		return responseJSON;
-	}
-
-	private void errorToException(JSONObject response) throws GroupModificationException, GroupAlreadyExistsException {
-		if (response == null){
-			return;
-		}
-
-		String message = response.getString("status.message");
-		if (message == null){
-			return;
-		}
-
-		if (message.startsWith("A principal already exists with the requested name")){
-			throw new GroupAlreadyExistsException(message);
-		}
-
-		throw new GroupModificationException(message);
 	}
 }

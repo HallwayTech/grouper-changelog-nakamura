@@ -14,7 +14,9 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.mortbay.jetty.HttpHeaders;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
@@ -40,6 +42,9 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	protected URL url;
 	protected String username;
 	protected String password;
+	
+	private static final String HTTP_REFERER = "/system/console/grouper";
+	private static final String HTTP_USER_AGENT = "Nakamura Grouper Sync";
 
 	// URI for the OAE user and group management servlets.
 	protected static String USER_MANAGER_URI = "/system/userManager";
@@ -334,6 +339,77 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 				throw new Exception("HTTP error: " + userCreateResponseCode + " while creating user for: " + userId);
 			}
 		}
+	}
+	
+	public JSONObject http(HttpClient client, PostMethod method) throws GroupModificationException {
+
+		method.setRequestHeader(HttpHeaders.USER_AGENT, HTTP_USER_AGENT);
+		method.setRequestHeader(HttpHeaders.REFERER, HTTP_REFERER);
+
+		String errorMessage = null;
+		String responseString = null;
+		JSONObject responseJSON = null;
+
+		try{
+			int returnCode = client.executeMethod(method);
+			responseString = IOUtils.toString(method.getResponseBodyAsStream());
+
+			boolean isJSONRequest = ! method.getURI().toString().endsWith(".html");
+			if (isJSONRequest){
+				responseJSON = JSONObject.fromObject(responseString);
+			}
+
+			switch (returnCode){
+
+			case HttpStatus.SC_OK: // 200
+				break;
+			case HttpStatus.SC_BAD_REQUEST: // 400
+			case HttpStatus.SC_UNAUTHORIZED: // 401
+			case HttpStatus.SC_FORBIDDEN: // 404
+			case HttpStatus.SC_INTERNAL_SERVER_ERROR: // 500
+				if (isJSONRequest){
+					errorMessage = responseJSON.getString("status.message");
+				}
+				else {
+					errorMessage = responseString;
+				}
+				break;
+			default:
+				errorMessage = "Unknown HTTP response " + returnCode;
+				break;
+			}
+		}
+		catch (Exception e) {
+			errorMessage = "An exception occurred communicatingSakai OAE. " + e.toString();
+		}
+		finally {
+			method.releaseConnection();
+		}
+
+		if (errorMessage != null){
+			if (log.isErrorEnabled()){
+				log.error(errorMessage);
+			}
+			errorToException(responseJSON);
+		}
+		return responseJSON;
+	}
+
+	private void errorToException(JSONObject response) throws GroupModificationException, GroupAlreadyExistsException {
+		if (response == null){
+			return;
+		}
+
+		String message = response.getString("status.message");
+		if (message == null){
+			return;
+		}
+
+		if (message.startsWith("A principal already exists with the requested name")){
+			throw new GroupAlreadyExistsException(message);
+		}
+
+		throw new GroupModificationException(message);
 	}
 
 	public void logUnhandledResponse(int responseCode, String response){
