@@ -13,8 +13,7 @@ Clone this repository and use maven to build the jar.
     git clone URL
     cd grouper-changelog-nakamura
     mvn clean install
-
-Copy the resulting jar to ${GROUPER_HOME}/lib/custom/
+    mvn package -Dgrouper.custom.directory=/path/to/grouper/lib/custom
 
 Configure the Grouper loader to run your job. Add the following to ${GROUPER_HOME}/conf/grouper-loader.properties
 
@@ -34,7 +33,7 @@ Configure the Grouper loader to run your job. Add the following to ${GROUPER_HOM
     nakamura.url = http://localhost:8080
     nakamura.username = admin
     nakamura.password = admin
-    nakamura.basestem = edu:apps:sakai
+    nakamura.supported.stems = edu:apps:sakai
 
 Run the Grouper Loader
 

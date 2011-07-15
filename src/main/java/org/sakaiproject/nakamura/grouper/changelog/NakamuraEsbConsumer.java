@@ -1,15 +1,22 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
-import org.sakaiproject.nakamura.grouper.changelog.LastStemGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.NakamuraUtils;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
+
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
+import edu.internet2.middleware.grouper.GroupType;
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
@@ -21,31 +28,63 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
-import edu.internet2.middleware.subject.Subject;
 
 /**
- * Process changelog entries and update group information in sakai3-nakamura
+ * Provision 
  */
 public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 
 	private static Log log = GrouperUtil.getLog(NakamuraEsbConsumer.class);
-	
-	private HttpNakamuraGroupAdapter nakamuraGroupAdapter;
 
+	// The interface to the SakaiOAE/nakamura server.
+	private HttpSimpleGroupAdapter simpleGroupAdapter;
+	
+	// The interface to the SakaiOAE/nakamura server.
+	private HttpCourseAdapter courseGroupAdapter;
+
+	// Authenticated session for the Grouper API
 	private GrouperSession grouperSession;
 
-	private Subject grouperSystemSubject;
-	
-	private String[] supportedStems = new String[] { "nyu:apps:atlas" };
-	
+	// This job will try to process events for groups in these stems
+	private Set<String> supportedStems;
+
+	private static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
+	private static final String CREATE_COURSE_ROLE = "student";
+	private static final String SYSTEM_OF_RECORD_SUFFIX = "_systemOfRecord";
+
+	// Configuration values from conf/grouper-loader.properties
+	public static final String PROP_URL = NakamuraUtils.PROPERTY_KEY_PREFIX + ".url";
+	public static final String PROP_USERNAME = NakamuraUtils.PROPERTY_KEY_PREFIX + ".username";
+	public static final String PROP_PASSWORD = NakamuraUtils.PROPERTY_KEY_PREFIX + ".password";
+	public static final String PROP_SUPPORTED_STEMS = NakamuraUtils.PROPERTY_KEY_PREFIX + ".supported.stems";
+
 	public NakamuraEsbConsumer(){
 		super();
-		nakamuraGroupAdapter = new HttpNakamuraGroupAdapter();
-		nakamuraGroupAdapter.setUrl(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".url", true));
-		nakamuraGroupAdapter.setUsername(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".username", true));
-		nakamuraGroupAdapter.setPassword(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".password", true));
-		nakamuraGroupAdapter.setInitialPropertiesProvider(new StaticInitialGroupPropertiesProvider());
-		nakamuraGroupAdapter.setGroupIdAdapter(new LastStemGroupIdAdapter(GrouperLoaderConfig.getPropertyString(NakamuraUtils.PROPERTY_KEY_PREFIX + ".basestem", true)));
+
+		Builder<String,Object> config = new ImmutableMap.Builder<String, Object>(); 
+
+		// Read and parse the settings.
+		simpleGroupAdapter = new HttpSimpleGroupAdapter();
+		courseGroupAdapter = new HttpCourseAdapter();
+
+		config.put(PROP_URL, GrouperLoaderConfig.getPropertyString(PROP_URL, true));
+		config.put(PROP_USERNAME, GrouperLoaderConfig.getPropertyString(PROP_USERNAME, true));
+		config.put(PROP_PASSWORD, GrouperLoaderConfig.getPropertyString(PROP_PASSWORD, true));
+		
+		String supportedStemsConfig = GrouperLoaderConfig.getPropertyString(PROP_SUPPORTED_STEMS, true);
+		supportedStems = new HashSet<String>();
+		for (String stem : StringUtils.split(supportedStemsConfig, ",")){
+			supportedStems.add(stem.trim());
+		}
+		config.put(PROP_SUPPORTED_STEMS, supportedStems);
+		
+		Map<String,Object> configMap = config.build();
+		simpleGroupAdapter.updated(configMap);
+		simpleGroupAdapter.setInitialPropertiesProvider(new StaticInitialGroupPropertiesProvider());
+		simpleGroupAdapter.setGroupIdAdapter(new TemplateGroupIdAdapter());
+		
+		courseGroupAdapter.updated(configMap);
+		courseGroupAdapter.setGroupIdAdapter(new TemplateGroupIdAdapter());
 	}
 
 	/**
@@ -74,10 +113,25 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					}
 					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
-
-					// Nakamura creates the -managers groups on its own.
-					if (group != null && !group.getExtension().equals("managers")){
-						nakamuraGroupAdapter.createGroup(group);
+					
+					if (group != null){
+						if (isCourseGroup(group)){						
+							for (GroupType groupType: group.getTypes()){
+								// Create the OAE Course objects when the student_systemOfRecord group is created.
+								// That group has the group type addIncludeExclude
+								if (groupType.getName().equals(ADD_INCLUDE_EXCLUDE) &&
+										group.getExtension().equals(CREATE_COURSE_ROLE + SYSTEM_OF_RECORD_SUFFIX)){
+									courseGroupAdapter.createGroup(group);
+								}
+							}
+						}
+						
+						if (isSimpleGroup(group)){
+							simpleGroupAdapter.createGroup(group);
+						}
+					}
+					else {
+						log.error("Group added event received for a group that doesn't exist? " + groupName);
 					}
 				}
 
@@ -86,12 +140,17 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
 
 					if (log.isDebugEnabled()){
-						log.debug(ChangeLogTypeBuiltin.GROUP_DELETE+ ": name=" + groupName);
+						log.debug(ChangeLogTypeBuiltin.GROUP_DELETE + ": name=" + groupName);
 					}
 					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 					if (group == null){
-						nakamuraGroupAdapter.deleteGroup(groupId, groupName);
+						if (groupName.endsWith("-manager")){						
+							simpleGroupAdapter.deleteGroup(groupId, groupName);
+						}
+						if (groupName.endsWith(CREATE_COURSE_ROLE + SYSTEM_OF_RECORD_SUFFIX)){
+							courseGroupAdapter.deleteGroup(groupId, groupName);
+						}
 					}
 					else {
 						log.error("Received a delete event for a group that still exists!");
@@ -117,7 +176,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					String subjectId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 					log.debug("Membership add, name: " + groupName + " subjectId: " + subjectId);
 					checkSupportedGroup(groupName);
-					nakamuraGroupAdapter.addMembership(groupId, groupName, subjectId);
+					simpleGroupAdapter.addMembership(groupId, groupName, subjectId);
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
@@ -126,7 +185,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					String subjectId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 					log.debug("Membership delete, name: " + groupName + " subjectId: " + subjectId);
 					checkSupportedGroup(groupName);
-					nakamuraGroupAdapter.deleteMembership(groupId, groupName, subjectId);
+					simpleGroupAdapter.deleteMembership(groupId, groupName, subjectId);
 				}
 				// we successfully processed this record
 			}
@@ -136,20 +195,26 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 		}
 		catch (Exception e) {
 			changeLogProcessorMetadata.registerProblem(e, "Error processing record", currentId);
-			//we made it to this -1
+			// we made it to this -1
 			return currentId - 1;
 		}
 		if (currentId == -1) {
+			log.error("Didn't process any records.");
 			throw new RuntimeException("Couldn't process any records");
 		}
 		return currentId;
 	}
-	
+
+	/**
+	 * Does the group name fall inside of the stems we're configured to keep
+	 * in sync with sakai?
+	 * @param groupName
+	 * @throws UnsupportedGroupException
+	 */
 	private void checkSupportedGroup(String groupName) throws UnsupportedGroupException {
 		boolean supported = false;
-		
-		for (int i = 0; i < supportedStems.length; i++){
-			if (groupName.startsWith(supportedStems[i])) {
+		for (String stem: supportedStems){
+			if (groupName.startsWith(stem)) {
 				supported = true;
 				break;
 			}
@@ -158,16 +223,38 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 			throw new UnsupportedGroupException("Not configured to handle " + groupName + ". Check the elfilter.");
 		}
 	}
+	
+	/**
+	 * @return is this group part of a course group in OAE?
+	 * TODO: Implement this
+	 */
+	private boolean isCourseGroup(Group group){
+		return true;
+	}
+	/**
+	 * @return is this group part of a "Simple Group" in OAE?
+	 * TODO: Implement this
+	 */
+	private boolean isSimpleGroup(Group group){
+		return false;
+	}
+	
+	/**
+	 * @return is this group part of a contacts group in OAE?
+	 * TODO: Implement this
+	 */
+	private boolean isContentGroup(Group group){
+		return false;
+	}
 
 	/**
-	 * Lazy-load the grouperSession 
+	 * Lazy-load the grouperSession
 	 * @return
 	 */
 	private GrouperSession getGrouperSession(){
-		if ( grouperSession == null || grouperSystemSubject == null ) {
+		if ( grouperSession == null) {
 			try {
-				grouperSystemSubject = SubjectFinder.findRootSubject();
-				grouperSession = GrouperSession.start(grouperSystemSubject, false);
+				grouperSession = GrouperSession.start(SubjectFinder.findRootSubject(), false);
 				log.debug("started session: " + this.grouperSession);
 			}
 			catch (SessionException se) {
@@ -177,7 +264,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 		return grouperSession;
 	}
 
-	public void setNakamuraGroupAdapter(HttpNakamuraGroupAdapter nakamuraGroupAdapter) {
-		this.nakamuraGroupAdapter = nakamuraGroupAdapter;
+	public void setNakamuraGroupAdapter(HttpSimpleGroupAdapter nakamuraGroupAdapter) {
+		this.simpleGroupAdapter = nakamuraGroupAdapter;
 	}
 }
