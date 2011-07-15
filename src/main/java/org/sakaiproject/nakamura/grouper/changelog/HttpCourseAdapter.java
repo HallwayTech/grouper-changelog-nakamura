@@ -385,6 +385,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    log.debug("Added initial content into the sakai documents.");
 
 	    // ----------------------------------------------------------------
+	    // POST 10 - Set ACLs on sakai documents.
 	    batchPosts.clear();
 	    JSONObject request1 = new JSONObject();
 	    JSONObject params1 = new JSONObject();
@@ -470,6 +471,9 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    post(client, method);
 
 	    log.debug("Set ACLs on sakai documents.");
+
+	    // There's more to do here but For the demo purposes its enough
+	    // TODO: Add the last few requests.
 	}
 
 	public void createPseudoGroup(String nakamuraGroupId, Group group) throws GroupModificationException {
