@@ -144,7 +144,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(groupName);
 
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-	    PostMethod method = new PostMethod(url.toString() + getDeletePath(nakamuraGroupName));
+	    PostMethod method = new PostMethod(url.toString() + getDeleteURI(nakamuraGroupName));
 	    method.addParameter("go", "1");
 	    String errorMessage = null;
 	    String response = null;
@@ -199,7 +199,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	public void addMembership(String groupId, String groupName, String subjectId)
 			throws GroupModificationException {
 		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(groupName);
-		PostMethod method = new PostMethod(url.toString() + getUpdatePath(nakamuraGroupName));
+		PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupName));
 	    method.addParameter(":member", subjectId);
 	    updateGroupMembership(groupId, subjectId, method);
 	    if (log.isInfoEnabled()){
@@ -214,7 +214,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	public void deleteMembership(String groupId, String groupName, String subjectId)
 			throws GroupModificationException {
 		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(groupName);
-		PostMethod method = new PostMethod(url.toString() + getUpdatePath(nakamuraGroupName));
+		PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupName));
 	    method.addParameter(":member@Delete", subjectId);
 	    updateGroupMembership(nakamuraGroupName, subjectId, method);
 	    if (log.isInfoEnabled()){
@@ -235,7 +235,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 
 	    try{
 	    	HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-	    	checkUserExists(subjectId);
+	    	createOAEUser(subjectId);
 	    	int returnCode = client.executeMethod(method);
 	    	response = IOUtils.toString(method.getResponseBodyAsStream());
 
@@ -271,16 +271,34 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	    }
 	}
 
+	/*************************************************************************
+	 * Utility methods.*/
+
+	/**
+	 * @param groupId the id of the OAE group
+	 * @return the URI to the update operation.
+	 */
+	private String getUpdateURI(String groupId){
+		return GROUP_PATH_PREFIX + "/" + groupId + ".update.json";
+	}
+
+	/**
+	 * @param groupId the id of the OAE group
+	 * @return the URI to the delete operation.
+	 */
+	private String getDeleteURI(String groupId){
+		return GROUP_PATH_PREFIX + groupId + ".delete.json";
+	}
+
+	/**
+	 * @return if this group exists in Sakai OAE.
+	 */
 	public boolean groupExists(String groupId){
 		boolean exists = false;
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
-
 		try {
-			int returnCode = client.executeMethod(method);
-			if (returnCode == HttpStatus.SC_OK){
-				exists = true;
-			}
+			exists = (client.executeMethod(method) == HttpStatus.SC_OK);
 		}
 		catch (Exception e){
 			log.error(e.getMessage());
@@ -289,17 +307,12 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 		return exists;
 	}
 
-	/**************************************************************************/
-
-	private String getUpdatePath(String groupId){
-		return GROUP_PATH_PREFIX + "/" + groupId + ".update.json";
-	}
-
-	private String getDeletePath(String groupId){
-		return GROUP_PATH_PREFIX + groupId + ".delete.json";
-	}
-
-	private void checkUserExists(String userId) throws Exception {
+	/**
+	 * Create a user in OAE if it doesn't exist.
+	 * @param userId
+	 * @throws Exception
+	 */
+	private void createOAEUser(String userId) throws Exception {
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		GetMethod method = new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json");
 		int returnCode = client.executeMethod(method);
@@ -343,7 +356,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 			setUrl(new URL(urlString));
 		}
 		catch (MalformedURLException mfe){
-			log.error("Could not parse " + urlString + "into a String");
+			log.error("Could not parse " + urlString + "into a URL.");
 			throw new RuntimeException(mfe.toString());
 		}
 	}
