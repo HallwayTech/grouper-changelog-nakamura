@@ -15,6 +15,8 @@ Clone this repository and use maven to build the jar.
     mvn clean install
     mvn package -Dgrouper.custom.directory=/path/to/grouper/lib/custom
 
+If you're not building on the same machine you'll be running the grouper loader on set grouper.custom.directory to any directory and copy the resulting jars to $GROUPER_HOME/lib/custom/
+
 Configure the Grouper loader to run your job. Add the following to ${GROUPER_HOME}/conf/grouper-loader.properties
 
     # The class to run
