@@ -55,8 +55,9 @@ public class TemplateGroupIdAdapter implements GroupIdAdapter {
 	private void buildIncludeExcludeSuffixes(){
 		includeExcludeSuffixes = new HashSet<String>();
 		includeExcludeSuffixes.add("_systemOfRecord");
-		includeExcludeSuffixes.add("_include");
-		includeExcludeSuffixes.add("_exclude");
+		includeExcludeSuffixes.add("_systemOfRecordAndIncludes");
+		includeExcludeSuffixes.add("_includes");
+		includeExcludeSuffixes.add("_excludes");
 	}
 
 	public String getNakamuraGroupId(String grouperName) {
