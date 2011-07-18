@@ -35,7 +35,9 @@ Configure the Grouper loader to run your job. Add the following to ${GROUPER_HOM
     nakamura.url = http://localhost:8080
     nakamura.username = admin
     nakamura.password = admin
-    nakamura.supported.stems = edu:apps:sakai
+    # Top level. The changelog consumer will only handle requests that start with this
+    nakamura.basestem = edu:apps:sakaioae
+    nakamura.supported.stems = edu:apps:sakaioae
 
 Run the Grouper Loader
 

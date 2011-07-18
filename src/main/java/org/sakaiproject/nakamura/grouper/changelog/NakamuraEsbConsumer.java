@@ -9,7 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
 import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
-import org.sakaiproject.nakamura.grouper.changelog.util.api.NakamuraUtils;
+import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -82,7 +82,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 		Map<String,Object> configMap = config.build();
 		simpleGroupAdapter.updated(configMap);
 		simpleGroupAdapter.setInitialPropertiesProvider(new StaticInitialGroupPropertiesProvider());
-		simpleGroupAdapter.setGroupIdAdapter(new TemplateGroupIdAdapter());
+		simpleGroupAdapter.setGroupIdAdapter(new SimpleGroupIdAdapter());
 
 		courseGroupAdapter.updated(configMap);
 		courseGroupAdapter.setGroupIdAdapter(new TemplateGroupIdAdapter());
@@ -116,7 +116,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 
 					if (group != null){
-						if (isCourseGroup(group)){
+						if (NakamuraUtils.isCourseGroup(group)){
 							for (GroupType groupType: group.getTypes()){
 								// Create the OAE Course objects when the student_systemOfRecord group is created.
 								// That group has the group type addIncludeExclude
@@ -127,7 +127,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 							}
 						}
 
-						if (isSimpleGroup(group)){
+						if (NakamuraUtils.isSimpleGroup(group)){
 							simpleGroupAdapter.createGroup(group);
 						}
 					}
@@ -146,7 +146,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 					if (group == null){
-						if (groupName.endsWith("-manager")){
+						if (NakamuraUtils.isSimpleGroup(group)){
 							simpleGroupAdapter.deleteGroup(groupId, groupName);
 						}
 						if (groupName.endsWith(CREATE_COURSE_ROLE + SYSTEM_OF_RECORD_SUFFIX)){
@@ -229,21 +229,6 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 		if (!supported){
 			throw new UnsupportedGroupException("Not configured to handle " + groupName + ". Check the elfilter.");
 		}
-	}
-
-	/**
-	 * @return is this group part of a course group in OAE?
-	 * TODO: Implement this
-	 */
-	private boolean isCourseGroup(Group group){
-		return true;
-	}
-	/**
-	 * @return is this group part of a "Simple Group" in OAE?
-	 * TODO: Implement this
-	 */
-	private boolean isSimpleGroup(Group group){
-		return false;
 	}
 
 	/**

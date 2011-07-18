@@ -10,7 +10,7 @@ import org.apache.commons.jexl2.JexlContext;
 import org.apache.commons.jexl2.JexlEngine;
 import org.apache.commons.jexl2.MapContext;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.util.api.NakamuraUtils;
+import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
@@ -38,17 +38,13 @@ public class TemplateGroupIdAdapter implements GroupIdAdapter {
 	private Set<String> pseudoGroupSuffixes;
 	private Set<String> includeExcludeSuffixes;
 
+	/**
+	 * Constructor that reads in the configuration values from conf/grouper-loader.properties
+	 */
 	public TemplateGroupIdAdapter(){
 		pattern = Pattern.compile(GrouperLoaderConfig.getPropertyString(PROP_REGEX, true));
 		nakamuraIdTemplate = GrouperLoaderConfig.getPropertyString(PROP_NAKID_TEMPLATE, true);
 		pseudoGroupSuffixes = NakamuraUtils.getPsuedoGroupSuffixes();
-		buildIncludeExcludeSuffixes();
-	}
-
-	public TemplateGroupIdAdapter(String groupNameRegex, String nakamuraIdTemplate, Set<String> pseudoGroupSuffixes){
-		this.pattern = Pattern.compile(groupNameRegex);
-		this.nakamuraIdTemplate = nakamuraIdTemplate;
-		this.pseudoGroupSuffixes = pseudoGroupSuffixes;
 		buildIncludeExcludeSuffixes();
 	}
 
@@ -65,24 +61,8 @@ public class TemplateGroupIdAdapter implements GroupIdAdapter {
 		if (grouperName == null){
 			return null;
 		}
-		Matcher matcher = pattern.matcher(grouperName);
-
-		if (!matcher.find()){
-			throw new RuntimeException(grouperName + " does not match the regex in ");
-		}
-		String[] g = new String[matcher.groupCount()];
-		for (int i = 1; i <= matcher.groupCount(); i++){
-			g[i-1] = matcher.group(i);
-		}
-		JexlEngine jexl = new JexlEngine();
-		Expression e = jexl.createExpression(nakamuraIdTemplate);
-		JexlContext jc = new MapContext();
-		jc.set("g", g);
-
-		String nakamuraGroupId = (String)e.evaluate(jc);
-		if (nakamuraGroupId == null){
-			return null;
-		}
+		
+		String nakamuraGroupId = getIdForCourseGroup(grouperName);
 
 		// If the groupername ends in _SUFFIX we change that to -SUFFIX
 		for (String suffix: pseudoGroupSuffixes){
@@ -102,6 +82,44 @@ public class TemplateGroupIdAdapter implements GroupIdAdapter {
 		}
 
 		return nakamuraGroupId;
+	}
+	
+	private String getIdForCourseGroup(String grouperName){
+		Matcher matcher = pattern.matcher(grouperName);
+
+		if (!matcher.find()){
+			throw new RuntimeException(grouperName + " does not match the regex in ");
+		}
+		String[] g = new String[matcher.groupCount()];
+		for (int i = 1; i <= matcher.groupCount(); i++){
+			g[i-1] = matcher.group(i);
+		}
+		JexlEngine jexl = new JexlEngine();
+		Expression e = jexl.createExpression(nakamuraIdTemplate);
+		JexlContext jc = new MapContext();
+		jc.set("g", g);
+
+		String nakamuraGroupId = (String)e.evaluate(jc);
+		if (nakamuraGroupId == null){
+			return null;
+		}
+		return nakamuraGroupId;
+	}
+	
+	public void setPattern(Pattern pattern) {
+		this.pattern = pattern;
+	}
+
+	public void setNakamuraIdTemplate(String nakamuraIdTemplate) {
+		this.nakamuraIdTemplate = nakamuraIdTemplate;
+	}
+
+	public void setPseudoGroupSuffixes(Set<String> pseudoGroupSuffixes) {
+		this.pseudoGroupSuffixes = pseudoGroupSuffixes;
+	}
+
+	public void setIncludeExcludeSuffixes(Set<String> includeExcludeSuffixes) {
+		this.includeExcludeSuffixes = includeExcludeSuffixes;
 	}
 
 }
