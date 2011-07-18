@@ -182,10 +182,10 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 						checkSupportedGroup(groupName);
 
 						if (NakamuraUtils.isCourseGroup(groupName)){
-							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
+							courseGroupAdapter.addMembership(groupId, groupName, memberId);
 						}
 						else if (NakamuraUtils.isSimpleGroup(groupName)){
-							courseGroupAdapter.addMembership(groupId, groupName, memberId);
+							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
 						}
 					}
 				}
@@ -201,10 +201,10 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 						checkSupportedGroup(groupName);
 
 						if (NakamuraUtils.isCourseGroup(groupName)){
-							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
+							courseGroupAdapter.addMembership(groupId, groupName, memberId);
 						}
 						else if (NakamuraUtils.isSimpleGroup(groupName)){
-							courseGroupAdapter.addMembership(groupId, groupName, memberId);
+							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
 						}
 					}
 				}
