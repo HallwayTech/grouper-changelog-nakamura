@@ -174,24 +174,38 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
 					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupId);
 					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
-					String subjectId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
-					Subject member = SubjectFinder.findByIdentifier(subjectId, false);
+					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
+					Subject member = SubjectFinder.findByIdentifier(memberId, false);
+
 					if (member != null && "person".equals(member.getTypeName()) ){
-						log.debug("Membership add, group: " + groupName + " subjectId: " + subjectId);
+						log.debug("Membership add, group: " + groupName + " subjectId: " + memberId);
 						checkSupportedGroup(groupName);
-						simpleGroupAdapter.addMembership(groupId, groupName, subjectId);
+
+						if (NakamuraUtils.isCourseGroup(groupName)){
+							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
+						}
+						else if (NakamuraUtils.isSimpleGroup(groupName)){
+							courseGroupAdapter.addMembership(groupId, groupName, memberId);
+						}
 					}
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
 					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupId);
 					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
-					String subjectId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
-					Subject member = SubjectFinder.findByIdentifier(subjectId, false);
+					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
+					Subject member = SubjectFinder.findByIdentifier(memberId, false);
+
 					if (member != null && "person".equals(member.getTypeName()) ){
-						log.debug("Membership delete, group: " + groupName + " subjectId: " + subjectId);
+						log.debug("Membership delete, group: " + groupName + " subjectId: " + memberId);
 						checkSupportedGroup(groupName);
-						simpleGroupAdapter.deleteMembership(groupId, groupName, subjectId);
+
+						if (NakamuraUtils.isCourseGroup(groupName)){
+							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
+						}
+						else if (NakamuraUtils.isSimpleGroup(groupName)){
+							courseGroupAdapter.addMembership(groupId, groupName, memberId);
+						}
 					}
 				}
 				// we successfully processed this record
