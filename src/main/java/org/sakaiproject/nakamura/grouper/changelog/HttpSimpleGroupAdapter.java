@@ -107,14 +107,16 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	 * Add a subjectId to a group by POSTing to:
 	 * http://localhost:8080/system/userManager/group/groupId.update.html :member=subjectId
 	 */
-	public void addMembership(String groupId, String groupName, String subjectId)
+	public void addMembership(String groupId, String groupName, String memberId)
 			throws GroupModificationException {
-		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(groupName);
-		PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupName));
-	    method.addParameter(":member", subjectId);
-	    updateGroupMembership(groupId, subjectId, method);
+        String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(groupName);
+        PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
+        method.addParameter(":member", memberId);
+        method.addParameter(":viewer", memberId);
+        createOAEUser(memberId);
+        JSONObject response = http(NakamuraHttpUtils.getHttpClient(url, groupName, memberId), method);
 	    if (log.isInfoEnabled()){
-	    	log.info("SUCCESS: add subjectId=" + subjectId + " to group=" + nakamuraGroupName );
+	        log.info("SUCCESS: add subjectId=" + memberId + " to group=" + nakamuraGroupId );
 	    }
 	}
 
@@ -122,27 +124,16 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	 * Delete a subjectId from a group by POSTing to:
 	 * http://localhost:8080/system/userManager/group/groupId.update.html :member=subjectId
 	 */
-	public void deleteMembership(String groupId, String groupName, String subjectId)
+	public void deleteMembership(String groupId, String groupName, String memberId)
 			throws GroupModificationException {
-		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(groupName);
-		PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupName));
-	    method.addParameter(":member@Delete", subjectId);
-	    updateGroupMembership(nakamuraGroupName, subjectId, method);
+        String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(groupName);
+        PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
+        method.addParameter(":member@Delete", memberId);
+        method.addParameter(":viewer@Delete", memberId);
+        JSONObject response = http(NakamuraHttpUtils.getHttpClient(url, groupName, memberId), method);
 	    if (log.isInfoEnabled()){
-	    	log.info("SUCCESS: deleted subjectId=" + subjectId + " from group=" + nakamuraGroupName );
+	        log.info("SUCCESS: deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
 	    }
-	}
-
-	/**
-	 * Add or delete a subject group membership.
-	 * @param groupName the id of the group being modified.
-	 * @param subjectId the id of the subject being added or remove.
-	 * @param method the POST method to send to nakamura
-	 * @return
-	 */
-	private void updateGroupMembership(String groupName, String subjectId, PostMethod method) throws GroupModificationException {
-		createOAEUser(subjectId);
-		http(NakamuraHttpUtils.getHttpClient(url, groupName, subjectId), method);
 	}
 
 	/*************************************************************************
@@ -203,26 +194,27 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 
 		if (returnCode == HttpStatus.SC_NOT_FOUND){
 			String randomPassword = UUID.randomUUID().toString();
-			PostMethod post = new PostMethod(url.toString() + USER_CREATE_URI);
-			post.addParameter(":name", userId);
-			post.addParameter("pwd", randomPassword);
-			post.addParameter("pwdConfirm", randomPassword);
+			PostMethod method = new PostMethod(url.toString() + USER_CREATE_URI);
+			method.addParameter(":name", userId);
+			method.addParameter("pwd", randomPassword);
+			method.addParameter("pwdConfirm", randomPassword);
 
 			try {
-				int userCreateResponseCode = client.executeMethod(post);
-
-				if (userCreateResponseCode == HttpStatus.SC_OK || userCreateResponseCode == HttpStatus.SC_CREATED){
-					log.info("Created a user for " + userId);
-				}
-				else {
-					throw new GroupModificationException("HTTP error: " + userCreateResponseCode + " while creating user for: " + userId);
-				}
-			} catch (IOException ioe){
-				throw new GroupModificationException(ioe.getMessage());
+				JSONObject response = http(client, method);
+				log.info("Created a user for " + userId);
+			} catch (GroupModificationException gme){
+				throw new GroupModificationException(gme.getMessage());
 			}
 		}
 	}
 
+	/**
+	 * Prepare an HTTP request to Sakai OAE and parse the response (if JSON).
+	 * @param client an {@link HttpClient} to execute the request.
+	 * @param method an HTTP method to send
+	 * @return a JSONObject of the response if the request returns JSON
+	 * @throws GroupModificationException if there was an error updating the group information.
+	 */
 	public JSONObject http(HttpClient client, PostMethod method) throws GroupModificationException {
 
 		method.setRequestHeader(HttpHeaders.USER_AGENT, HTTP_USER_AGENT);
@@ -257,7 +249,9 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 				}
 				break;
 			default:
-				logUnhandledResponse(responseCode, responseString);
+				if (log.isErrorEnabled()){
+					log.error("Unhandled response. code=" + responseCode + "\nResponse: " + responseString);
+				}
 				errorMessage = "Unknown HTTP response " + responseCode;
 				break;
 			}
@@ -276,6 +270,12 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 		return responseJSON;
 	}
 
+	/**
+	 * Throw a specific exception given a JSON response from a Sakai OAE server.
+	 * @param response
+	 * @throws GroupModificationException
+	 * @throws GroupAlreadyExistsException
+	 */
 	private void errorToException(JSONObject response) throws GroupModificationException, GroupAlreadyExistsException {
 		if (response == null){
 			return;
@@ -286,17 +286,13 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 			return;
 		}
 
+		// TODO: If this is a constant somewhere include the nakamura jar in the
+		// lib directory and use the constant.
 		if (message.startsWith("A principal already exists with the requested name")){
 			throw new GroupAlreadyExistsException(message);
 		}
 
 		throw new GroupModificationException(message);
-	}
-
-	public void logUnhandledResponse(int responseCode, String response){
-		if (log.isErrorEnabled()){
-			log.error("Unhandled response. code=" + responseCode + "\nResponse: " + response);
-		}
 	}
 
 	public void setInitialPropertiesProvider(
