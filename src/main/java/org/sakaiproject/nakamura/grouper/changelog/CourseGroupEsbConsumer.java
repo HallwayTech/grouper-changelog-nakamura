@@ -43,6 +43,8 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 	// This job will try to process events for groups in these stems
 	private Set<String> supportedStems;
 
+	private HashSet<String> includeExcludeSuffixes;
+
 	private static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 	private static final String CREATE_COURSE_ROLE = "student";
 
@@ -82,7 +84,7 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_ADHOC_COURSES_STEM, true));
 		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_COURSES_STEM, true));
 
-		Set<String> includeExcludeSuffixes = new HashSet<String>();
+		includeExcludeSuffixes = new HashSet<String>();
 		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_SUFFIX));
 		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX));
 		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_INCLUDES_SUFFIX, DEFAULT_INCLUDES_SUFFIX));
@@ -183,7 +185,7 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
 
-					if (member != null && "person".equals(member.getTypeName()) ){
+					if (!isIncludeExcludeSubGroup(groupName) && member != null && "person".equals(member.getTypeName()) ){
 						log.debug("Membership add, group: " + groupName + " subjectId: " + memberId);
 						checkSupportedGroup(groupName);
 
@@ -199,7 +201,7 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
 
-					if (member != null && "person".equals(member.getTypeName()) ){
+					if (!isIncludeExcludeSubGroup(groupName) && member != null && "person".equals(member.getTypeName()) ){
 						log.debug("Membership delete, group: " + groupName + " subjectId: " + memberId);
 						checkSupportedGroup(groupName);
 
@@ -224,6 +226,15 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 			throw new RuntimeException("Couldn't process any records");
 		}
 		return currentId;
+	}
+
+	private boolean isIncludeExcludeSubGroup(String grouperName){
+		for (String suffix: includeExcludeSuffixes){
+			if (grouperName.endsWith(suffix)){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
