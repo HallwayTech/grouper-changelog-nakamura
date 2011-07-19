@@ -5,14 +5,15 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
-import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
+import edu.internet2.middleware.grouper.GroupType;
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
@@ -29,12 +30,12 @@ import edu.internet2.middleware.subject.Subject;
 /**
  * Provision Simple Groups, Courses, and memberships to Sakai OAE.
  */
-public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
+public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 
-	private static Log log = GrouperUtil.getLog(NakamuraEsbConsumer.class);
+	private static Log log = GrouperUtil.getLog(CourseGroupEsbConsumer.class);
 
 	// The interface to the SakaiOAE/nakamura server.
-	private HttpSimpleGroupAdapter simpleGroupAdapter;
+	private HttpCourseAdapter courseGroupAdapter;
 
 	// Authenticated session for the Grouper API
 	private GrouperSession grouperSession;
@@ -42,33 +43,62 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 	// This job will try to process events for groups in these stems
 	private Set<String> supportedStems;
 
+	private static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
+	private static final String CREATE_COURSE_ROLE = "student";
+
 	// Configuration values from conf/grouper-loader.properties
 	public static final String PROPERTY_KEY_PREFIX = "nakamura";
 	public static final String PROP_URL =      PROPERTY_KEY_PREFIX + ".url";
 	public static final String PROP_USERNAME = PROPERTY_KEY_PREFIX + ".username";
 	public static final String PROP_PASSWORD = PROPERTY_KEY_PREFIX + ".password";
 
-	// Decides where we accept events from
-	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.adhoc.stem";
-	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.provisioned.stem";
+	public static final String PROP_REGEX =           PROPERTY_KEY_PREFIX + ".groupname.regex";
+	public static final String PROP_NAKID_TEMPLATE =  PROPERTY_KEY_PREFIX + ".groupid.template";
 
-	public NakamuraEsbConsumer() throws MalformedURLException {
+	// Decides where we accept events from
+	public static final String PROP_ADHOC_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.adhoc.stem";
+	public static final String PROP_PROVISIONED_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.provisioned.stem";
+
+	public static final String PROP_SYSTEM_OF_RECORD_SUFFIX = "grouperIncludeExclude.systemOfRecord.extension.suffix";
+	public static final String PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX = "grouperIncludeExclude.systemOfRecordAndIncludes.extension.suffix";
+	public static final String PROP_INCLUDES_SUFFIX = "grouperIncludeExclude.include.extension.suffix";
+	public static final String PROP_EXCLUDES_SUFFIX = "grouperIncludeExclude.exclude.extension.suffix";
+
+	public static final String DEFAULT_SYSTEM_OF_RECORD_SUFFIX = "_systemOfRecord";
+	public static final String DEFAULT_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX = "_systemOfRecordAndIncludes";
+	public static final String DEFAULT_INCLUDES_SUFFIX = "_includes";
+	public static final String DEFAULT_EXCLUDES_SUFFIX = "_excludes";
+
+
+	public CourseGroupEsbConsumer() throws MalformedURLException{
 		super();
 
 		// Read and parse the settings.
-        URL url = new URL(GrouperLoaderConfig.getPropertyString(PROP_URL, true));
+		URL url = new URL(GrouperLoaderConfig.getPropertyString(PROP_URL, true));
 		String username = GrouperLoaderConfig.getPropertyString(PROP_USERNAME, true);
 		String password = GrouperLoaderConfig.getPropertyString(PROP_PASSWORD, true);
 
 		supportedStems = new HashSet<String>();
-		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_ADHOC_SIMPLEGROUPS_STEM, true));
-		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_SIMPLEGROUPS_STEM, true));
+		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_ADHOC_COURSES_STEM, true));
+		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_COURSES_STEM, true));
 
-		simpleGroupAdapter = new HttpSimpleGroupAdapter();
-		simpleGroupAdapter.setUrl(url);
-		simpleGroupAdapter.setUsername(username);
-		simpleGroupAdapter.setPassword(password);
-		simpleGroupAdapter.setInitialPropertiesProvider(new StaticInitialGroupPropertiesProvider());
+		Set<String> includeExcludeSuffixes = new HashSet<String>();
+		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_SUFFIX));
+		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX));
+		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_INCLUDES_SUFFIX, DEFAULT_INCLUDES_SUFFIX));
+		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_EXCLUDES_SUFFIX, DEFAULT_EXCLUDES_SUFFIX));
+
+		TemplateGroupIdAdapter tgia = new TemplateGroupIdAdapter();
+		tgia.setIncludeExcludeSuffixes(includeExcludeSuffixes);
+		tgia.setPattern(Pattern.compile(GrouperLoaderConfig.getPropertyString(PROP_REGEX, true)));
+		tgia.setNakamuraIdTemplate(GrouperLoaderConfig.getPropertyString(PROP_NAKID_TEMPLATE, true));
+		tgia.setPseudoGroupSuffixes(NakamuraUtils.getPsuedoGroupSuffixes());
+
+		courseGroupAdapter = new HttpCourseAdapter();
+		courseGroupAdapter.setUrl(url);
+		courseGroupAdapter.setUsername(username);
+		courseGroupAdapter.setPassword(password);
+		courseGroupAdapter.setGroupIdAdapter(tgia);
 	}
 
 	/**
@@ -98,16 +128,20 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 
-					if (group != null) {
-						if (NakamuraUtils.isSimpleGroup(group)){
-							simpleGroupAdapter.createGroup(group);
-						}
-						else {
-							log.error("Received a delete event for a non-simple group.");
+					if (group != null){
+						if (NakamuraUtils.isCourseGroup(group)){
+							for (GroupType groupType: group.getTypes()){
+								// Create the OAE Course objects when the student_systemOfRecord group is created.
+								// That group has the group type addIncludeExclude
+								if (groupType.getName().equals(ADD_INCLUDE_EXCLUDE) &&
+										group.getExtension().equals(CREATE_COURSE_ROLE + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+									courseGroupAdapter.createGroup(group);
+								}
+							}
 						}
 					}
 					else {
-						log.error("Group added event received for a null or non-simple group " + groupName);
+						log.error("Group added event received for a group that doesn't exist? " + groupName);
 					}
 				}
 
@@ -121,11 +155,8 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 					if (group == null){
-						if (NakamuraUtils.isSimpleGroup(group)){
-							simpleGroupAdapter.deleteGroup(groupId, groupName);
-						}
-						else {
-							log.error("Received a delete event for a non-simple group.");
+						if (groupName.endsWith(CREATE_COURSE_ROLE + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+							courseGroupAdapter.deleteGroup(groupId, groupName);
 						}
 					}
 					else {
@@ -155,8 +186,9 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					if (member != null && "person".equals(member.getTypeName()) ){
 						log.debug("Membership add, group: " + groupName + " subjectId: " + memberId);
 						checkSupportedGroup(groupName);
-						if (NakamuraUtils.isSimpleGroup(groupName)){
-							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
+
+						if (NakamuraUtils.isCourseGroup(groupName)){
+							courseGroupAdapter.addMembership(groupId, groupName, memberId);
 						}
 					}
 				}
@@ -170,8 +202,9 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 					if (member != null && "person".equals(member.getTypeName()) ){
 						log.debug("Membership delete, group: " + groupName + " subjectId: " + memberId);
 						checkSupportedGroup(groupName);
-						if (NakamuraUtils.isSimpleGroup(groupName)){
-							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
+
+						if (NakamuraUtils.isCourseGroup(groupName)){
+							courseGroupAdapter.addMembership(groupId, groupName, memberId);
 						}
 					}
 				}
