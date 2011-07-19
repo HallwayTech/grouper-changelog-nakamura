@@ -58,13 +58,6 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	// Maps grouper gouprName -> nakamura groupId
 	protected GroupIdAdapter groupIdAdapter;
 
-	// uh-oh. someone's been using OSGi ConfigAdmin too long.
-	public void updated(Map<String,Object> config){
-		setUrl((String)config.get(NakamuraEsbConsumer.PROP_URL));
-		setUsername((String)config.get(NakamuraEsbConsumer.PROP_USERNAME));
-		setPassword((String)config.get(NakamuraEsbConsumer.PROP_PASSWORD));
-	}
-
 	/**
 	 * POST to http://localhost:8080/system/userManager/group.create.json
 	 * @see org.sakaiproject.nakamura.user.servlet.CreateSakaiGroupServlet
