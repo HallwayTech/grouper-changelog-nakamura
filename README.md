@@ -20,7 +20,7 @@ If you're not building on the same machine you'll be running the grouper loader 
 Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER_HOME}/conf/grouper-loader.properties
 
     changeLog.consumer.simpleGroup.quartzCron = 2/3 * * * * ?
-    changeLog.consumer.simpleGroup.class = org.sakaiproject.nakamura.grouper.changelog.NakamuraEsbConsumer
+    changeLog.consumer.simpleGroup.class = org.sakaiproject.nakamura.grouper.changelog.SimpleGroupEsbConsumer
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.simplegroups.adhoc.stem and nakamura.simplegroups.provisioned.stem
@@ -34,7 +34,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
 
     # Required for org.sakaiproject.nakamura.grouper.changelog.NakamuraEsbConsumer
     nakamura.simplegroups.adhoc.stem = edu:apps:sakaioae:adhoc:groups
-    nakamura.simplegroups.provisioned.stem = edu:apps:sakaioae:adhoc:groups
+    nakamura.simplegroups.provisioned.stem = edu:apps:sakaioae:provisioned:groups
 
     changeLog.consumer.courseGroups.quartzCron = 2/3 * * * * ?
     changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.CourseGroupEsbConsumer
@@ -50,8 +50,8 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' || event.eventType eq 'MEMBERSHIP_ADD')
 
     # Required for org.sakaiproject.nakamura.grouper.changelog.CourseGroupEsbConsumer
-    nakamura.courses.adhoc.stem = edu:apps:sakaioae:adhoc:course
-    nakamura.courses.provisioned.stem = edu:apps:sakaioae:adhoc:course
+    nakamura.courses.adhoc.stem = edu:apps:sakaioae:adhoc:courses
+    nakamura.courses.provisioned.stem = edu:apps:sakaioae:provisioned:courses
 
     # Regex indices                                            0       1       2       3       4       5       6
     nakamura.groupname.regex = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)

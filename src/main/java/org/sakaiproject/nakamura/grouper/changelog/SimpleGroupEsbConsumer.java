@@ -29,9 +29,9 @@ import edu.internet2.middleware.subject.Subject;
 /**
  * Provision Simple Groups, Courses, and memberships to Sakai OAE.
  */
-public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
+public class SimpleGroupEsbConsumer extends ChangeLogConsumerBase {
 
-	private static Log log = GrouperUtil.getLog(NakamuraEsbConsumer.class);
+	private static Log log = GrouperUtil.getLog(SimpleGroupEsbConsumer.class);
 
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpSimpleGroupAdapter simpleGroupAdapter;
@@ -52,7 +52,7 @@ public class NakamuraEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.adhoc.stem";
 	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.provisioned.stem";
 
-	public NakamuraEsbConsumer() throws MalformedURLException {
+	public SimpleGroupEsbConsumer() throws MalformedURLException {
 		super();
 
 		// Read and parse the settings.
