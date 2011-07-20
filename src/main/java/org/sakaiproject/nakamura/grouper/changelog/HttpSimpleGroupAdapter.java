@@ -139,12 +139,34 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	/*************************************************************************
 	 * Utility methods.*/
 
+	public void createPseudoGroup(String nakamuraGroupId, Group group) throws GroupModificationException {
+		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+		PostMethod method = new PostMethod(url + GROUP_CREATE_URI);
+		method.addParameter(":name", nakamuraGroupId);
+		method.addParameter("_charset_", "utf-8");
+		method.addParameter("sakai:group-id", nakamuraGroupId);
+		method.addParameter("sakai:excludeSearch", "true");
+		method.addParameter("sakai:group-description", group.getDescription());
+		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + getPseudoGroupParent(nakamuraGroupId) + ")");
+		method.addParameter("sakai:pseudoGroup", "true");
+		method.addParameter("sakai:pseudogroupparent", getPseudoGroupParent(nakamuraGroupId));
+		method.addParameter("grouper:name", group.getParentStemName() + ":" + nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
+		http(client, method);
+	}
+
 	/**
-	 * @param groupId the id of the OAE group
-	 * @return the URI to the update operation.
+	 * Return the authorizableId of the parent group for this group.
+	 * @param nakamuraGroupId
+	 * @return
 	 */
-	private String getUpdateURI(String groupId){
-		return GROUP_PATH_PREFIX + "/" + groupId + ".update.json";
+	public String getPseudoGroupParent(String nakamuraGroupId){
+		int index = nakamuraGroupId.lastIndexOf("-");
+		if (index == -1){
+			return nakamuraGroupId;
+		}
+		else {
+			return nakamuraGroupId.substring(0, index);
+		}
 	}
 
 	/**
@@ -153,6 +175,14 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	 */
 	private String getDeleteURI(String groupId){
 		return GROUP_PATH_PREFIX + groupId + ".delete.json";
+	}
+
+	/**
+	 * @param groupId the id of the OAE group
+	 * @return the URI to the update operation.
+	 */
+	private String getUpdateURI(String groupId){
+		return GROUP_PATH_PREFIX + "/" + groupId + ".update.json";
 	}
 
 	/**

@@ -471,33 +471,4 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    // TODO: Add the last few requests.
 	}
 
-	public void createPseudoGroup(String nakamuraGroupId, Group group) throws GroupModificationException {
-		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-		PostMethod method = new PostMethod(url + GROUP_CREATE_URI);
-		method.addParameter(":name", nakamuraGroupId);
-		method.addParameter("_charset_", "utf-8");
-		method.addParameter("sakai:group-id", nakamuraGroupId);
-		method.addParameter("sakai:excludeSearch", "true");
-		method.addParameter("sakai:group-description", group.getDescription());
-		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + getPseudoGroupParent(nakamuraGroupId) + ")");
-		method.addParameter("sakai:pseudoGroup", "true");
-		method.addParameter("sakai:pseudogroupparent", getPseudoGroupParent(nakamuraGroupId));
-		method.addParameter("grouper:name", group.getParentStemName() + ":" + nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
-		http(client, method);
-	}
-
-	/**
-	 * Return the authorizableId of the parent group for this group.
-	 * @param nakamuraGroupId
-	 * @return
-	 */
-	public String getPseudoGroupParent(String nakamuraGroupId){
-		int index = nakamuraGroupId.lastIndexOf("-");
-		if (index == -1){
-			return nakamuraGroupId;
-		}
-		else {
-			return nakamuraGroupId.substring(0, index);
-		}
-	}
 }
