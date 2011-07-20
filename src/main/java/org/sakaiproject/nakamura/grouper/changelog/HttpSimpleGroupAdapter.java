@@ -13,6 +13,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.HttpHeaders;
@@ -219,10 +220,10 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 
 		try{
 			int responseCode = client.executeMethod(method);
-			responseString = IOUtils.toString(method.getResponseBodyAsStream());
+			responseString = StringUtils.trimToNull(IOUtils.toString(method.getResponseBodyAsStream()));
 
 			boolean isJSONRequest = ! method.getURI().toString().endsWith(".html");
-			if (isJSONRequest){
+			if (responseString != null && isJSONRequest){
 				responseJSON = JSONObject.fromObject(responseString);
 			}
 
@@ -234,11 +235,11 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 			case HttpStatus.SC_UNAUTHORIZED: // 401
 			case HttpStatus.SC_FORBIDDEN: // 404
 			case HttpStatus.SC_INTERNAL_SERVER_ERROR: // 500
-				if (isJSONRequest){
+				if (isJSONRequest && responseJSON != null){
 					errorMessage = responseJSON.getString("status.message");
 				}
-				else {
-					errorMessage = responseString;
+				if (errorMessage == null){
+					errorMessage = "Empty 500 error. Check the logs on the Sakai OAE server at " + url;
 				}
 				break;
 			default:
