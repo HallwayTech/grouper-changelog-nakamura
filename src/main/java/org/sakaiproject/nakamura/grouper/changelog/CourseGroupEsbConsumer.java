@@ -28,7 +28,29 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
 
 /**
- * Provision Simple Groups, Courses, and memberships to Sakai OAE.
+ * Provision and sync Course Groups in Sakai OAE with Grouper.
+ *
+ * Courses in Sakai OAE have a group authorizable for each role in the Course.
+ * At the time of this writing those were student, ta, lecturer.
+ *
+ * For each of these role groups we'll have a set of groups in Grouper.
+ *
+ * Example:
+ *
+ * Sakai OAE has a course named course0.
+ *
+ * Grouper would have the following:
+ * 1. course0:students
+ * 2. course0:students_includes
+ * 3. course0:students_excludes
+ * 4. course0:students_systemOfRecord
+ * 5. course0:students_systemOfRecordAndIncludes
+ *
+ * Group 1 would have the effective membership: ((4 + 5) + 2) - 3.
+ *
+ * This class should act on flattened membership events for the first group.
+ * They're called flattened since course0:students would be a composite group
+ * and its membership depends on the state of the component groups (and subgroups).
  */
 public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 
@@ -54,13 +76,11 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_USERNAME = PROPERTY_KEY_PREFIX + ".username";
 	public static final String PROP_PASSWORD = PROPERTY_KEY_PREFIX + ".password";
 
-	public static final String PROP_REGEX =           PROPERTY_KEY_PREFIX + ".groupname.regex";
-	public static final String PROP_NAKID_TEMPLATE =  PROPERTY_KEY_PREFIX + ".groupid.template";
-
 	// Decides where we accept events from
 	public static final String PROP_ADHOC_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.adhoc.stem";
 	public static final String PROP_PROVISIONED_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.provisioned.stem";
 
+	// addIncludeExclude group suffixes
 	public static final String PROP_SYSTEM_OF_RECORD_SUFFIX = "grouperIncludeExclude.systemOfRecord.extension.suffix";
 	public static final String PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX = "grouperIncludeExclude.systemOfRecordAndIncludes.extension.suffix";
 	public static final String PROP_INCLUDES_SUFFIX = "grouperIncludeExclude.include.extension.suffix";
@@ -71,6 +91,9 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String DEFAULT_INCLUDES_SUFFIX = "_includes";
 	public static final String DEFAULT_EXCLUDES_SUFFIX = "_excludes";
 
+	// For the TemplateGroupIdAdapter
+	public static final String PROP_REGEX =           PROPERTY_KEY_PREFIX + ".groupname.regex";
+	public static final String PROP_NAKID_TEMPLATE =  PROPERTY_KEY_PREFIX + ".groupid.template";
 
 	public CourseGroupEsbConsumer() throws MalformedURLException{
 		super();
@@ -216,6 +239,7 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 		catch(UnsupportedGroupException e){
 			log.error(e.getMessage());
 		}
+		// Stop processing changelog entries.
 		catch (Exception e) {
 			changeLogProcessorMetadata.registerProblem(e, "Error processing record", currentId);
 			// we made it to this -1
@@ -228,6 +252,11 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 		return currentId;
 	}
 
+	/**
+	 * Is this a sub group of the addIncludeExclude group?
+	 * @param grouperName
+	 * @return
+	 */
 	private boolean isIncludeExcludeSubGroup(String grouperName){
 		for (String suffix: includeExcludeSuffixes){
 			if (grouperName.endsWith(suffix)){
