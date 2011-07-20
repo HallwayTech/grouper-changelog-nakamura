@@ -3,9 +3,9 @@ package org.sakaiproject.nakamura.grouper.changelog;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Map;
 import java.util.UUID;
 
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -59,6 +59,8 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	// Maps grouper gouprName -> nakamura groupId
 	protected GroupIdAdapter groupIdAdapter;
 
+	private boolean createUsers = false;
+
 	/**
 	 * POST to http://localhost:8080/system/userManager/group.create.json
 	 * @see org.sakaiproject.nakamura.user.servlet.CreateSakaiGroupServlet
@@ -107,10 +109,13 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
         PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
         method.addParameter(":member", memberId);
         method.addParameter(":viewer", memberId);
-        createOAEUser(memberId);
-        JSONObject response = http(NakamuraHttpUtils.getHttpClient(url, groupName, memberId), method);
+        method.addParameter("_charset_", "utf-8");
+        if (createUsers){
+        	createOAEUser(memberId);
+        }
+        JSONObject response = http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
 	    if (log.isInfoEnabled()){
-	        log.info("SUCCESS: add subjectId=" + memberId + " to group=" + nakamuraGroupId );
+	        log.info("SUCCESS: add subjectId=" + memberId + " to group=" + nakamuraGroupId);
 	    }
 	}
 
@@ -124,7 +129,8 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
         PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
         method.addParameter(":member@Delete", memberId);
         method.addParameter(":viewer@Delete", memberId);
-        JSONObject response = http(NakamuraHttpUtils.getHttpClient(url, groupName, memberId), method);
+        method.addParameter("_charset_", "utf-8");
+        JSONObject response = http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
 	    if (log.isInfoEnabled()){
 	        log.info("SUCCESS: deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
 	    }
@@ -192,13 +198,8 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 			method.addParameter(":name", userId);
 			method.addParameter("pwd", randomPassword);
 			method.addParameter("pwdConfirm", randomPassword);
-
-			try {
-				JSONObject response = http(client, method);
-				log.info("Created a user for " + userId);
-			} catch (GroupModificationException gme){
-				throw new GroupModificationException(gme.getMessage());
-			}
+			http(client, method);
+			log.info("Created a user for " + userId);
 		}
 	}
 
@@ -224,7 +225,12 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 
 			boolean isJSONRequest = ! method.getURI().toString().endsWith(".html");
 			if (responseString != null && isJSONRequest){
-				responseJSON = JSONObject.fromObject(responseString);
+				try {
+					responseJSON = JSONObject.fromObject(responseString);
+				}
+				catch (JSONException je){
+					log.error("Could not parse JSON response.");
+				}
 			}
 
 			switch (responseCode){
@@ -239,7 +245,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 					errorMessage = responseJSON.getString("status.message");
 				}
 				if (errorMessage == null){
-					errorMessage = "Empty 500 error. Check the logs on the Sakai OAE server at " + url;
+					errorMessage = "Empty "+ responseCode + " error. Check the logs on the Sakai OAE server at " + url;
 				}
 				break;
 			default:
@@ -259,7 +265,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 
 		if (errorMessage != null){
 			log.error(errorMessage);
-			errorToException(responseJSON);
+			errorToException(errorMessage);
 		}
 		return responseJSON;
 	}
@@ -270,23 +276,17 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	 * @throws GroupModificationException
 	 * @throws GroupAlreadyExistsException
 	 */
-	private void errorToException(JSONObject response) throws GroupModificationException, GroupAlreadyExistsException {
-		if (response == null){
+	private void errorToException(String errorMessage) throws GroupModificationException, GroupAlreadyExistsException {
+		if (errorMessage == null){
 			return;
 		}
-
-		String message = response.getString("status.message");
-		if (message == null){
-			return;
-		}
-
 		// TODO: If this is a constant somewhere include the nakamura jar in the
 		// lib directory and use the constant.
-		if (message.startsWith("A principal already exists with the requested name")){
-			throw new GroupAlreadyExistsException(message);
+		if (errorMessage.startsWith("A principal already exists with the requested name")){
+			throw new GroupAlreadyExistsException(errorMessage);
 		}
 
-		throw new GroupModificationException(message);
+		throw new GroupModificationException(errorMessage);
 	}
 
 	public void setInitialPropertiesProvider(
@@ -316,5 +316,9 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	}
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public void setCreateUsers(boolean createUsers) {
+		this.createUsers = createUsers;
 	}
 }

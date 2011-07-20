@@ -48,6 +48,8 @@ public class SimpleGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_USERNAME = PROPERTY_KEY_PREFIX + ".username";
 	public static final String PROP_PASSWORD = PROPERTY_KEY_PREFIX + ".password";
 
+	public static final String PROP_CREATE_USERS = PROPERTY_KEY_PREFIX + ".create.users";
+
 	// Decides where we accept events from
 	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.adhoc.stem";
 	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.provisioned.stem";
@@ -69,6 +71,7 @@ public class SimpleGroupEsbConsumer extends ChangeLogConsumerBase {
 		simpleGroupAdapter.setUsername(username);
 		simpleGroupAdapter.setPassword(password);
 		simpleGroupAdapter.setInitialPropertiesProvider(new StaticInitialGroupPropertiesProvider());
+		simpleGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(PROP_CREATE_USERS, false));
 	}
 
 	/**

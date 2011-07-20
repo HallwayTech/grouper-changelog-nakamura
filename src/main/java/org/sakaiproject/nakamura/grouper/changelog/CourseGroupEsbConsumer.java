@@ -76,6 +76,8 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_USERNAME = PROPERTY_KEY_PREFIX + ".username";
 	public static final String PROP_PASSWORD = PROPERTY_KEY_PREFIX + ".password";
 
+	public static final String PROP_CREATE_USERS = PROPERTY_KEY_PREFIX + ".create.users";
+
 	// Decides where we accept events from
 	public static final String PROP_ADHOC_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.adhoc.stem";
 	public static final String PROP_PROVISIONED_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.provisioned.stem";
@@ -124,6 +126,7 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 		courseGroupAdapter.setUsername(username);
 		courseGroupAdapter.setPassword(password);
 		courseGroupAdapter.setGroupIdAdapter(tgia);
+		courseGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(PROP_CREATE_USERS, false));
 	}
 
 	/**
@@ -216,7 +219,7 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 						checkSupportedGroup(groupName);
 
 						if (NakamuraUtils.isCourseGroup(groupName)){
-							courseGroupAdapter.addMembership(groupId, groupName, memberId);
+							courseGroupAdapter.deleteMembership(groupId, groupName, memberId);
 						}
 					}
 				}
