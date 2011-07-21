@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.sakaiproject.nakamura.grouper.changelog.BaseGroupEsbConsumer;
+import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupEsbConsumer;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -13,8 +15,6 @@ import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
 public class NakamuraUtils {
 
-	public static final String PROPERTY_KEY_PREFIX = "nakamura";
-
 	protected static Set<String> psuedoGroupSuffixes = new HashSet<String>();
 
 	/**
@@ -23,7 +23,7 @@ public class NakamuraUtils {
 	 * stored them somewhere available via HTTP.
 	 */
 	public static Set<String> getPsuedoGroupSuffixes(){
-		String str = GrouperLoaderConfig.getPropertyString(PROPERTY_KEY_PREFIX + ".psuedoGroup.suffixes");
+		String str = GrouperLoaderConfig.getPropertyString(BaseGroupEsbConsumer.PROPERTY_KEY_PREFIX + ".psuedoGroup.suffixes");
 		for(String suffix: StringUtils.split(str, ",")){
 			psuedoGroupSuffixes.add(suffix.trim());
 		}
@@ -62,22 +62,19 @@ public class NakamuraUtils {
 		if (group == null){
 			return false;
 		}
-		if (group.getExtension().equals("manager")){
-			return true;
-		}
-		GrouperSession session = GrouperSession.start(SubjectFinder.findRootSubject(), false);
-		Group managers = GroupFinder.findByName(session, group.getParentStemName() + ":manager", false);
-		session.stop();
-		return managers != null;
+		return isCourseGroup(group.getName());
 	}
 
 	/**
 	 * @return is this group part of a "Simple Group" in OAE?
 	 */
 	public static boolean isSimpleGroup(String grouperName){
-		GrouperSession session = GrouperSession.start(SubjectFinder.findRootSubject(), false);
-		Group g = GroupFinder.findByName(session, grouperName, false);
-		session.stop();
-		return isSimpleGroup(g);
+		String provisioned = GrouperLoaderConfig.getPropertyString(
+				SimpleGroupEsbConsumer.PROP_PROVISIONED_SIMPLEGROUPS_STEM);
+		String adhoc = GrouperLoaderConfig.getPropertyString(
+				SimpleGroupEsbConsumer.PROP_PROVISIONED_SIMPLEGROUPS_STEM);
+		
+
+		return grouperName.startsWith(provisioned) || grouperName.startsWith(adhoc); 
 	}
 }
