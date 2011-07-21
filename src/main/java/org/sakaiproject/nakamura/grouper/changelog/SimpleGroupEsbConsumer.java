@@ -105,7 +105,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					checkSupportedGroup(groupName);
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 					if (group == null){
-						if (NakamuraUtils.isSimpleGroup(group)){
+						if (NakamuraUtils.isSimpleGroup(groupName)){
 							simpleGroupAdapter.deleteGroup(groupId, groupName);
 						}
 						else {
