@@ -6,9 +6,6 @@ public class SimpleGroupIdAdapter implements GroupIdAdapter {
 
 	private String provisionedSimpleGroupsStem;
 
-	private static final String MANAGER_SUFFIX = "manager";
-	private static final String MEMBER_SUFFIX = "member";
-
 	@Override
 	public String getNakamuraGroupId(String grouperName) {
 		String nakamuraGroupId = null;
@@ -16,8 +13,13 @@ public class SimpleGroupIdAdapter implements GroupIdAdapter {
 		String stem = grouperName.substring(0, lastColon);
 		String extension = grouperName.substring(lastColon + 1);
 
-		if (extension.equals(MANAGER_SUFFIX) || extension.equals(MEMBER_SUFFIX)){
+		if (extension.equals(SimpleGroupEsbConsumer.MANAGER_SUFFIX) || 
+				extension.equals(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
 			grouperName = stem;
+		}
+		else {
+			// OAE must have updated the list of role groups. ugh
+			return null;
 		}
 
 		if (grouperName.startsWith(provisionedSimpleGroupsStem)){
@@ -27,8 +29,11 @@ public class SimpleGroupIdAdapter implements GroupIdAdapter {
 			}
 		}
 
-		if (extension.equals(MANAGER_SUFFIX)){
-			nakamuraGroupId += "-" + MANAGER_SUFFIX;
+		if (extension.equals(SimpleGroupEsbConsumer.MANAGER_SUFFIX)){
+			nakamuraGroupId += "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
+		}
+		else {
+			nakamuraGroupId += "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
 		}
 
 		return nakamuraGroupId;
