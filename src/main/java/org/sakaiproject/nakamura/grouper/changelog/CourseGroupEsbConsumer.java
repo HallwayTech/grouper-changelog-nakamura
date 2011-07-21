@@ -1,11 +1,9 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
@@ -14,16 +12,12 @@ import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GroupType;
-import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
-import edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
-import edu.internet2.middleware.grouper.exception.GrouperException;
-import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
 
@@ -52,80 +46,35 @@ import edu.internet2.middleware.subject.Subject;
  * They're called flattened since course0:students would be a composite group
  * and its membership depends on the state of the component groups (and subgroups).
  */
-public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
+public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	private static Log log = GrouperUtil.getLog(CourseGroupEsbConsumer.class);
 
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpCourseAdapter courseGroupAdapter;
 
-	// Authenticated session for the Grouper API
-	private GrouperSession grouperSession;
-
 	// This job will try to process events for groups in these stems
 	private Set<String> supportedStems;
 
-	private HashSet<String> includeExcludeSuffixes;
-
 	private static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 	private static final String CREATE_COURSE_ROLE = "student";
-
-	// Configuration values from conf/grouper-loader.properties
-	public static final String PROPERTY_KEY_PREFIX = "nakamura";
-	public static final String PROP_URL =      PROPERTY_KEY_PREFIX + ".url";
-	public static final String PROP_USERNAME = PROPERTY_KEY_PREFIX + ".username";
-	public static final String PROP_PASSWORD = PROPERTY_KEY_PREFIX + ".password";
-
-	public static final String PROP_CREATE_USERS = PROPERTY_KEY_PREFIX + ".create.users";
 
 	// Decides where we accept events from
 	public static final String PROP_ADHOC_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.adhoc.stem";
 	public static final String PROP_PROVISIONED_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.provisioned.stem";
 
-	// addIncludeExclude group suffixes
-	public static final String PROP_SYSTEM_OF_RECORD_SUFFIX = "grouperIncludeExclude.systemOfRecord.extension.suffix";
-	public static final String PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX = "grouperIncludeExclude.systemOfRecordAndIncludes.extension.suffix";
-	public static final String PROP_INCLUDES_SUFFIX = "grouperIncludeExclude.include.extension.suffix";
-	public static final String PROP_EXCLUDES_SUFFIX = "grouperIncludeExclude.exclude.extension.suffix";
-
-	public static final String DEFAULT_SYSTEM_OF_RECORD_SUFFIX = "_systemOfRecord";
-	public static final String DEFAULT_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX = "_systemOfRecordAndIncludes";
-	public static final String DEFAULT_INCLUDES_SUFFIX = "_includes";
-	public static final String DEFAULT_EXCLUDES_SUFFIX = "_excludes";
-
-	// For the TemplateGroupIdAdapter
-	public static final String PROP_REGEX =           PROPERTY_KEY_PREFIX + ".groupname.regex";
-	public static final String PROP_NAKID_TEMPLATE =  PROPERTY_KEY_PREFIX + ".groupid.template";
-
 	public CourseGroupEsbConsumer() throws MalformedURLException{
 		super();
-
-		// Read and parse the settings.
-		URL url = new URL(GrouperLoaderConfig.getPropertyString(PROP_URL, true));
-		String username = GrouperLoaderConfig.getPropertyString(PROP_USERNAME, true);
-		String password = GrouperLoaderConfig.getPropertyString(PROP_PASSWORD, true);
 
 		supportedStems = new HashSet<String>();
 		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_ADHOC_COURSES_STEM, true));
 		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_COURSES_STEM, true));
 
-		includeExcludeSuffixes = new HashSet<String>();
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_SUFFIX));
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX));
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_INCLUDES_SUFFIX, DEFAULT_INCLUDES_SUFFIX));
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_EXCLUDES_SUFFIX, DEFAULT_EXCLUDES_SUFFIX));
-
-		TemplateGroupIdAdapter tgia = new TemplateGroupIdAdapter();
-		tgia.setIncludeExcludeSuffixes(includeExcludeSuffixes);
-		tgia.setPattern(Pattern.compile(GrouperLoaderConfig.getPropertyString(PROP_REGEX, true)));
-		tgia.setNakamuraIdTemplate(GrouperLoaderConfig.getPropertyString(PROP_NAKID_TEMPLATE, true));
-		tgia.setPseudoGroupSuffixes(NakamuraUtils.getPsuedoGroupSuffixes());
-
 		courseGroupAdapter = new HttpCourseAdapter();
 		courseGroupAdapter.setUrl(url);
 		courseGroupAdapter.setUsername(username);
 		courseGroupAdapter.setPassword(password);
-		courseGroupAdapter.setGroupIdAdapter(tgia);
+		courseGroupAdapter.setGroupIdAdapter(templateGroupIdAdapter);
 		courseGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(PROP_CREATE_USERS, false));
 	}
 
@@ -273,22 +222,5 @@ public class CourseGroupEsbConsumer extends ChangeLogConsumerBase {
 		if (!supported){
 			throw new UnsupportedGroupException("Not configured to handle " + groupName + ". Check the elfilter.");
 		}
-	}
-
-	/**
-	 * Lazy-load the grouperSession
-	 * @return
-	 */
-	private GrouperSession getGrouperSession(){
-		if ( grouperSession == null) {
-			try {
-				grouperSession = GrouperSession.start(SubjectFinder.findRootSubject(), false);
-				log.debug("started session: " + this.grouperSession);
-			}
-			catch (SessionException se) {
-				throw new GrouperException("Error starting session: " + se.getMessage(), se);
-			}
-		}
-		return grouperSession;
 	}
 }

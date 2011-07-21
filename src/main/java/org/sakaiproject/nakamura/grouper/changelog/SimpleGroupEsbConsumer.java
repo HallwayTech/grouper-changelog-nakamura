@@ -1,7 +1,6 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,46 +8,30 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
-import org.sakaiproject.nakamura.grouper.changelog.util.StaticInitialGroupPropertiesProvider;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
-import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
-import edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
-import edu.internet2.middleware.grouper.exception.GrouperException;
-import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
 
 /**
- * Provision Simple Groups, Courses, and memberships to Sakai OAE.
+ * Provision Simple Groups and memberships to Sakai OAE.
  */
-public class SimpleGroupEsbConsumer extends ChangeLogConsumerBase {
+public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	private static Log log = GrouperUtil.getLog(SimpleGroupEsbConsumer.class);
 
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpSimpleGroupAdapter simpleGroupAdapter;
 
-	// Authenticated session for the Grouper API
-	private GrouperSession grouperSession;
-
 	// This job will try to process events for groups in these stems
 	private Set<String> supportedStems;
-
-	// Configuration values from conf/grouper-loader.properties
-	public static final String PROPERTY_KEY_PREFIX = "nakamura";
-	public static final String PROP_URL =      PROPERTY_KEY_PREFIX + ".url";
-	public static final String PROP_USERNAME = PROPERTY_KEY_PREFIX + ".username";
-	public static final String PROP_PASSWORD = PROPERTY_KEY_PREFIX + ".password";
-
-	public static final String PROP_CREATE_USERS = PROPERTY_KEY_PREFIX + ".create.users";
 
 	// Decides where we accept events from
 	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.adhoc.stem";
@@ -57,21 +40,19 @@ public class SimpleGroupEsbConsumer extends ChangeLogConsumerBase {
 	public SimpleGroupEsbConsumer() throws MalformedURLException {
 		super();
 
-		// Read and parse the settings.
-        URL url = new URL(GrouperLoaderConfig.getPropertyString(PROP_URL, true));
-		String username = GrouperLoaderConfig.getPropertyString(PROP_USERNAME, true);
-		String password = GrouperLoaderConfig.getPropertyString(PROP_PASSWORD, true);
-
 		supportedStems = new HashSet<String>();
 		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_ADHOC_SIMPLEGROUPS_STEM, true));
 		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_SIMPLEGROUPS_STEM, true));
+
+		SimpleGroupIdAdapter groupIdAdapter = new SimpleGroupIdAdapter();
+		groupIdAdapter.setProvisionedSimpleGroupsStem(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_SIMPLEGROUPS_STEM, true));
 
 		simpleGroupAdapter = new HttpSimpleGroupAdapter();
 		simpleGroupAdapter.setUrl(url);
 		simpleGroupAdapter.setUsername(username);
 		simpleGroupAdapter.setPassword(password);
-		simpleGroupAdapter.setInitialPropertiesProvider(new StaticInitialGroupPropertiesProvider());
 		simpleGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(PROP_CREATE_USERS, false));
+		simpleGroupAdapter.setGroupIdAdapter(groupIdAdapter);
 	}
 
 	/**
@@ -102,7 +83,7 @@ public class SimpleGroupEsbConsumer extends ChangeLogConsumerBase {
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 
 					if (group != null) {
-						if (NakamuraUtils.isSimpleGroup(group)){
+						if (NakamuraUtils.isSimpleGroup(group) || group.getExtension().equals("members")){
 							simpleGroupAdapter.createGroup(group);
 						}
 						else {
@@ -200,22 +181,5 @@ public class SimpleGroupEsbConsumer extends ChangeLogConsumerBase {
 		if (!supported){
 			throw new UnsupportedGroupException("Not configured to handle " + groupName + ". Check the elfilter.");
 		}
-	}
-
-	/**
-	 * Lazy-load the grouperSession
-	 * @return
-	 */
-	private GrouperSession getGrouperSession(){
-		if ( grouperSession == null) {
-			try {
-				grouperSession = GrouperSession.start(SubjectFinder.findRootSubject(), false);
-				log.debug("started session: " + this.grouperSession);
-			}
-			catch (SessionException se) {
-				throw new GrouperException("Error starting session: " + se.getMessage(), se);
-			}
-		}
-		return grouperSession;
 	}
 }
