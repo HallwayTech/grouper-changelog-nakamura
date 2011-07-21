@@ -37,6 +37,9 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.adhoc.stem";
 	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.provisioned.stem";
 
+	public static final String MANAGER_SUFFIX = "manager";
+	public static final String MEMBER_SUFFIX = "members";
+
 	public SimpleGroupEsbConsumer() throws MalformedURLException {
 		super();
 
@@ -83,7 +86,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 
 					if (group != null) {
-						if (NakamuraUtils.isSimpleGroup(group) || group.getExtension().equals("members")){
+						if (NakamuraUtils.isSimpleGroup(group) || group.getExtension().equals(MEMBER_SUFFIX)){
 							simpleGroupAdapter.createGroup(group);
 						}
 						else {
