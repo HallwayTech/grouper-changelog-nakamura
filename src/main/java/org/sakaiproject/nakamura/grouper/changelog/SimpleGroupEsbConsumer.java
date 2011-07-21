@@ -90,7 +90,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 							simpleGroupAdapter.createGroup(group);
 						}
 						else {
-							log.error("Received a delete event for a non-simple group.");
+							log.error("Received an add event for a non-simple group.");
 						}
 					}
 					else {
@@ -99,7 +99,6 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.id);
 					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
 
 					if (log.isDebugEnabled()){
@@ -109,7 +108,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 					if (group == null){
 						if (NakamuraUtils.isSimpleGroup(groupName)){
-							simpleGroupAdapter.deleteGroup(groupId, groupName);
+							simpleGroupAdapter.deleteGroup(groupName, groupName);
 						}
 						else {
 							log.error("Received a delete event for a non-simple group.");

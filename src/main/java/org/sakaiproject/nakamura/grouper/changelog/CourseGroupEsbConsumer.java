@@ -123,7 +123,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.id);
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
 
 					if (log.isDebugEnabled()){
@@ -133,7 +132,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 					if (group == null || NakamuraUtils.isCourseGroup(grouperName)){
 						if (grouperName.endsWith(CREATE_COURSE_ROLE + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
-							courseGroupAdapter.deleteGroup(groupId, grouperName);
+							courseGroupAdapter.deleteGroup(grouperName, grouperName);
 						}
 					}
 					else {
