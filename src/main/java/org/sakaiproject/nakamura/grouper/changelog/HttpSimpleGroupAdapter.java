@@ -421,7 +421,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	    http(client, method);
 
 	    log.debug("Set the member viewer and manager viewer on the sakai documents.");
-	    
+
 	    // --------------------------------------------------------------------
 	    // POST 12 - setting the doc structure on the sakai docs
 	    method = new PostMethod(url + "/~" + parentGroupId + "/docstructure");
@@ -433,7 +433,7 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	    method.setParameter(":replace", "true");
 	    method.setParameter(":replaceProperties", "true");
 	    method.setParameter("_charset_", "utf-8");
-	    
+
 	    http(client, method);
 	}
 
@@ -443,13 +443,31 @@ public class HttpSimpleGroupAdapter implements NakamuraGroupAdapter {
 	 */
 	public void deleteGroup(String groupId, String groupName) throws GroupModificationException {
 
-		String nakamuraGroupName = groupIdAdapter.getNakamuraGroupId(groupName);
+		String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(groupName);
 
-		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-	    PostMethod method = new PostMethod(url.toString() + getDeleteURI(nakamuraGroupName));
-	    method.addParameter("go", "1");
-	    http(client, method);
-	    log.info("Deleted " + nakamuraGroupName + " for " + groupName);
+		if (nakamuraGroupId.endsWith(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
+			String parentGroupId = getPseudoGroupParent(nakamuraGroupId);
+			String memberPsuedoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
+			String managerPsuedoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
+
+			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+			PostMethod method = new PostMethod(url.toString() + getDeleteURI(parentGroupId));
+			method.addParameter("go", "1");
+			http(client, method);
+			log.info("Deleted " + parentGroupId + " for " + groupName);
+
+			client = NakamuraHttpUtils.getHttpClient(url, username, password);
+			method = new PostMethod(url.toString() + getDeleteURI(memberPsuedoGroupId));
+			method.addParameter("go", "1");
+			http(client, method);
+			log.info("Deleted " + memberPsuedoGroupId + " for " + groupName);
+
+			client = NakamuraHttpUtils.getHttpClient(url, username, password);
+			method = new PostMethod(url.toString() + getDeleteURI(managerPsuedoGroupId));
+			method.addParameter("go", "1");
+			http(client, method);
+			log.info("Deleted " + managerPsuedoGroupId + " for " + groupName);
+		}
 	}
 
 	/**
