@@ -38,7 +38,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.provisioned.stem";
 
 	public static final String MANAGER_SUFFIX = "manager";
-	public static final String MEMBER_SUFFIX = "members";
+	public static final String MEMBER_SUFFIX = "member";
 
 	public SimpleGroupEsbConsumer() throws MalformedURLException {
 		super();
