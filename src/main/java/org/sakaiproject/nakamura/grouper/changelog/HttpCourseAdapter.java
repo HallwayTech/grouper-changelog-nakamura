@@ -25,12 +25,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 
 	private Log log = LogFactory.getLog(HttpCourseAdapter.class);
 
-	protected static final String BATCH_URI         = "/system/batch";
-	protected static final String CREATE_FILE_URI   = "/system/pool/createfile";
-
 	private static final String DEFAULT_COURSE_TEMPLATE = "mathcourse";
-
-	private static final String BATCH_REQUESTS_PARAM = "requests";
 
 	/**
 	 * Create the full set of objects that are necessary to have a working
@@ -84,6 +79,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 		method.setParameter("sakai:category", "courses");
 		method.setParameter("sakai:templateid", DEFAULT_COURSE_TEMPLATE);
 		method.setParameter("sakai:joinRole", "student");
+		method.setParameter("sakai:joinable", "yes");
 		method.setParameter("sakai:roles", "[{\"id\":\"student\",\"roleTitle\":\"Students\",\"title\":\"Student\",\"allowManage\":false},{\"id\":\"ta\",\"roleTitle\":\"Teaching Assistants\",\"title\":\"Teaching Assistant\",\"allowManage\":true},{\"id\":\"lecturer\",\"roleTitle\":\"Lecturers\",\"title\":\"Lecturer\",\"allowManage\":true}]");
 		try {
 			http(client, method);
@@ -185,7 +181,7 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 		method.setParameter("sakai:group-joinable", "yes");
 		method.setParameter("_charset_", "utf-8");
 		http(client, method);
-		log.debug("Updated the visibilty and joinabolity.");
+		log.debug("Updated the visibilty and joinability.");
 
 		// --------------------------------------------------------------------
 		// POST 8 - creating initial sakai docs
@@ -268,7 +264,8 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    if (post8Response != null){
 	    	try {
 	    		JSONArray docResults = post8Response.getJSONArray("results");
-	    		Iterator<JSONObject> itr = docResults.iterator();
+	    		@SuppressWarnings("unchecked")
+				Iterator<JSONObject> itr = docResults.iterator();
 	    		while(itr.hasNext()){
 	    			JSONObject result = itr.next();
 	    			JSONObject body = result.getJSONObject("body");
