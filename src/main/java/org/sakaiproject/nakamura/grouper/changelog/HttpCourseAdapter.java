@@ -20,7 +20,6 @@ import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 import com.google.common.collect.ImmutableMap;
 
 import edu.internet2.middleware.grouper.Group;
-import edu.internet2.middleware.grouper.exception.GrouperException;
 
 /**
  * Provision courses in Sakai OAE over HTTP according to the Grouper changelog
@@ -471,8 +470,43 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 
 	    log.debug("Set ACLs on sakai documents.");
 
-	    // There's more to do here but For the demo purposes its enough
-	    // TODO: Add the last few requests.
+
+	    // -------------------------------------------------------------
+	    // POST 11 - Add the groups as managers of the doc.
+	    batchPosts.clear();
+	    for (String docHash : new String[]{ syllabusDocHash, contactUsDocHash, orgNotesDocHash, studentWikiDocHash}){
+	    	for (String roleGroupId: new String[]{ studentGroupId, taGroupId, lecturerGroupId}){
+	    		JSONObject request = new JSONObject();
+	    		request.put("url", "/p/" + docHash + ".members.html");
+	    		request.put("_charset_", "utf-8");
+	    		request.put("parameters", ImmutableMap.of(":manager", roleGroupId, "_charset_", "utf-8"));
+	    		batchPosts.add(request);
+	    	}
+	    }
+
+	    method = new PostMethod(url + BATCH_URI);
+	    json = JSONArray.fromObject(batchPosts);
+	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
+	    http(client, method);
+
+	    method = new PostMethod(url + "/~" + parentGroupId + ".docstructure");
+
+	    method.setParameter(":operation", "import");
+	    method.setParameter(":contentType", "json");
+	    method.setParameter(":replace", "true");
+	    method.setParameter(":replaceProperties", "true");
+	    method.setParameter("_charset_", "utf-8");
+	    JSONObject content = new JSONObject();
+	    String structure = "{\"syllabus\":{\"_title\":\"Syllabus\",\"_order\":0,\"_view\":\"[\\\"everyone\\\",\\\"-student\\\",\\\"-ta\\\"]\",\"_edit\":\"[\\\"-lecturer\\\"]\",\"_pid\":\"#{SYLLABUS_DOC_HASH}\"},\"contactus\":{\"_title\":\"Contact us\",\"_order\":1,\"_view\":\"[\\\"-student\\\"]\",\"_edit\":\"[\\\"-lecturer\\\",\\\"-ta\\\"]\",\"_pid\":\"#{CONTACTUS_DOC_HASH}\"},\"organizationnotes\":{\"_title\":\"Organization Notes\",\"_order\":3,\"_view\":\"[\\\"-ta\\\"]\",\"_edit\":\"[\\\"-lecturer\\\"]\",\"_pid\":\"#{ORGNOTES_DOC_HASH}\"},\"studentwiki\":{\"_title\":\"Student Wiki\",\"_order\":4,\"_view\":\"[]\",\"_edit\":\"[\\\"-lecturer\\\",\\\"-ta\\\",\\\"-student\\\"]\",\"_pid\":\"#{STUDENTWIKI_DOC_HASH}\"}}";
+	    structure = structure.replaceAll("#\\{SYLLABUS_DOC_HASH\\}", syllabusDocHash);
+	    structure = structure.replaceAll("#\\{CONTACTUS_DOC_HASH\\}", contactUsDocHash);
+	    structure = structure.replaceAll("#\\{SYLLABUS_DOC_HASH\\}", syllabusDocHash);
+	    structure = structure.replaceAll("#\\{STUDENTWIKI_DOC_HASH\\}", studentWikiDocHash);
+	    content.put("structure0", structure);
+	    method.setParameter("content", content.toString());
+	    http(client, method);
+
+	    log.info("Imported docstructure.");
 	}
 
 	@Override
