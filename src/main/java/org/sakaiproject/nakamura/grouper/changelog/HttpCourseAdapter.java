@@ -10,22 +10,28 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
+import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
 import com.google.common.collect.ImmutableMap;
 
 import edu.internet2.middleware.grouper.Group;
+import edu.internet2.middleware.grouper.exception.GrouperException;
 
 /**
  * Provision courses in Sakai OAE over HTTP according to the Grouper changelog
  */
-public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
+public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroupAdapter {
 
 	private Log log = LogFactory.getLog(HttpCourseAdapter.class);
 
 	private static final String DEFAULT_COURSE_TEMPLATE = "mathcourse";
+
+	// Maps grouper gouperName -> nakamura groupId
+	protected GroupIdAdapter groupIdAdapter;
 
 	/**
 	 * Create the full set of objects that are necessary to have a working
@@ -468,4 +474,26 @@ public class HttpCourseAdapter extends HttpSimpleGroupAdapter {
 	    // TODO: Add the last few requests.
 	}
 
+	@Override
+	public void deleteGroup(String groupId, String groupName)
+			throws GroupModificationException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void addMembership(String groupId, String groupName, String memberId)
+	throws GroupModificationException {
+		addMembership(groupIdAdapter.getNakamuraGroupId(groupName), memberId);
+	}
+
+	@Override
+	public void deleteMembership(String groupId, String groupName, String memberId)
+	throws GroupModificationException {
+		deleteMembership(groupIdAdapter.getNakamuraGroupId(groupName), memberId);
+	}
+
+	public void setGroupIdAdapter(TemplateGroupIdAdapter adapter){
+		this.groupIdAdapter = adapter;
+	}
 }
