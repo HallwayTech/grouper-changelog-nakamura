@@ -1,11 +1,13 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
 import java.util.Iterator;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -13,7 +15,7 @@ import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
-import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
+
 import com.google.common.collect.ImmutableMap;
 
 import edu.internet2.middleware.grouper.Group;
@@ -32,7 +34,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	private Log log = LogFactory.getLog(HttpSimpleGroupAdapter.class);
 
 	// Maps grouper gouperName -> nakamura groupId
-	protected GroupIdAdapter groupIdAdapter;
+	protected SimpleGroupIdAdapter groupIdAdapter;
 
 	/**
 	 * POST to http://localhost:8080/system/userManager/group.create.json
@@ -420,23 +422,21 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 			String memberPsuedoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
 			String managerPsuedoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
 
-			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-			PostMethod method = new PostMethod(url.toString() + getDeleteURI(parentGroupId));
-			method.addParameter("go", "1");
-			http(client, method);
-			log.info("Deleted " + parentGroupId + " for " + groupName);
-
-			client = NakamuraHttpUtils.getHttpClient(url, username, password);
-			method = new PostMethod(url.toString() + getDeleteURI(memberPsuedoGroupId));
-			method.addParameter("go", "1");
-			http(client, method);
-			log.info("Deleted " + memberPsuedoGroupId + " for " + groupName);
-
-			client = NakamuraHttpUtils.getHttpClient(url, username, password);
-			method = new PostMethod(url.toString() + getDeleteURI(managerPsuedoGroupId));
-			method.addParameter("go", "1");
-			http(client, method);
-			log.info("Deleted " + managerPsuedoGroupId + " for " + groupName);
+			for (String deleteId: new String[] { memberPsuedoGroupId, managerPsuedoGroupId, parentGroupId }){
+				HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+				PostMethod method = new PostMethod(url.toString() + getDeleteURI(deleteId));
+				method.addParameter(":operation", "delete");
+				method.addParameter("go", "1");
+				try {
+					http(client, method);
+				}
+				catch (GroupModificationException e) {
+					if (e.code != HttpStatus.SC_NOT_FOUND){
+						throw e;
+					}
+				}
+				log.info("Deleted " + deleteId + " for " + groupName);
+			}
 		}
 	}
 
@@ -450,7 +450,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		deleteMembership(groupIdAdapter.getNakamuraGroupId(groupName), memberId);
 	}
 
-	public void setGroupIdAdapter(GroupIdAdapter groupIdAdapter) {
+	public void setGroupIdAdapter(SimpleGroupIdAdapter groupIdAdapter) {
 		this.groupIdAdapter = groupIdAdapter;
 	}
 }

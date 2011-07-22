@@ -194,8 +194,9 @@ public class BaseGroupAdapter {
 		String responseString = null;
 		JSONObject responseJSON = null;
 
+		int responseCode = -1;
 		try{
-			int responseCode = client.executeMethod(method);
+			responseCode = client.executeMethod(method);
 			responseString = StringUtils.trimToNull(IOUtils.toString(method.getResponseBodyAsStream()));
 
 			boolean isJSONRequest = ! method.getURI().toString().endsWith(".html");
@@ -220,7 +221,7 @@ public class BaseGroupAdapter {
 				break;
 			case HttpStatus.SC_BAD_REQUEST: // 400
 			case HttpStatus.SC_UNAUTHORIZED: // 401
-			case HttpStatus.SC_FORBIDDEN: // 404
+			case HttpStatus.SC_NOT_FOUND: // 404
 			case HttpStatus.SC_INTERNAL_SERVER_ERROR: // 500
 				if (isJSONRequest && responseJSON != null){
 					errorMessage = responseJSON.getString("status.message");
@@ -246,7 +247,7 @@ public class BaseGroupAdapter {
 
 		if (errorMessage != null){
 			log.error(errorMessage);
-			errorToException(errorMessage);
+			errorToException(responseCode, errorMessage);
 		}
 		return responseJSON;
 	}
@@ -257,7 +258,7 @@ public class BaseGroupAdapter {
 	 * @throws GroupModificationException
 	 * @throws GroupAlreadyExistsException
 	 */
-	protected void errorToException(String errorMessage) throws GroupModificationException, GroupAlreadyExistsException {
+	protected void errorToException(int code, String errorMessage) throws GroupModificationException, GroupAlreadyExistsException {
 		if (errorMessage == null){
 			return;
 		}
@@ -267,7 +268,7 @@ public class BaseGroupAdapter {
 			throw new GroupAlreadyExistsException(errorMessage);
 		}
 
-		throw new GroupModificationException(errorMessage);
+		throw new GroupModificationException(code, errorMessage);
 	}
 
 	protected void setUrl(String urlString){
