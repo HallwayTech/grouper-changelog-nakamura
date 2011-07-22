@@ -62,7 +62,7 @@ public class NakamuraUtils {
 		if (group == null){
 			return false;
 		}
-		return isCourseGroup(group.getName());
+		return isSimpleGroup(group.getName());
 	}
 
 	/**
