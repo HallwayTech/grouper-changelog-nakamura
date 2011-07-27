@@ -112,7 +112,7 @@ public class BaseGroupAdapter {
 		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + getPseudoGroupParent(nakamuraGroupId) + ")");
 		method.addParameter("sakai:pseudoGroup", "true");
 		method.addParameter("sakai:pseudogroupparent", getPseudoGroupParent(nakamuraGroupId));
-		method.setParameter("sakai:joinable", "yes");
+		method.setParameter("sakai:group-joinable", "yes");
 		method.addParameter("grouper:name", group.getParentStemName() + ":" + nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
 		http(client, method);
 	}
