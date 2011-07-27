@@ -9,8 +9,8 @@ import org.apache.commons.jexl2.JexlContext;
 import org.apache.commons.jexl2.JexlEngine;
 import org.apache.commons.jexl2.MapContext;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
-import edu.internet2.middleware.grouper.util.GrouperUtil;
 
 /**
  * A flexible way to map grouper names to SakaiOAE groups.
@@ -28,7 +28,7 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
  */
 public class TemplateGroupIdAdapter implements GroupIdAdapter {
 
-	private static Log log = GrouperUtil.getLog(TemplateGroupIdAdapter.class);
+	private static Log log = LogFactory.getLog(TemplateGroupIdAdapter.class);
 
 	private Pattern pattern;
 	private String nakamuraIdTemplate;
