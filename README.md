@@ -32,7 +32,7 @@ If you're not building on the same machine you'll be running the grouper loader 
 
 Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER_HOME}/conf/grouper-loader.properties
 
-    changeLog.consumer.simpleGroup.quartzCron = 2/3 * * * * ?
+    changeLog.consumer.simpleGroup.quartzCron = 0 0 * * * ?
     changeLog.consumer.simpleGroup.class = org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
 
     # You may have to change this stem. 
@@ -49,7 +49,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     nakamura.simplegroups.adhoc.stem = edu:apps:sakaioae:adhoc:groups
     nakamura.simplegroups.provisioned.stem = edu:apps:sakaioae:provisioned:groups
 
-    changeLog.consumer.courseGroups.quartzCron = 2/3 * * * * ?
+    changeLog.consumer.courseGroups.quartzCron = 0 0 * * * ?
     changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
 
     # You may have to change this stem. 
