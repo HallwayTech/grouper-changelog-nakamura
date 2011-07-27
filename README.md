@@ -32,12 +32,12 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                (event.eventType eq 'GROUP_DELETE' || event.eventType eq 'GROUP_ADD' \
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' || event.eventType eq 'MEMBERSHIP_ADD')
 
-    # Required for org.sakaiproject.nakamura.grouper.changelog.NakamuraEsbConsumer
+    # Required for org.sakaiproject.nakamura.grouper.changelog.SimpleGroupEsbConsumer
     nakamura.simplegroups.adhoc.stem = edu:apps:sakaioae:adhoc:groups
     nakamura.simplegroups.provisioned.stem = edu:apps:sakaioae:provisioned:groups
 
     changeLog.consumer.courseGroups.quartzCron = 2/3 * * * * ?
-    changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.AddIncludeExcludeGroupEsbConsumer
+    changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.CourseGroupEsbConsumer
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.courses.adhoc.stem and nakamura.courses.provisioned.stem

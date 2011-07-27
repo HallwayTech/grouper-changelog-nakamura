@@ -46,9 +46,9 @@ import edu.internet2.middleware.subject.Subject;
  * They're called flattened since course0:students would be a composite group
  * and its membership depends on the state of the component groups (and subgroups).
  */
-public class AddIncludeExcludeGroupEsbConsumer extends BaseGroupEsbConsumer {
+public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
-	private static Log log = GrouperUtil.getLog(AddIncludeExcludeGroupEsbConsumer.class);
+	private static Log log = GrouperUtil.getLog(CourseGroupEsbConsumer.class);
 
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpCourseAdapter courseGroupAdapter;
@@ -67,7 +67,7 @@ public class AddIncludeExcludeGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	private static final String CREATE_DELETE_ROLE = "student";
 
-	public AddIncludeExcludeGroupEsbConsumer() throws MalformedURLException {
+	public CourseGroupEsbConsumer() throws MalformedURLException {
 		super();
 
 		supportedStems = new HashSet<String>();
