@@ -68,14 +68,14 @@
     <dependency>
       <groupId>edu.internet2.middleware.grouper</groupId>
       <artifactId>grouperClient</artifactId>
-      <version>1.7.0</version>
+      <version>1.6.3</version>
       <type>jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>edu.internet2.middleware.grouper</groupId>
       <artifactId>grouper</artifactId>
-      <version>1.7.0</version>
+      <version>1.6.3</version>
       <type>jar</type>
       <scope>compile</scope>
     </dependency>
