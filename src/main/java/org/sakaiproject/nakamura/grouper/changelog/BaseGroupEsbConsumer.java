@@ -28,6 +28,7 @@ public class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	protected URL url;
 	protected String username;
 	protected String password;
+	protected boolean dryrun;
 
 	protected HashSet<String> includeExcludeSuffixes;
 	protected TemplateGroupIdAdapter templateGroupIdAdapter;
@@ -39,6 +40,8 @@ public class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_URL =      PROPERTY_KEY_PREFIX + ".url";
 	public static final String PROP_USERNAME = PROPERTY_KEY_PREFIX + ".username";
 	public static final String PROP_PASSWORD = PROPERTY_KEY_PREFIX + ".password";
+
+	public static final String PROP_DRYRUN = PROPERTY_KEY_PREFIX + ".dryrun";
 
 	public static final String PROP_CREATE_USERS = PROPERTY_KEY_PREFIX + ".create.users";
 
@@ -63,6 +66,7 @@ public class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		url = new URL(GrouperLoaderConfig.getPropertyString(PROP_URL, true));
 		username = GrouperLoaderConfig.getPropertyString(PROP_USERNAME, true);
 		password = GrouperLoaderConfig.getPropertyString(PROP_PASSWORD, true);
+		dryrun = GrouperLoaderConfig.getPropertyBoolean(PROP_DRYRUN, false);
 
 		includeExcludeSuffixes = new HashSet<String>();
 		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_SUFFIX));

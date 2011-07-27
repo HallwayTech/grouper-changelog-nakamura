@@ -46,9 +46,9 @@ import edu.internet2.middleware.subject.Subject;
  * They're called flattened since course0:students would be a composite group
  * and its membership depends on the state of the component groups (and subgroups).
  */
-public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
+public class AddIncludeExcludeGroupEsbConsumer extends BaseGroupEsbConsumer {
 
-	private static Log log = GrouperUtil.getLog(CourseGroupEsbConsumer.class);
+	private static Log log = GrouperUtil.getLog(AddIncludeExcludeGroupEsbConsumer.class);
 
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpCourseAdapter courseGroupAdapter;
@@ -57,13 +57,17 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	private Set<String> supportedStems;
 
 	private static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
-	private static final String CREATE_COURSE_ROLE = "student";
 
 	// Decides where we accept events from
 	public static final String PROP_ADHOC_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.adhoc.stem";
 	public static final String PROP_PROVISIONED_COURSES_STEM =  PROPERTY_KEY_PREFIX + ".courses.provisioned.stem";
 
-	public CourseGroupEsbConsumer() throws MalformedURLException{
+	public static final String PROP_ADHOC_SIMPLE_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.adhoc.stem";
+	public static final String PROP_PROVISIONED_SIMPLE_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.provisioned.stem";
+
+	private static final String CREATE_DELETE_ROLE = "student";
+
+	public AddIncludeExcludeGroupEsbConsumer() throws MalformedURLException {
 		super();
 
 		supportedStems = new HashSet<String>();
@@ -76,6 +80,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		courseGroupAdapter.setPassword(password);
 		courseGroupAdapter.setGroupIdAdapter(templateGroupIdAdapter);
 		courseGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(PROP_CREATE_USERS, false));
+		courseGroupAdapter.setDryrun(dryrun);
 	}
 
 	/**
@@ -111,7 +116,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 								// Create the OAE Course objects when the student_systemOfRecord group is created.
 								// That group has the group type addIncludeExclude
 								if (groupType.getName().equals(ADD_INCLUDE_EXCLUDE) &&
-										group.getExtension().equals(CREATE_COURSE_ROLE + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+										group.getExtension().equals(CREATE_DELETE_ROLE + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
 									courseGroupAdapter.createGroup(group);
 								}
 							}
@@ -131,7 +136,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					checkSupportedGroup(grouperName);
 					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 					if (group == null || NakamuraUtils.isCourseGroup(grouperName)){
-						if (grouperName.endsWith(CREATE_COURSE_ROLE + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+						if (grouperName.endsWith(CREATE_DELETE_ROLE + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
 							courseGroupAdapter.deleteGroup(grouperName, grouperName);
 						}
 					}

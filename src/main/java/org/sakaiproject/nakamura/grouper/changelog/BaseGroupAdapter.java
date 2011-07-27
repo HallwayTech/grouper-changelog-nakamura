@@ -48,6 +48,8 @@ public class BaseGroupAdapter {
 
 	protected boolean createUsers = false;
 
+	protected boolean dryrun = false;
+
 	/**
 	 * @param groupId the id of the OAE group
 	 * @return the URI to the delete operation.
@@ -121,6 +123,11 @@ public class BaseGroupAdapter {
 	 * @throws Exception
 	 */
 	protected void createOAEUser(String userId) throws GroupModificationException {
+
+		if (dryrun){
+			return;
+		}
+
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		int returnCode = 0;
 		try {
@@ -166,14 +173,19 @@ public class BaseGroupAdapter {
 	 */
 	public boolean groupExists(String groupId){
 		boolean exists = false;
-		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-		GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
-		try {
-			exists = (client.executeMethod(method) == HttpStatus.SC_OK);
+		if (dryrun){
+			return false;
 		}
-		catch (Exception e){
-			log.error(e.getMessage());
-			throw new GrouperException(e.getMessage());
+		else {
+			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+			GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
+			try {
+				exists = (client.executeMethod(method) == HttpStatus.SC_OK);
+			}
+			catch (Exception e){
+				log.error(e.getMessage());
+				throw new GrouperException(e.getMessage());
+			}
 		}
 		return exists;
 	}
@@ -193,6 +205,10 @@ public class BaseGroupAdapter {
 		String errorMessage = null;
 		String responseString = null;
 		JSONObject responseJSON = null;
+
+		if (dryrun){
+			return new JSONObject();
+		}
 
 		int responseCode = -1;
 		try{
@@ -295,5 +311,9 @@ public class BaseGroupAdapter {
 
 	public void setCreateUsers(boolean createUsers) {
 		this.createUsers = createUsers;
+	}
+
+	public void setDryrun(boolean dryrun) {
+		this.dryrun = dryrun;
 	}
 }

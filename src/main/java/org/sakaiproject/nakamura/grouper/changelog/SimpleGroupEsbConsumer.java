@@ -56,6 +56,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		simpleGroupAdapter.setPassword(password);
 		simpleGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(PROP_CREATE_USERS, false));
 		simpleGroupAdapter.setGroupIdAdapter(groupIdAdapter);
+		simpleGroupAdapter.setDryrun(dryrun);
 	}
 
 	/**
