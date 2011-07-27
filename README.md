@@ -37,7 +37,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     nakamura.simplegroups.provisioned.stem = edu:apps:sakaioae:provisioned:groups
 
     changeLog.consumer.courseGroups.quartzCron = 2/3 * * * * ?
-    changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.CourseGroupEsbConsumer
+    changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.AddIncludeExcludeGroupEsbConsumer
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.courses.adhoc.stem and nakamura.courses.provisioned.stem
@@ -63,6 +63,8 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     nakamura.username = grouper-admin
     nakamura.password = grouper
     nakamura.basestem = edu:apps:sakaioae
+    # Set to true to test.
+    nakamura.dryrun = false
 
     
 Run the Grouper Loader
