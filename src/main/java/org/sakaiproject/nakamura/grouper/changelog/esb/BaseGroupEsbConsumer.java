@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.grouper.changelog;
+package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
+import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 
 import edu.internet2.middleware.grouper.GrouperSession;

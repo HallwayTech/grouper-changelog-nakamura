@@ -9,7 +9,8 @@ import com.google.common.collect.ImmutableSet;
 
 public class TemplateGroupIdAdapterTestCase extends TestCase {
 
-	private Set<String> pseudoGroupSuffxies = ImmutableSet.of("student", "ta", "lecturer", "manager", "members");
+	private Set<String> pseudoGroupSuffixes = ImmutableSet.of("student", "ta", "lecturer", "manager", "members");
+	private Set<String> includeExcludeSuffixes = ImmutableSet.of("_includes", "_excludes", "_systemOfRecord", "_systemOfRecordAndIncludes");
 
 	public void testGetNakamuraName(){
 		String pattern = "edu:apps:sakaioae:([^:]+):([^:]+):([^:]+)$";
@@ -17,7 +18,8 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 		TemplateGroupIdAdapter adaptor = new TemplateGroupIdAdapter();
 		adaptor.setPattern(Pattern.compile(pattern));
 		adaptor.setNakamuraIdTemplate(template);
-		adaptor.setPseudoGroupSuffixes(pseudoGroupSuffxies);
+		adaptor.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		adaptor.setIncludeExcludeSuffixes(includeExcludeSuffixes);
 		assertEquals("newgroup_some_thing_else",
 				adaptor.getNakamuraGroupId("edu:apps:sakaioae:some:thing:else"));
 
@@ -29,7 +31,8 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 		TemplateGroupIdAdapter adaptor = new TemplateGroupIdAdapter();
 		adaptor.setPattern(Pattern.compile(pattern));
 		adaptor.setNakamuraIdTemplate(template);
-		adaptor.setPseudoGroupSuffixes(pseudoGroupSuffxies);
+		adaptor.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		adaptor.setIncludeExcludeSuffixes(includeExcludeSuffixes);
 
 		assertEquals("acad_term_subject_catalog_session_section",
 				adaptor.getNakamuraGroupId("edu:apps:sakaioae:acad:term:subject:catalog:session:section"));
@@ -42,7 +45,8 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 		TemplateGroupIdAdapter adaptor = new TemplateGroupIdAdapter();
 		adaptor.setPattern(Pattern.compile(pattern));
 		adaptor.setNakamuraIdTemplate(template);
-		adaptor.setPseudoGroupSuffixes(pseudoGroupSuffxies);
+		adaptor.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		adaptor.setIncludeExcludeSuffixes(includeExcludeSuffixes);
 
 		assertEquals(null, adaptor.getNakamuraGroupId(null));
 		assertEquals("course_MATH-GA_1410_1_001_FA11-members",

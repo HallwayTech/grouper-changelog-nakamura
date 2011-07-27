@@ -1,4 +1,4 @@
-package org.sakaiproject.nakamura.grouper.changelog;
+package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
 import java.util.HashSet;
@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
+import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 

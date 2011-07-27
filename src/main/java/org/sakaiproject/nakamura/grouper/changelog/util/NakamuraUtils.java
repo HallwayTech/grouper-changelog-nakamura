@@ -4,8 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.sakaiproject.nakamura.grouper.changelog.BaseGroupEsbConsumer;
-import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupEsbConsumer;
+import org.sakaiproject.nakamura.grouper.changelog.esb.BaseGroupEsbConsumer;
+import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;

@@ -20,7 +20,7 @@ If you're not building on the same machine you'll be running the grouper loader 
 Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER_HOME}/conf/grouper-loader.properties
 
     changeLog.consumer.simpleGroup.quartzCron = 2/3 * * * * ?
-    changeLog.consumer.simpleGroup.class = org.sakaiproject.nakamura.grouper.changelog.SimpleGroupEsbConsumer
+    changeLog.consumer.simpleGroup.class = org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.simplegroups.adhoc.stem and nakamura.simplegroups.provisioned.stem
@@ -32,12 +32,12 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                (event.eventType eq 'GROUP_DELETE' || event.eventType eq 'GROUP_ADD' \
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' || event.eventType eq 'MEMBERSHIP_ADD')
 
-    # Required for org.sakaiproject.nakamura.grouper.changelog.SimpleGroupEsbConsumer
+    # Required for org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
     nakamura.simplegroups.adhoc.stem = edu:apps:sakaioae:adhoc:groups
     nakamura.simplegroups.provisioned.stem = edu:apps:sakaioae:provisioned:groups
 
     changeLog.consumer.courseGroups.quartzCron = 2/3 * * * * ?
-    changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.CourseGroupEsbConsumer
+    changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.courses.adhoc.stem and nakamura.courses.provisioned.stem
@@ -49,7 +49,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                (event.eventType eq 'GROUP_DELETE' || event.eventType eq 'GROUP_ADD' \
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' || event.eventType eq 'MEMBERSHIP_ADD')
 
-    # Required for org.sakaiproject.nakamura.grouper.changelog.CourseGroupEsbConsumer
+    # Required for org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
     nakamura.courses.adhoc.stem = edu:apps:sakaioae:adhoc:courses
     nakamura.courses.provisioned.stem = edu:apps:sakaioae:provisioned:courses
 

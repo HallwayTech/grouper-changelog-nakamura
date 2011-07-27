@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
+import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
 public class SimpleGroupIdAdapter implements GroupIdAdapter {

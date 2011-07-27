@@ -297,15 +297,15 @@ public class BaseGroupAdapter {
 		}
 	}
 
-	protected void setUrl(URL url) {
+	public void setUrl(URL url) {
 		this.url = url;
 	}
 
-	protected void setUsername(String username) {
+	public void setUsername(String username) {
 		this.username = username;
 	}
 
-	protected void setPassword(String password) {
+	public void setPassword(String password) {
 		this.password = password;
 	}
 

@@ -1,5 +1,7 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
+import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
+
 import junit.framework.TestCase;
 
 public class SimpleGroupIdAdapterTestCase extends TestCase {
