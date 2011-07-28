@@ -15,7 +15,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
-import org.mortbay.jetty.HttpHeaders;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
@@ -199,8 +198,8 @@ public class BaseGroupAdapter {
 	 */
 	public JSONObject http(HttpClient client, PostMethod method) throws GroupModificationException {
 
-		method.setRequestHeader(HttpHeaders.USER_AGENT, HTTP_USER_AGENT);
-		method.setRequestHeader(HttpHeaders.REFERER, HTTP_REFERER);
+		method.setRequestHeader("User-Agent", HTTP_USER_AGENT);
+		method.setRequestHeader("Referer", HTTP_REFERER);
 
 		String errorMessage = null;
 		String responseString = null;
