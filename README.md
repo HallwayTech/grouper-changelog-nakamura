@@ -44,9 +44,16 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.simpleGroup.adhoc.stem = edu:apps:sakaioae:adhoc:groups
     changeLog.consumer.simpleGroup.provisioned.stem = edu:apps:sakaioae:provisioned:groups
 
+    changeLog.consumer.simpleGroup.url = http://localhost:8080
+    changeLog.consumer.simpleGroup.username = grouper-admin
+    changeLog.consumer.simpleGroup.password = grouper
+    changeLog.consumer.simpleGroup.basestem = edu:apps:sakaioae
+    # Set to true to test.
+    changeLog.consumer.simpleGroup.dryrun = false
 
-	#########################################################################################################################
-	#########################################################################################################################
+
+    #########################################################################################################################
+    #########################################################################################################################
 
     changeLog.consumer.courseGroups.quartzCron = 0 0 * * * ?
     changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
@@ -70,12 +77,12 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     nakamura.groupid.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
     nakamura.psuedoGroup.suffixes = member, manager, student, lecturer, ta
 
-    nakamura.url = http://localhost:8080
-    nakamura.username = grouper-admin
-    nakamura.password = grouper
-    nakamura.basestem = edu:apps:sakaioae
+    changeLog.consumer.courseGroups.nakamura.url = http://localhost:8080
+    changeLog.consumer.courseGroups.nakamura.username = grouper-admin
+    changeLog.consumer.courseGroups.nakamura.password = grouper
+    changeLog.consumer.courseGroups.nakamura.basestem = edu:apps:sakaioae
     # Set to true to test.
-    nakamura.dryrun = false
+    changeLog.consumer.courseGroups.nakamura.dryrun = false
 
     
 Run the Grouper Loader

@@ -3,8 +3,6 @@ package org.sakaiproject.nakamura.grouper.changelog.util;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
-import org.sakaiproject.nakamura.grouper.changelog.esb.BaseGroupEsbConsumer;
 import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
 
 import edu.internet2.middleware.grouper.Group;
@@ -13,19 +11,6 @@ import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 public class NakamuraUtils {
 
 	protected static Set<String> psuedoGroupSuffixes = new HashSet<String>();
-
-	/**
-	 * @return the pseudo group suffixes from sakai
-	 * TODO: Find a better way to get these values. It'd be nice if sakai
-	 * stored them somewhere available via HTTP.
-	 */
-	public static Set<String> getPsuedoGroupSuffixes(){
-		String str = GrouperLoaderConfig.getPropertyString(BaseGroupEsbConsumer.PROPERTY_KEY_PREFIX + ".psuedoGroup.suffixes");
-		for(String suffix: StringUtils.split(str, ",")){
-			psuedoGroupSuffixes.add(suffix.trim());
-		}
-		return psuedoGroupSuffixes;
-	}
 
 	/**
 	 * @return is this group part of a course group in OAE?

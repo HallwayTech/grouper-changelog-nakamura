@@ -1,11 +1,13 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
@@ -53,26 +55,38 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	private static Log log = GrouperUtil.getLog(CourseGroupEsbConsumer.class);
 
+	protected URL url;
+	protected String username;
+	protected String password;
+	protected boolean dryrun;
+
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpCourseAdapter courseGroupAdapter;
 
 	// This job will try to process events for groups in these stems
 	private Set<String> supportedStems;
 
+	private Set<String> pseudoGroupSuffixes;
+
 	protected HashSet<String> includeExcludeSuffixes;
 	protected TemplateGroupIdAdapter templateGroupIdAdapter;
 
+	public static final String PROP_URL =      "url";
+	public static final String PROP_USERNAME = "username";
+	public static final String PROP_PASSWORD = "password";
+
+	public static final String PROP_DRYRUN = "dryrun";
+	public static final String PROP_CREATE_USERS = "create.users";
+
 	private static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 
-	private static final String COURSE_PROP_PREFIX = "changeLog.consumer.courseGroups";
-
 	// Decides where we accept events from
-	public static final String PROP_ADHOC_COURSES_STEM =  COURSE_PROP_PREFIX + ".adhoc.stem";
-	public static final String PROP_PROVISIONED_COURSES_STEM =  COURSE_PROP_PREFIX + ".provisioned.stem";
+	public static final String PROP_ADHOC_COURSES_STEM = "adhoc.stem";
+	public static final String PROP_PROVISIONED_COURSES_STEM = "provisioned.stem";
 
 	// For the TemplateGroupIdAdapter
-	public static final String PROP_REGEX = PROPERTY_KEY_PREFIX + ".groupname.regex";
-	public static final String PROP_NAKID_TEMPLATE =  PROPERTY_KEY_PREFIX + ".groupid.template";
+	public static final String PROP_REGEX = "groupname.regex";
+	public static final String PROP_NAKID_TEMPLATE = "groupid.template";
 
 	// addIncludeExclude group suffixes
 	public static final String PROP_SYSTEM_OF_RECORD_SUFFIX = "grouperIncludeExclude.systemOfRecord.extension.suffix";
@@ -87,8 +101,13 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	private static final String CREATE_DELETE_ROLE = "student";
 
-	public CourseGroupEsbConsumer() throws MalformedURLException {
-		super();
+	protected void loadConfiguration(String consumerName) throws MalformedURLException{
+
+		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
+		url = new URL(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_URL, true));
+		username = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_USERNAME, true);
+		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
+		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, false);
 
 		includeExcludeSuffixes = new HashSet<String>();
 		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_SUFFIX));
@@ -96,24 +115,30 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_INCLUDES_SUFFIX, DEFAULT_INCLUDES_SUFFIX));
 		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_EXCLUDES_SUFFIX, DEFAULT_EXCLUDES_SUFFIX));
 
+		pseudoGroupSuffixes = new HashSet<String>();
+		String str = GrouperLoaderConfig.getPropertyString(cfgPrefix + "psuedoGroup.suffixes");
+		for(String suffix: StringUtils.split(str, ",")){
+			pseudoGroupSuffixes.add(suffix.trim());
+		}
+
 		templateGroupIdAdapter = new TemplateGroupIdAdapter();
 		templateGroupIdAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
-		templateGroupIdAdapter.setPattern(Pattern.compile(GrouperLoaderConfig.getPropertyString(PROP_REGEX, true)));
-		templateGroupIdAdapter.setNakamuraIdTemplate(GrouperLoaderConfig.getPropertyString(PROP_NAKID_TEMPLATE, true));
-		templateGroupIdAdapter.setPseudoGroupSuffixes(NakamuraUtils.getPsuedoGroupSuffixes());
-		templateGroupIdAdapter.setAdhocStem(GrouperLoaderConfig.getPropertyString(PROP_ADHOC_COURSES_STEM, true));
-		templateGroupIdAdapter.setProvisionedStem(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_COURSES_STEM, true));
+		templateGroupIdAdapter.setPattern(Pattern.compile(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_REGEX, true)));
+		templateGroupIdAdapter.setNakamuraIdTemplate(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_TEMPLATE, true));
+		templateGroupIdAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		templateGroupIdAdapter.setAdhocStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADHOC_COURSES_STEM, true));
+		templateGroupIdAdapter.setProvisionedStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_COURSES_STEM, true));
 
 		supportedStems = new HashSet<String>();
-		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_ADHOC_COURSES_STEM, true));
-		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_COURSES_STEM, true));
+		supportedStems.add(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADHOC_COURSES_STEM, true));
+		supportedStems.add(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_COURSES_STEM, true));
 
 		courseGroupAdapter = new HttpCourseAdapter();
 		courseGroupAdapter.setUrl(url);
 		courseGroupAdapter.setUsername(username);
 		courseGroupAdapter.setPassword(password);
 		courseGroupAdapter.setGroupIdAdapter(templateGroupIdAdapter);
-		courseGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(PROP_CREATE_USERS, false));
+		courseGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_CREATE_USERS, false));
 		courseGroupAdapter.setDryrun(dryrun);
 	}
 
@@ -124,9 +149,16 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
 			ChangeLogProcessorMetadata changeLogProcessorMetadata) {
 
-		String consumerName = changeLogProcessorMetadata.getConsumerName();
-
 		long currentId = -1;
+
+		String consumerName = changeLogProcessorMetadata.getConsumerName();
+		try {
+			loadConfiguration(consumerName);
+		}
+		catch (MalformedURLException e){
+			log.error("Error reading configurations.", e);
+			return currentId;
+		}
 
 		// try catch so we can track that we made some progress
 		try {

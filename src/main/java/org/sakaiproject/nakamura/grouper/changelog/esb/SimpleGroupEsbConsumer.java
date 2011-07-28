@@ -1,6 +1,7 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +30,11 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	private static Log log = GrouperUtil.getLog(SimpleGroupEsbConsumer.class);
 
+	protected URL url;
+	protected String username;
+	protected String password;
+	protected boolean dryrun;
+
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpSimpleGroupAdapter simpleGroupAdapter;
 
@@ -36,30 +42,31 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	private Set<String> supportedStems;
 
 	// ------ BEGIN conf/grouper-loader.properties
-	private static final String SIMPLE_PROP_PREFIX = "changeLog.consumer.simpleGroup";
 	// Decides where we accept events from
-	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM =  SIMPLE_PROP_PREFIX + ".adhoc.stem";
-	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM =  SIMPLE_PROP_PREFIX + ".provisioned.stem";
+	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM = "adhoc.stem";
+	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM = "provisioned.stem";
+	public static final String PROP_CREATE_USERS = "create.users";
+
 	// ------ END conf/grouper-loader.properties
 
 	public static final String MANAGER_SUFFIX = "manager";
 	public static final String MEMBER_SUFFIX = "member";
 
-	public SimpleGroupEsbConsumer() throws MalformedURLException {
-		super();
+	protected void loadConfiguration(String consumerName) throws MalformedURLException{
+		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
 
 		supportedStems = new HashSet<String>();
-		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_ADHOC_SIMPLEGROUPS_STEM, true));
-		supportedStems.add(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_SIMPLEGROUPS_STEM, true));
+		supportedStems.add(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADHOC_SIMPLEGROUPS_STEM, true));
+		supportedStems.add(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_SIMPLEGROUPS_STEM, true));
 
 		SimpleGroupIdAdapter groupIdAdapter = new SimpleGroupIdAdapter();
-		groupIdAdapter.setProvisionedSimpleGroupsStem(GrouperLoaderConfig.getPropertyString(PROP_PROVISIONED_SIMPLEGROUPS_STEM, true));
+		groupIdAdapter.setProvisionedSimpleGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_SIMPLEGROUPS_STEM, true));
 
 		simpleGroupAdapter = new HttpSimpleGroupAdapter();
 		simpleGroupAdapter.setUrl(url);
 		simpleGroupAdapter.setUsername(username);
 		simpleGroupAdapter.setPassword(password);
-		simpleGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(PROP_CREATE_USERS, false));
+		simpleGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_CREATE_USERS, false));
 		simpleGroupAdapter.setGroupIdAdapter(groupIdAdapter);
 		simpleGroupAdapter.setDryrun(dryrun);
 	}
