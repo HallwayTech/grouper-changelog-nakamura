@@ -7,17 +7,9 @@ defined by a quartz scheduler. The Grouper loader keeps track of the last change
 that each consumer successfully processed.
 
 ## Build Prerequisites
-
+* git
 * java 1.6
 * maven 2.2.1+
-
-Install the grouper and grouperClient jars into your maven repository in order to build the consumers.
-
-Here's the commands to do so. You will probably need to adjust the paths to the jars.
-
-    mvn install:install-file -DgroupId=edu.internet2.middleware.grouper -DartifactId=grouper -Dversion=1.7.0 -Dpackaging=jar -Dfile=/apps/grouper.1.7.0/grouper/dist/lib/grouper.jar
-
-    mvn install:install-file -DgroupId=edu.internet2.middleware.grouper -DartifactId=grouperClient -Dversion=1.7.0 -Dpackaging=jar -Dfile=/apps/grouper.1.7.0/grouper/lib/grouper/grouperClient.jar 
 
 ## Installation
 
