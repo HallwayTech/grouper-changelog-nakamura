@@ -8,9 +8,6 @@ import org.sakaiproject.nakamura.grouper.changelog.esb.BaseGroupEsbConsumer;
 import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
 
 import edu.internet2.middleware.grouper.Group;
-import edu.internet2.middleware.grouper.GroupFinder;
-import edu.internet2.middleware.grouper.GrouperSession;
-import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
 public class NakamuraUtils {
@@ -73,8 +70,6 @@ public class NakamuraUtils {
 				SimpleGroupEsbConsumer.PROP_PROVISIONED_SIMPLEGROUPS_STEM);
 		String adhoc = GrouperLoaderConfig.getPropertyString(
 				SimpleGroupEsbConsumer.PROP_PROVISIONED_SIMPLEGROUPS_STEM);
-		
-
 		return grouperName.startsWith(provisioned) || grouperName.startsWith(adhoc); 
 	}
 }
