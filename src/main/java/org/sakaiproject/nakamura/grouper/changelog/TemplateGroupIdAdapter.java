@@ -30,32 +30,48 @@ public class TemplateGroupIdAdapter implements GroupIdAdapter {
 
 	private static Log log = LogFactory.getLog(TemplateGroupIdAdapter.class);
 
+	// Used to parse the grouper name of a provisioned course
 	private Pattern pattern;
+	// Used to create an id for Sakai OAE
 	private String nakamuraIdTemplate;
+	// Psuedogroup suffixes in OAE 
 	private Set<String> pseudoGroupSuffixes;
+	// suffixes for the Grouper addIncludeExclude group type component groups
 	private Set<String> includeExcludeSuffixes;
+	
+	private String adhocStem;
+	private String provisionedStem;
 
 	public String getNakamuraGroupId(String grouperName) {
 
 		if (grouperName == null){
 			return null;
 		}
+		
+		String nakamuraGroupId;
 
-		String nakamuraGroupId = getIdForCourseGroup(grouperName);
+		if (grouperName.startsWith(adhocStem)){
+			nakamuraGroupId = grouperName.substring(adhocStem.length() + 6).replaceAll(":", "_");
+		}
+		else {
+			grouperName = grouperName.substring(provisionedStem.length());
 
-		// If the groupername ends in _SUFFIX we change that to -SUFFIX
-		for (String suffix: pseudoGroupSuffixes){
-			if (nakamuraGroupId.endsWith("_" + suffix)){
-				nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_")) + "-" + suffix;
-				break;
-			}
-			// If the groupername ends in _SUFFIX_systemOfRecord we change that to -SUFFIX
-			for (String ieSuffix: includeExcludeSuffixes) {
-				if (nakamuraGroupId.endsWith("_" + suffix + ieSuffix)){
-					nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_"));
-					int newlast = nakamuraGroupId.lastIndexOf("_");
-					nakamuraGroupId = nakamuraGroupId.substring(0,newlast) + "-" + nakamuraGroupId.substring(newlast + 1);
+			nakamuraGroupId = getIdForCourseGroup(grouperName);
+
+			// If the groupername ends in _SUFFIX we change that to -SUFFIX
+			for (String suffix: pseudoGroupSuffixes){
+				if (nakamuraGroupId.endsWith("_" + suffix)){
+					nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_")) + "-" + suffix;
 					break;
+				}
+				// If the groupername ends in _SUFFIX_systemOfRecord we change that to -SUFFIX
+				for (String ieSuffix: includeExcludeSuffixes) {
+					if (nakamuraGroupId.endsWith("_" + suffix + ieSuffix)){
+						nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_"));
+						int newlast = nakamuraGroupId.lastIndexOf("_");
+						nakamuraGroupId = nakamuraGroupId.substring(0,newlast) + "-" + nakamuraGroupId.substring(newlast + 1);
+						break;
+					}
 				}
 			}
 		}
@@ -102,4 +118,11 @@ public class TemplateGroupIdAdapter implements GroupIdAdapter {
 		this.includeExcludeSuffixes = includeExcludeSuffixes;
 	}
 
+	public void setAdhocStem(String adhocStem) {
+		this.adhocStem = adhocStem;
+	}
+
+	public void setProvisionedStem(String provisionedStem) {
+		this.provisionedStem = provisionedStem;
+	}
 }

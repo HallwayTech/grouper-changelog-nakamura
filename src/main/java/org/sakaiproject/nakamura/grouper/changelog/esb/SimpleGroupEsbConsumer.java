@@ -35,9 +35,12 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// This job will try to process events for groups in these stems
 	private Set<String> supportedStems;
 
+	// ------ BEGIN conf/grouper-loader.properties
+	private static final String SIMPLE_PROP_PREFIX = "changeLog.consumer.simpleGroup";
 	// Decides where we accept events from
-	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.adhoc.stem";
-	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM =  PROPERTY_KEY_PREFIX + ".simplegroups.provisioned.stem";
+	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM =  SIMPLE_PROP_PREFIX + ".adhoc.stem";
+	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM =  SIMPLE_PROP_PREFIX + ".provisioned.stem";
+	// ------ END conf/grouper-loader.properties
 
 	public static final String MANAGER_SUFFIX = "manager";
 	public static final String MEMBER_SUFFIX = "member";

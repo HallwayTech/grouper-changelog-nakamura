@@ -24,6 +24,9 @@ If you're not building on the same machine you'll be running the grouper loader 
 
 Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER_HOME}/conf/grouper-loader.properties
 
+	#########################################################################################################################
+	# Provision Course Groups
+
     changeLog.consumer.simpleGroup.quartzCron = 0 0 * * * ?
     changeLog.consumer.simpleGroup.class = org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
 
@@ -38,8 +41,12 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' || event.eventType eq 'MEMBERSHIP_ADD')
 
     # Required for org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
-    nakamura.simplegroups.adhoc.stem = edu:apps:sakaioae:adhoc:groups
-    nakamura.simplegroups.provisioned.stem = edu:apps:sakaioae:provisioned:groups
+    changeLog.consumer.simpleGroup.adhoc.stem = edu:apps:sakaioae:adhoc:groups
+    changeLog.consumer.simpleGroup.provisioned.stem = edu:apps:sakaioae:provisioned:groups
+
+
+	#########################################################################################################################
+	#########################################################################################################################
 
     changeLog.consumer.courseGroups.quartzCron = 0 0 * * * ?
     changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
@@ -55,15 +62,14 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' || event.eventType eq 'MEMBERSHIP_ADD')
 
     # Required for org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
-    nakamura.courses.adhoc.stem = edu:apps:sakaioae:adhoc:courses
-    nakamura.courses.provisioned.stem = edu:apps:sakaioae:provisioned:courses
+    changeLog.consumer.courseGroups.adhoc.stem = edu:apps:sakaioae:adhoc:courses
+    changeLog.consumer.courseGroups.provisioned.stem = edu:apps:sakaioae:provisioned:courses
 
     # Regex indices                                            0       1       2       3       4       5       6
     nakamura.groupname.regex = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
     nakamura.groupid.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
     nakamura.psuedoGroup.suffixes = member, manager, student, lecturer, ta
 
-    # Common settings
     nakamura.url = http://localhost:8080
     nakamura.username = grouper-admin
     nakamura.password = grouper

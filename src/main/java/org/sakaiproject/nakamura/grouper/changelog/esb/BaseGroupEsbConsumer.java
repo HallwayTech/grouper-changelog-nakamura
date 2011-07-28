@@ -1,14 +1,11 @@
+
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
-import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.SubjectFinder;
@@ -31,9 +28,6 @@ public class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	protected String password;
 	protected boolean dryrun;
 
-	protected HashSet<String> includeExcludeSuffixes;
-	protected TemplateGroupIdAdapter templateGroupIdAdapter;
-
 	// Authenticated session for the Grouper API
 	protected GrouperSession grouperSession;
 
@@ -46,40 +40,15 @@ public class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	public static final String PROP_CREATE_USERS = PROPERTY_KEY_PREFIX + ".create.users";
 
-	// For the TemplateGroupIdAdapter
-	public static final String PROP_REGEX = PROPERTY_KEY_PREFIX + ".groupname.regex";
-	public static final String PROP_NAKID_TEMPLATE =  PROPERTY_KEY_PREFIX + ".groupid.template";
-
-	// addIncludeExclude group suffixes
-	public static final String PROP_SYSTEM_OF_RECORD_SUFFIX = "grouperIncludeExclude.systemOfRecord.extension.suffix";
-	public static final String PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX = "grouperIncludeExclude.systemOfRecordAndIncludes.extension.suffix";
-	public static final String PROP_INCLUDES_SUFFIX = "grouperIncludeExclude.include.extension.suffix";
-	public static final String PROP_EXCLUDES_SUFFIX = "grouperIncludeExclude.exclude.extension.suffix";
-
-	public static final String DEFAULT_SYSTEM_OF_RECORD_SUFFIX = "_systemOfRecord";
-	public static final String DEFAULT_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX = "_systemOfRecordAndIncludes";
-	public static final String DEFAULT_INCLUDES_SUFFIX = "_includes";
-	public static final String DEFAULT_EXCLUDES_SUFFIX = "_excludes";
-
 	public BaseGroupEsbConsumer() throws MalformedURLException {
+		loadConfiguration();
+	}
 
-		// Read and parse the settings.
+	protected void loadConfiguration() throws MalformedURLException {
 		url = new URL(GrouperLoaderConfig.getPropertyString(PROP_URL, true));
 		username = GrouperLoaderConfig.getPropertyString(PROP_USERNAME, true);
 		password = GrouperLoaderConfig.getPropertyString(PROP_PASSWORD, true);
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(PROP_DRYRUN, false);
-
-		includeExcludeSuffixes = new HashSet<String>();
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_SUFFIX));
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX));
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_INCLUDES_SUFFIX, DEFAULT_INCLUDES_SUFFIX));
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_EXCLUDES_SUFFIX, DEFAULT_EXCLUDES_SUFFIX));
-
-		templateGroupIdAdapter = new TemplateGroupIdAdapter();
-		templateGroupIdAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
-		templateGroupIdAdapter.setPattern(Pattern.compile(GrouperLoaderConfig.getPropertyString(PROP_REGEX, true)));
-		templateGroupIdAdapter.setNakamuraIdTemplate(GrouperLoaderConfig.getPropertyString(PROP_NAKID_TEMPLATE, true));
-		templateGroupIdAdapter.setPseudoGroupSuffixes(NakamuraUtils.getPsuedoGroupSuffixes());
 	}
 
 	@Override
