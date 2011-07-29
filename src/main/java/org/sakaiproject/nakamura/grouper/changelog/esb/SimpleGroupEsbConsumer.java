@@ -1,21 +1,17 @@
+
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
+import edu.internet2.middleware.grouper.GroupType;
 import edu.internet2.middleware.grouper.SubjectFinder;
-import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
@@ -30,45 +26,28 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	private static Log log = GrouperUtil.getLog(SimpleGroupEsbConsumer.class);
 
-	protected URL url;
-	protected String username;
-	protected String password;
-	protected boolean dryrun;
-
 	// The interface to the SakaiOAE/nakamura server.
-	private HttpSimpleGroupAdapter simpleGroupAdapter;
-
-	// This job will try to process events for groups in these stems
-	private Set<String> supportedStems;
-
-	// ------ BEGIN conf/grouper-loader.properties
-	// Decides where we accept events from
-	public static final String PROP_ADHOC_SIMPLEGROUPS_STEM = "adhoc.stem";
-	public static final String PROP_PROVISIONED_SIMPLEGROUPS_STEM = "provisioned.stem";
-	public static final String PROP_CREATE_USERS = "create.users";
-
-	// ------ END conf/grouper-loader.properties
+	private HttpSimpleGroupAdapter groupAdapter;
 
 	public static final String MANAGER_SUFFIX = "manager";
 	public static final String MEMBER_SUFFIX = "member";
 
-	protected void loadConfiguration(String consumerName) throws MalformedURLException{
-		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
-
-		supportedStems = new HashSet<String>();
-		supportedStems.add(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADHOC_SIMPLEGROUPS_STEM, true));
-		supportedStems.add(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_SIMPLEGROUPS_STEM, true));
+	protected void loadConfiguration(String consumerName) {
+		super.loadConfiguration(consumerName);
 
 		SimpleGroupIdAdapter groupIdAdapter = new SimpleGroupIdAdapter();
-		groupIdAdapter.setProvisionedSimpleGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_SIMPLEGROUPS_STEM, true));
+		groupIdAdapter.setProvisionedSimpleGroupsStem(provisionedStem);
+		groupIdAdapter.setAdhocSimpleGroupsStem(adhocStem);
+		groupIdAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		groupIdAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
 
-		simpleGroupAdapter = new HttpSimpleGroupAdapter();
-		simpleGroupAdapter.setUrl(url);
-		simpleGroupAdapter.setUsername(username);
-		simpleGroupAdapter.setPassword(password);
-		simpleGroupAdapter.setCreateUsers(GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_CREATE_USERS, false));
-		simpleGroupAdapter.setGroupIdAdapter(groupIdAdapter);
-		simpleGroupAdapter.setDryrun(dryrun);
+		groupAdapter = new HttpSimpleGroupAdapter();
+		groupAdapter.setUrl(url);
+		groupAdapter.setUsername(username);
+		groupAdapter.setPassword(password);
+		groupAdapter.setCreateUsers(createUsers);
+		groupAdapter.setGroupIdAdapter(groupIdAdapter);
+		groupAdapter.setDryrun(dryrun);
 	}
 
 	/**
@@ -78,16 +57,21 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
 			ChangeLogProcessorMetadata changeLogProcessorMetadata) {
 
+		String consumerName = changeLogProcessorMetadata.getConsumerName();
+		loadConfiguration(consumerName);
+
 		long currentId = -1;
 
-		// try catch so we can track that we made some progress
 		try {
+			// try catch so we can track that we made some progress
 			for (ChangeLogEntry changeLogEntry : changeLogEntryList) {
+
 				currentId = changeLogEntry.getSequenceNumber();
 
 				if (log.isDebugEnabled()){
 					log.info("Processing changelog entry=" + currentId);
 				}
+
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
 					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
@@ -95,106 +79,91 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					if (log.isDebugEnabled()){
 						log.debug(ChangeLogTypeBuiltin.GROUP_ADD + ": name=" + groupName);
 					}
-					checkSupportedGroup(groupName);
-					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
+					if (isSupportedGroup(groupName)) {
+						Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
 
-					if (group != null) {
-						if (NakamuraUtils.isSimpleGroup(group) || group.getExtension().equals(MEMBER_SUFFIX)){
-							simpleGroupAdapter.createGroup(group);
+						if (group != null) {
+							if (NakamuraUtils.isSimpleGroup(group)){
+								for (GroupType groupType: group.getTypes()){
+									// Create the OAE Course objects when the student_systemOfRecord group is created.
+									// That group has the group type addIncludeExclude
+									if (groupType.getName().equals(ADD_INCLUDE_EXCLUDE) &&
+											group.getExtension().equals(createDeleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+										groupAdapter.createGroup(group);
+									}
+								}
+							}
 						}
 						else {
-							log.error("Received an add event for a non-simple group.");
+							log.error("Group added event received for a null or non-simple group " + groupName);
 						}
-					}
-					else {
-						log.error("Group added event received for a null or non-simple group " + groupName);
 					}
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
-
-					if (log.isDebugEnabled()){
-						log.debug(ChangeLogTypeBuiltin.GROUP_DELETE + ": name=" + groupName);
-					}
-					checkSupportedGroup(groupName);
-					Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
-					if (group == null){
-						if (NakamuraUtils.isSimpleGroup(groupName)){
-							simpleGroupAdapter.deleteGroup(groupName, groupName);
+					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
+					log.info(ChangeLogTypeBuiltin.GROUP_DELETE + ": name=" + grouperName);
+					if (isSupportedGroup(grouperName)) {
+						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
+						if (group == null || NakamuraUtils.isSimpleGroup(grouperName)){
+							if (grouperName.endsWith(createDeleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+								groupAdapter.deleteGroup(grouperName, grouperName);
+							}
 						}
 						else {
-							log.error("Received a delete event for a non-simple group.");
+							log.error("Received a delete event for a group that still exists!");
 						}
-					}
-					else {
-						log.error("Received a delete event for a group that still exists!");
 					}
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
 					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupId);
-					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
+					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
 
-					if (member != null && "person".equals(member.getTypeName()) ){
-						log.debug("Membership add, group: " + groupName + " subjectId: " + memberId);
-						checkSupportedGroup(groupName);
-						if (NakamuraUtils.isSimpleGroup(groupName)){
-							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
+					if (isSupportedGroup(grouperName)) {
+						if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
+							log.info("Membership add, group: " + grouperName + " subjectId: " + memberId);
+
+							if (NakamuraUtils.isCourseGroup(grouperName)){
+								groupAdapter.addMembership(groupId, grouperName, memberId);
+							}
 						}
 					}
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
 					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupId);
-					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
+					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
 
-					if (member != null && "person".equals(member.getTypeName()) ){
-						log.debug("Membership delete, group: " + groupName + " subjectId: " + memberId);
-						checkSupportedGroup(groupName);
-						if (NakamuraUtils.isSimpleGroup(groupName)){
-							simpleGroupAdapter.addMembership(groupId, groupName, memberId);
+					if (isSupportedGroup(grouperName)) {
+						if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
+							log.info("Membership delete, group: " + grouperName + " subjectId: " + memberId);
+							if (NakamuraUtils.isCourseGroup(grouperName)){
+								groupAdapter.deleteMembership(groupId, grouperName, memberId);
+							}
 						}
 					}
 				}
 				// we successfully processed this record
 			}
 		}
-		catch(UnsupportedGroupException e){
-			log.error(e.getMessage());
-		}
 		catch (Exception e) {
 			changeLogProcessorMetadata.registerProblem(e, "Error processing record", currentId);
-			// we made it to this -1
-			return currentId - 1;
+			// we made it to currentId - 1
+			if (currentId != -1){
+				currentId--;
+			}
 		}
+
 		if (currentId == -1) {
 			log.error("Didn't process any records.");
 			throw new RuntimeException("Couldn't process any records");
 		}
-		return currentId;
-	}
 
-	/**
-	 * Does the group name fall inside of the stems we're configured to keep
-	 * in sync with sakai?
-	 * @param groupName
-	 * @throws UnsupportedGroupException
-	 */
-	private void checkSupportedGroup(String groupName) throws UnsupportedGroupException {
-		boolean supported = false;
-		for (String stem: supportedStems){
-			if (groupName.startsWith(stem)) {
-				supported = true;
-				break;
-			}
-		}
-		if (!supported){
-			throw new UnsupportedGroupException("Not configured to handle " + groupName + ". Check the elfilter.");
-		}
+		return currentId;
 	}
 }

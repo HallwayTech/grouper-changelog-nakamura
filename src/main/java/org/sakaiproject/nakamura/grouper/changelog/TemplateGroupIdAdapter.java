@@ -12,6 +12,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
+import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
+
 /**
  * A flexible way to map grouper names to SakaiOAE groups.
  *
@@ -34,20 +36,29 @@ public class TemplateGroupIdAdapter implements GroupIdAdapter {
 	private Pattern pattern;
 	// Used to create an id for Sakai OAE
 	private String nakamuraIdTemplate;
-	// Psuedogroup suffixes in OAE 
+	// Psuedogroup suffixes in OAE
 	private Set<String> pseudoGroupSuffixes;
 	// suffixes for the Grouper addIncludeExclude group type component groups
 	private Set<String> includeExcludeSuffixes;
-	
+
 	private String adhocStem;
 	private String provisionedStem;
+
+	public static final String PROP_REGEX = "TemplateGroupIdAdapter.groupName.regex";
+	public static final String PROP_NAKID_TEMPLATE = "TemplateGroupIdAdapter.groupId.template";
+
+	public void loadConfiguration(String consumerName) {
+		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
+ 		setPattern(Pattern.compile(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_REGEX, true)));
+		setNakamuraIdTemplate(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_TEMPLATE, true));
+	}
 
 	public String getNakamuraGroupId(String grouperName) {
 
 		if (grouperName == null){
 			return null;
 		}
-		
+
 		String nakamuraGroupId;
 
 		if (grouperName.startsWith(adhocStem)){

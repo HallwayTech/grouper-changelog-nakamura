@@ -24,6 +24,15 @@ If you're not building on the same machine you'll be running the grouper loader 
 
 Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER_HOME}/conf/grouper-loader.properties
 
+    ######################################
+    # Sakai OAE
+    ######################################
+
+    # Regular expressions to determins what kind of group we're dealing with.
+    nakamura.simplegroups.regex = .*simplegroups.*
+    nakamura.coursegroups.regex = .*:groups:.*
+    nakamura.contactgroups.regex = edu:apps:sakaioae:users:.*
+
 	#########################################################################################################################
 	# Provision Course Groups
 
@@ -32,22 +41,25 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.simplegroups.adhoc.stem and nakamura.simplegroups.provisioned.stem
-    changeLog.consumer.simpleGroup.elfilter =  (event.name =~ '^edu\\:apps\\:sakaioae\\:provisioned\\:groups.*$' \
+    changeLog.consumer.simpleGroup.elfilter =  (event.name          =~ '^edu\\:apps\\:sakaioae\\:provisioned\\:groups.*$' \
                                                  || event.groupName =~ '^edu\\:apps\\:sakaioae\\:provisioned\\:groups.*$'\
-                                                 || event.name =~ '^edu\\:apps\\:sakaioae\\:adhoc\\:groups.*$' \
+                                                 || event.name      =~ '^edu\\:apps\\:sakaioae\\:adhoc\\:groups.*$' \
                                                  || event.groupName =~ '^edu\\:apps\\:sakaioae\\:adhoc\\:groups.*$' ) \
                                                && \
-                                               (event.eventType eq 'GROUP_DELETE' || event.eventType eq 'GROUP_ADD' \
-                                                 || event.eventType eq 'MEMBERSHIP_DELETE' || event.eventType eq 'MEMBERSHIP_ADD')
+                                               (event.eventType eq 'GROUP_DELETE' \
+											     || event.eventType eq 'GROUP_ADD' \
+                                                 || event.eventType eq 'MEMBERSHIP_DELETE' \
+												 || event.eventType eq 'MEMBERSHIP_ADD')
 
     # Required for org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
     changeLog.consumer.simpleGroup.adhoc.stem = edu:apps:sakaioae:adhoc:groups
     changeLog.consumer.simpleGroup.provisioned.stem = edu:apps:sakaioae:provisioned:groups
+	changeLog.consumer.simpleGroup.createDeleteRole = member
+	changeLog.consumer.simpleGroup.psuedoGroup.suffixes = member, manager
 
     changeLog.consumer.simpleGroup.url = http://localhost:8080
     changeLog.consumer.simpleGroup.username = grouper-admin
     changeLog.consumer.simpleGroup.password = grouper
-    changeLog.consumer.simpleGroup.basestem = edu:apps:sakaioae
     # Set to true to test.
     changeLog.consumer.simpleGroup.dryrun = false
 
@@ -60,27 +72,28 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.courses.adhoc.stem and nakamura.courses.provisioned.stem
-    changeLog.consumer.courseGroups.elfilter = (event.name =~ '^edu\\:apps\\:sakaioae\\:provisioned\\:courses.*$' \
+    changeLog.consumer.courseGroups.elfilter = (event.name          =~ '^edu\\:apps\\:sakaioae\\:provisioned\\:courses.*$' \
                                                  || event.groupName =~ '^edu\\:apps\\:sakaioae\\:provisioned\\:courses.*$'\
-                                                 || event.name =~ '^edu\\:apps\\:sakaioae\\:adhoc\\:courses.*$' \
+                                                 || event.name      =~ '^edu\\:apps\\:sakaioae\\:adhoc\\:courses.*$' \
                                                  || event.groupName =~ '^edu\\:apps\\:sakaioae\\:adhoc\\:courses.*$' ) \
                                                && \
-                                               (event.eventType eq 'GROUP_DELETE' || event.eventType eq 'GROUP_ADD' \
-                                                 || event.eventType eq 'MEMBERSHIP_DELETE' || event.eventType eq 'MEMBERSHIP_ADD')
+                                               (event.eventType eq 'GROUP_DELETE' \
+												 || event.eventType eq 'GROUP_ADD' \
+                                                 || event.eventType eq 'MEMBERSHIP_DELETE' \
+												 || event.eventType eq 'MEMBERSHIP_ADD')
 
-    # Required for org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
     changeLog.consumer.courseGroups.adhoc.stem = edu:apps:sakaioae:adhoc:courses
     changeLog.consumer.courseGroups.provisioned.stem = edu:apps:sakaioae:provisioned:courses
+changeLog.consumer.courseGroups.createDeleteRole = student
 
     # Regex indices                                            0       1       2       3       4       5       6
-    nakamura.groupname.regex = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
-    nakamura.groupid.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
-    nakamura.psuedoGroup.suffixes = member, manager, student, lecturer, ta
+    changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupName.regex = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
+	changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
+    changeLog.consumer.courseGroups.psuedoGroup.suffixes = member, manager, student, lecturer, ta
 
     changeLog.consumer.courseGroups.nakamura.url = http://localhost:8080
     changeLog.consumer.courseGroups.nakamura.username = grouper-admin
     changeLog.consumer.courseGroups.nakamura.password = grouper
-    changeLog.consumer.courseGroups.nakamura.basestem = edu:apps:sakaioae
     # Set to true to test.
     changeLog.consumer.courseGroups.nakamura.dryrun = false
 
