@@ -237,7 +237,8 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    if (createDocsResponse != null){
 	    	try {
 	    		JSONArray docResults = createDocsResponse.getJSONArray("results");
-	    		Iterator<JSONObject> itr = docResults.iterator();
+	    		@SuppressWarnings("unchecked")
+				Iterator<JSONObject> itr = docResults.iterator();
 	    		while(itr.hasNext()){
 	    			JSONObject result = itr.next();
 	    			JSONObject body = result.getJSONObject("body");
