@@ -221,7 +221,7 @@ public class BaseGroupAdapter {
 				}
 				catch (JSONException je){
 					if (responseString.startsWith("<html>")){
-						log.error("Excepted a JSON response, got html at " + method.getURI());
+						log.error("Expected a JSON response, got html at " + method.getURI());
 					}
 					else {
 						log.error("Could not parse JSON response. " + responseString);
