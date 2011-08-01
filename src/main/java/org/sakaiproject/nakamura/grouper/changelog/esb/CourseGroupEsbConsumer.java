@@ -50,7 +50,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpCourseAdapter groupAdapter;
 
-	protected TemplateGroupIdAdapter templateGroupIdAdapter;
+	protected TemplateGroupIdAdapter groupIdAdapter;
 
 	public CourseGroupEsbConsumer() {
 	}
@@ -58,18 +58,18 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	protected void loadConfiguration(String consumerName) {
 		super.loadConfiguration(consumerName);
 
-		templateGroupIdAdapter = new TemplateGroupIdAdapter();
-		templateGroupIdAdapter.loadConfiguration(consumerName);
-		templateGroupIdAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
-		templateGroupIdAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
-		templateGroupIdAdapter.setAdhocStem(adhocStem);
-		templateGroupIdAdapter.setProvisionedStem(provisionedStem);
+		groupIdAdapter = new TemplateGroupIdAdapter();
+		groupIdAdapter.loadConfiguration(consumerName);
+		groupIdAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
+		groupIdAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		groupIdAdapter.setAdhocStem(adhocStem);
+		groupIdAdapter.setProvisionedStem(provisionedStem);
 
 		groupAdapter = new HttpCourseAdapter();
 		groupAdapter.setUrl(url);
 		groupAdapter.setUsername(username);
 		groupAdapter.setPassword(password);
-		groupAdapter.setGroupIdAdapter(templateGroupIdAdapter);
+		groupAdapter.setGroupIdAdapter(groupIdAdapter);
 		groupAdapter.setCreateUsers(createUsers);
 		groupAdapter.setDryrun(dryrun);
 		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
@@ -101,11 +101,11 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 						if (group != null){
 							if (NakamuraUtils.isCourseGroup(group)){
+								String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(grouperName);
 								for (GroupType groupType: group.getTypes()){
-									// Create the OAE Course objects when the student_systemOfRecord group is created.
-									// That group has the group type addIncludeExclude
-									if (groupType.getName().equals(ADD_INCLUDE_EXCLUDE) &&
-											group.getExtension().equals(createDeleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+									// Create the OAE Course objects when the first role group is created.
+									if (ADD_INCLUDE_EXCLUDE.equals(groupType) &&
+										!groupAdapter.groupExists(groupIdAdapter.getPseudoGroupParent(nakamuraGroupId))){
 										groupAdapter.createGroup(group);
 									}
 								}
