@@ -20,14 +20,19 @@ import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
+import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 
-public class BaseGroupAdapter {
+/**
+ * Shared functionality for the GroupAdapter classes goes in here.
+ */
+public abstract class BaseGroupAdapter {
 
 	private static Log log = LogFactory.getLog(BaseGroupAdapter.class);
 
+	// This could be anything but I think this is explanatory
 	private static final String HTTP_REFERER = "/system/console/grouper";
 	private static final String HTTP_USER_AGENT = "Nakamura Grouper Sync";
 
@@ -37,11 +42,14 @@ public class BaseGroupAdapter {
 	protected static String GROUP_PATH_PREFIX = USER_MANAGER_URI + "/group";
 	protected static final String USER_CREATE_URI = USER_MANAGER_URI + "/user.create.json";
 
+	// Nakamura Batch servlet takes a JSONArray of JSONObjects that each represent a request
 	protected static final String BATCH_URI         = "/system/batch";
-	protected static final String CREATE_FILE_URI   = "/system/pool/createfile";
-
 	protected static final String BATCH_REQUESTS_PARAM = "requests";
 
+	// Creates new files
+	protected static final String CREATE_FILE_URI   = "/system/pool/createfile";
+
+	// Connection info for the OAE server
 	protected URL url;
 	protected String username;
 	protected String password;
@@ -51,6 +59,8 @@ public class BaseGroupAdapter {
 	protected Set<String> pseudoGroupSuffixes;
 
 	protected boolean dryrun = false;
+
+	protected GroupIdAdapter groupIdAdapter;
 
 	/**
 	 * @param groupId the id of the OAE group
@@ -111,9 +121,9 @@ public class BaseGroupAdapter {
 		method.addParameter("sakai:group-id", nakamuraGroupId);
 		method.addParameter("sakai:excludeSearch", "true");
 		method.addParameter("sakai:group-description", group.getDescription());
-		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + getPseudoGroupParent(nakamuraGroupId) + ")");
+		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + groupIdAdapter.getPseudoGroupParent(nakamuraGroupId) + ")");
 		method.addParameter("sakai:pseudoGroup", "true");
-		method.addParameter("sakai:pseudogroupparent", getPseudoGroupParent(nakamuraGroupId));
+		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
 		method.setParameter("sakai:group-joinable", "yes");
 		method.addParameter("grouper:name", group.getParentStemName() + ":" + nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
 		http(client, method);
@@ -153,22 +163,6 @@ public class BaseGroupAdapter {
 			http(client, method);
 			log.info("Created a user for " + userId);
 		}
-	}
-
-	/**
-	 * Return the authorizableId of the parent group for this group.
-	 * @param nakamuraGroupId
-	 * @return
-	 */
-	protected String getPseudoGroupParent(String nakamuraGroupId){
-		int dash = nakamuraGroupId.lastIndexOf("-");
-		if (dash != -1){
-			String afterDash = nakamuraGroupId.substring(dash + 1);
-			if (pseudoGroupSuffixes.contains(afterDash)){
-				nakamuraGroupId =  nakamuraGroupId.substring(0, dash);
-			}
-		}
-		return nakamuraGroupId;
 	}
 
 	/**
@@ -323,5 +317,9 @@ public class BaseGroupAdapter {
 
 	public void setPseudoGroupSuffixes(Set<String> pseudoGroupSuffixes) {
 		this.pseudoGroupSuffixes = pseudoGroupSuffixes;
+	}
+
+	public void setGroupIdAdapter(GroupIdAdapter gia){
+		this.groupIdAdapter = gia;
 	}
 }

@@ -16,7 +16,6 @@ import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
-import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -30,9 +29,6 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	private Log log = LogFactory.getLog(HttpCourseAdapter.class);
 
 	private static final String DEFAULT_COURSE_TEMPLATE = "mathcourse";
-
-	// Maps grouper gouperName -> nakamura groupId
-	protected GroupIdAdapter groupIdAdapter;
 
 	/**
 	 * Create the full set of objects that are necessary to have a working
@@ -56,7 +52,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		// We might not have members at add time.
 		String creator = "admin";
 
-		String parentGroupId = getPseudoGroupParent(nakamuraGroupId);
+		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 		String lecturerGroupId = parentGroupId + "-lecturer";
 		String taGroupId = parentGroupId + "-ta";
 		String studentGroupId = parentGroupId + "-student";
@@ -514,7 +510,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(groupName);
 
 		if (nakamuraGroupId.endsWith(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
-			String parentGroupId = getPseudoGroupParent(nakamuraGroupId);
+			String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 			String lecturerGroupId = parentGroupId + "-lecturer";
 			String taGroupId = parentGroupId + "-ta";
 			String studentGroupId = parentGroupId + "-student";
@@ -548,9 +544,5 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	public void deleteMembership(String groupId, String groupName, String memberId)
 	throws GroupModificationException {
 		deleteMembership(groupIdAdapter.getNakamuraGroupId(groupName), memberId);
-	}
-
-	public void setGroupIdAdapter(TemplateGroupIdAdapter adapter){
-		this.groupIdAdapter = adapter;
 	}
 }

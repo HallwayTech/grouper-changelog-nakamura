@@ -34,9 +34,6 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 
 	private Log log = LogFactory.getLog(HttpSimpleGroupAdapter.class);
 
-	// Maps grouper gouperName -> nakamura groupId
-	protected SimpleGroupIdAdapter groupIdAdapter;
-
 	/**
 	 * POST to http://localhost:8080/system/userManager/group.create.json
 	 * @see org.sakaiproject.nakamura.user.servlet.CreateSakaiGroupServlet
@@ -53,7 +50,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = new PostMethod(url.toString() + GROUP_CREATE_URI);
 
-		String parentGroupId = getPseudoGroupParent(nakamuraGroupId);
+		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 		String managerGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
 		String memberGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
 		for (String psuedoGroupId: new String[]{ managerGroupId, memberGroupId }){
@@ -421,7 +418,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(groupName);
 
 		if (nakamuraGroupId.endsWith(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
-			String parentGroupId = getPseudoGroupParent(nakamuraGroupId);
+			String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 			String memberPsuedoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
 			String managerPsuedoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
 
@@ -451,9 +448,5 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	public void deleteMembership(String groupId, String groupName, String memberId)
 	throws GroupModificationException {
 		deleteMembership(groupIdAdapter.getNakamuraGroupId(groupName), memberId);
-	}
-
-	public void setGroupIdAdapter(SimpleGroupIdAdapter groupIdAdapter) {
-		this.groupIdAdapter = groupIdAdapter;
 	}
 }

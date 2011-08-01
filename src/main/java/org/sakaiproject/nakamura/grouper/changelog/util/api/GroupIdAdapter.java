@@ -12,4 +12,12 @@ public interface GroupIdAdapter {
 	 */
 	public String getNakamuraGroupId(String grouperName);
 
+	/**
+	 * Given a nakamura group id, return the parent of this group.
+	 * If the group is not a psuedo group the groupId will be returned.
+	 * @param groupId
+	 * @return
+	 */
+	public String getPseudoGroupParent(String groupId);
+
 }
