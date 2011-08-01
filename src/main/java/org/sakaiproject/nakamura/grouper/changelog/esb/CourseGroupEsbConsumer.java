@@ -72,6 +72,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupAdapter.setGroupIdAdapter(templateGroupIdAdapter);
 		groupAdapter.setCreateUsers(createUsers);
 		groupAdapter.setDryrun(dryrun);
+		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 	}
 
 	/**

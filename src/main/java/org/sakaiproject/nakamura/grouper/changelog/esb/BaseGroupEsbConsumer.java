@@ -39,7 +39,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	protected String provisionedStem;
 
 	// Suffixes for the composite groups created for addIncludeExclude groups
-	protected HashSet<String> includeExcludeSuffixes;
+	protected Set<String> includeExcludeSuffixes;
 	// Sakai OAE pseudoGroup suffixes.
 	protected Set<String> pseudoGroupSuffixes;
 

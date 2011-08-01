@@ -48,6 +48,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupAdapter.setCreateUsers(createUsers);
 		groupAdapter.setGroupIdAdapter(groupIdAdapter);
 		groupAdapter.setDryrun(dryrun);
+		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 	}
 
 	/**

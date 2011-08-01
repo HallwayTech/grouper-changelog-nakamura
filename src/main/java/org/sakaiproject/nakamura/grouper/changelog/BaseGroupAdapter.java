@@ -3,6 +3,7 @@ package org.sakaiproject.nakamura.grouper.changelog;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Set;
 import java.util.UUID;
 
 import net.sf.json.JSONException;
@@ -46,6 +47,8 @@ public class BaseGroupAdapter {
 	protected String password;
 
 	protected boolean createUsers = false;
+
+	protected Set<String> pseudoGroupSuffixes;
 
 	protected boolean dryrun = false;
 
@@ -158,13 +161,14 @@ public class BaseGroupAdapter {
 	 * @return
 	 */
 	protected String getPseudoGroupParent(String nakamuraGroupId){
-		int index = nakamuraGroupId.lastIndexOf("-");
-		if (index == -1){
-			return nakamuraGroupId;
+		int dash = nakamuraGroupId.lastIndexOf("-");
+		if (dash != -1){
+			String afterDash = nakamuraGroupId.substring(dash + 1);
+			if (pseudoGroupSuffixes.contains(afterDash)){
+				nakamuraGroupId =  nakamuraGroupId.substring(0, dash);
+			}
 		}
-		else {
-			return nakamuraGroupId.substring(0, index);
-		}
+		return nakamuraGroupId;
 	}
 
 	/**
@@ -315,5 +319,9 @@ public class BaseGroupAdapter {
 
 	public void setDryrun(boolean dryrun) {
 		this.dryrun = dryrun;
+	}
+
+	public void setPseudoGroupSuffixes(Set<String> pseudoGroupSuffixes) {
+		this.pseudoGroupSuffixes = pseudoGroupSuffixes;
 	}
 }
