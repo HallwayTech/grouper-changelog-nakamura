@@ -93,6 +93,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				currentId = changeLogEntry.getSequenceNumber();
 				log.debug("Processing changelog entry=" + currentId);
 
+				if (ignoreChangelogEntry(changeLogEntry)){
+					continue;
+				}
+
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
 					log.info(ChangeLogTypeBuiltin.GROUP_ADD + ": name=" + grouperName);
@@ -181,5 +185,14 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		}
 
 		return currentId;
+	}
+
+	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
+		boolean ignore = false;
+		String groupId = entry.retrieveValueForLabel("groupid");
+		if (groupId != null && groupId.endsWith(":all")){
+			ignore = true;
+		}
+		return ignore;
 	}
 }
