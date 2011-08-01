@@ -46,9 +46,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	public void createGroup(Group group) throws GroupModificationException {
 
 		String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(group.getName());
-		if(log.isDebugEnabled()){
-			log.debug(group.getName() + " converted to " + nakamuraGroupId + " for nakamura.");
-		}
+		log.debug(group.getName() + " converted to " + nakamuraGroupId + " for nakamura.");
 
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = null;

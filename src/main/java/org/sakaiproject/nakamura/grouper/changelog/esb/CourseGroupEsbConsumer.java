@@ -53,7 +53,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	protected TemplateGroupIdAdapter templateGroupIdAdapter;
 
 	public CourseGroupEsbConsumer() {
-		log.info("HELLO");
 	}
 
 	protected void loadConfiguration(String consumerName) {

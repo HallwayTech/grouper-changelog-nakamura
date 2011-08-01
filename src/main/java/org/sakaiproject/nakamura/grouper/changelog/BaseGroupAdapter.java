@@ -15,17 +15,17 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.exception.GrouperException;
-import edu.internet2.middleware.grouper.util.GrouperUtil;
 
 public class BaseGroupAdapter {
 
-	private static Log log = GrouperUtil.getLog(BaseGroupAdapter.class);
+	private static Log log = LogFactory.getLog(BaseGroupAdapter.class);
 
 	private static final String HTTP_REFERER = "/system/console/grouper";
 	private static final String HTTP_USER_AGENT = "Nakamura Grouper Sync";
@@ -206,6 +206,7 @@ public class BaseGroupAdapter {
 		JSONObject responseJSON = null;
 
 		if (dryrun){
+			log.debug("Dry run is set. Not executing for " + method.getPath());
 			return new JSONObject();
 		}
 
