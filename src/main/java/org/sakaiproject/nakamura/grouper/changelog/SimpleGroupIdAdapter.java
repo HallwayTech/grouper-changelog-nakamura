@@ -1,17 +1,12 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
-import java.util.Set;
-
 import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
 import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
-public class SimpleGroupIdAdapter implements GroupIdAdapter {
+public class SimpleGroupIdAdapter extends BaseGroupIdAdapter implements GroupIdAdapter {
 
 	private String provisionedSimpleGroupsStem;
 	private String adhocSimpleGroupsStem;
-
-	private Set<String> pseudoGroupSuffixes;
-	private Set<String> includeExcludeSuffixes;
 
 	@Override
 	public String getNakamuraGroupId(String grouperName) {
@@ -56,13 +51,5 @@ public class SimpleGroupIdAdapter implements GroupIdAdapter {
 
 	public void setAdhocSimpleGroupsStem(String adhocGroupsStem) {
 		this.adhocSimpleGroupsStem = adhocGroupsStem;
-	}
-
-	public void setPseudoGroupSuffixes(Set<String> pseudoGroupSuffixes) {
-		this.pseudoGroupSuffixes = pseudoGroupSuffixes;
-	}
-
-	public void setIncludeExcludeSuffixes(Set<String> includeExcludeSuffixes) {
-		this.includeExcludeSuffixes = includeExcludeSuffixes;
 	}
 }
