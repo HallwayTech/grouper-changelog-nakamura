@@ -189,11 +189,21 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
-
-		// ADD/DELETE use the name key, others use groupName
-		String groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
-		if (groupName == null){
-			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.fieldName);
+		String groupName = null;
+		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)){
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
+		}
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
+		}
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_UPDATE)) {
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.name);
+		}
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
+		}
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 		}
 
 		if (groupName != null && groupName.endsWith(":all")){
