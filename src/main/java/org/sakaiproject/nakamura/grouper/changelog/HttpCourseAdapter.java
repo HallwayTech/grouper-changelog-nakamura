@@ -261,10 +261,10 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    JSONObject post8Response = http(client, method);
 
 	    // Go through the response and get the document UUID for the library and participants items.
-	    String syllabusDocHash = null;
-	    String contactUsDocHash = null;
-	    String orgNotesDocHash = null;
-	    String studentWikiDocHash = null;
+	    String syllabusDocHash = "DUMMY_HASH";
+	    String contactUsDocHash = "DUMMY_HASH";
+	    String orgNotesDocHash = "DUMMY_HASH";
+	    String studentWikiDocHash = "DUMMY_HASH";
 
 	    if (post8Response != null){
 	    	try {
