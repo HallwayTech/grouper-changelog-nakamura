@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 
 import com.google.common.collect.ImmutableSet;
 
-public class BaseGroupAdapterTest extends TestCase {
+public class BaseGroupIdAdapterTest extends TestCase {
 
 	private BaseGroupIdAdapter gAdapter;
 
