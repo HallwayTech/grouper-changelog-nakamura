@@ -51,7 +51,7 @@ public class TemplateGroupIdAdapter implements GroupIdAdapter {
 		String nakamuraGroupId;
 
 		if (grouperName.startsWith(adhocStem)){
-			nakamuraGroupId = grouperName.substring(adhocStem.length() + 6).replaceAll(":", "_");
+			nakamuraGroupId = grouperName.substring(adhocStem.length() + 1).replaceAll(":", "_");
 		}
 		else {
 			grouperName = grouperName.substring(provisionedStem.length());
