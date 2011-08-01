@@ -189,8 +189,14 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
-		String groupId = entry.retrieveValueForLabel("groupid");
-		if (groupId != null && groupId.endsWith(":all")){
+
+		// ADD/DELETE use the name key, others use groupName
+		String groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
+		if (groupName == null){
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.fieldName);
+		}
+
+		if (groupName != null && groupName.endsWith(":all")){
 			ignore = true;
 		}
 		return ignore;
