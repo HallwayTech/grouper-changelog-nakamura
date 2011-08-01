@@ -54,8 +54,8 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     # Required for org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
     changeLog.consumer.simpleGroup.adhoc.stem = edu:apps:sakaioae:adhoc:groups
     changeLog.consumer.simpleGroup.provisioned.stem = edu:apps:sakaioae:provisioned:groups
-	changeLog.consumer.simpleGroup.createDeleteRole = member
-	changeLog.consumer.simpleGroup.psuedoGroup.suffixes = member, manager
+    changeLog.consumer.simpleGroup.deleteRole = member
+    changeLog.consumer.simpleGroup.psuedoGroup.suffixes = member, manager
 
     changeLog.consumer.simpleGroup.url = http://localhost:8080
     changeLog.consumer.simpleGroup.username = grouper-admin
@@ -84,7 +84,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
 
     changeLog.consumer.courseGroups.adhoc.stem = edu:apps:sakaioae:adhoc:courses
     changeLog.consumer.courseGroups.provisioned.stem = edu:apps:sakaioae:provisioned:courses
-changeLog.consumer.courseGroups.createDeleteRole = student
+    changeLog.consumer.courseGroups.deleteRole = student
 
     # Regex indices                                            0       1       2       3       4       5       6
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupName.regex  = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)

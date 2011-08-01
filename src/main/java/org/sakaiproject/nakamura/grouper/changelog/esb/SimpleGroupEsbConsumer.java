@@ -1,16 +1,18 @@
 
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
+import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
-import edu.internet2.middleware.grouper.GroupType;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
@@ -29,24 +31,30 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpSimpleGroupAdapter groupAdapter;
 
+	private GroupIdAdapter idAdapter;
+
+	private Set<String> simpleGroupsInSakai;
+
 	public static final String MANAGER_SUFFIX = "manager";
 	public static final String MEMBER_SUFFIX = "member";
 
 	protected void loadConfiguration(String consumerName) {
 		super.loadConfiguration(consumerName);
 
-		SimpleGroupIdAdapter groupIdAdapter = new SimpleGroupIdAdapter();
-		groupIdAdapter.setProvisionedSimpleGroupsStem(provisionedStem);
-		groupIdAdapter.setAdhocSimpleGroupsStem(adhocStem);
-		groupIdAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
-		groupIdAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
+		simpleGroupsInSakai = new HashSet<String>();
+
+		SimpleGroupIdAdapter idAdapter = new SimpleGroupIdAdapter();
+		idAdapter.setProvisionedSimpleGroupsStem(provisionedStem);
+		idAdapter.setAdhocSimpleGroupsStem(adhocStem);
+		idAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		idAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
 
 		groupAdapter = new HttpSimpleGroupAdapter();
 		groupAdapter.setUrl(url);
 		groupAdapter.setUsername(username);
 		groupAdapter.setPassword(password);
 		groupAdapter.setCreateUsers(createUsers);
-		groupAdapter.setGroupIdAdapter(groupIdAdapter);
+		groupAdapter.setGroupIdAdapter(idAdapter);
 		groupAdapter.setDryrun(dryrun);
 		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 	}
@@ -75,28 +83,30 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
-					String groupName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
+					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
 
 					if (log.isDebugEnabled()){
-						log.debug(ChangeLogTypeBuiltin.GROUP_ADD + ": name=" + groupName);
+						log.debug(ChangeLogTypeBuiltin.GROUP_ADD + ": name=" + grouperName);
 					}
-					if (isSupportedGroup(groupName)) {
-						Group group = GroupFinder.findByName(getGrouperSession(), groupName, false);
+					if (isSupportedGroup(grouperName)) {
+						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 
 						if (group != null) {
 							if (NakamuraUtils.isSimpleGroup(group)){
-								for (GroupType groupType: group.getTypes()){
-									// Create the OAE Course objects when the student_systemOfRecord group is created.
-									// That group has the group type addIncludeExclude
-									if (groupType.getName().equals(ADD_INCLUDE_EXCLUDE) &&
-											group.getExtension().equals(createDeleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
-										groupAdapter.createGroup(group);
-									}
+								String nakamuraGroupId = idAdapter.getNakamuraGroupId(grouperName);
+								String parentGroupId = idAdapter.getPseudoGroupParent(nakamuraGroupId);
+								// Create the OAE Course objects when the first role group is created.
+								if (!simpleGroupsInSakai.contains(parentGroupId) &&
+										!groupAdapter.groupExists(parentGroupId)){
+									log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
+									groupAdapter.createGroup(group);
+									simpleGroupsInSakai.add(parentGroupId);
+									log.info("DONE with the GROUP_ADD event for " + grouperName);
 								}
 							}
 						}
 						else {
-							log.error("Group added event received for a null or non-simple group " + groupName);
+							log.error("Group added event received for a null or non-simple group " + grouperName);
 						}
 					}
 				}
@@ -107,7 +117,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					if (isSupportedGroup(grouperName)) {
 						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 						if (group == null || NakamuraUtils.isSimpleGroup(grouperName)){
-							if (grouperName.endsWith(createDeleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+							if (grouperName.endsWith(deleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
 								groupAdapter.deleteGroup(grouperName, grouperName);
 							}
 						}

@@ -31,7 +31,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	protected boolean dryrun;
 	protected boolean createUsers;
 
-	protected String createDeleteRole;
+	protected String deleteRole;
 
 	// This job will try to process events for groups in these stems
 	protected Set<String> supportedStems;
@@ -51,7 +51,6 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_PASSWORD = "password";
 	public static final String PROP_CREATE_USERS = "create.users";
 	public static final String PROP_DRYRUN = "dryrun";
-	public static final String PROP_CREATE_DELETE_ROLE = "createDeleteRole";
 
 	// Decides where we accept events from
 	public static final String PROP_ADHOC_STEM = "adhoc.stem";
@@ -84,7 +83,6 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		username = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_USERNAME, true);
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, false);
-		createDeleteRole = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_CREATE_DELETE_ROLE, true);
 
 		includeExcludeSuffixes = new HashSet<String>();
 		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_SUFFIX));

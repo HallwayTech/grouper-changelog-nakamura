@@ -1,6 +1,8 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
@@ -9,7 +11,6 @@ import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
-import edu.internet2.middleware.grouper.GroupType;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
@@ -52,7 +53,11 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	protected TemplateGroupIdAdapter groupIdAdapter;
 
+	// Courses already created in sakai by this object
+	protected Set<String> coursesInSakai;
+
 	public CourseGroupEsbConsumer() {
+		coursesInSakai = new HashSet<String>();
 	}
 
 	protected void loadConfiguration(String consumerName) {
@@ -106,12 +111,15 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						if (group != null){
 							if (NakamuraUtils.isCourseGroup(group)){
 								String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(grouperName);
-								for (GroupType groupType: group.getTypes()){
-									// Create the OAE Course objects when the first role group is created.
-									if (ADD_INCLUDE_EXCLUDE.equals(groupType) &&
-										!groupAdapter.groupExists(groupIdAdapter.getPseudoGroupParent(nakamuraGroupId))){
-										groupAdapter.createGroup(group);
-									}
+								String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+
+								// Create the OAE Course objects when the first role group is created.
+								if (!coursesInSakai.contains(parentGroupId) &&
+										!groupAdapter.groupExists(parentGroupId)){
+									log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
+									groupAdapter.createGroup(group);
+									coursesInSakai.add(parentGroupId);
+									log.info("DONE with the GROUP_ADD event for " + grouperName);
 								}
 							}
 						}
@@ -127,7 +135,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					if (isSupportedGroup(grouperName)) {
 						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 						if (group == null || NakamuraUtils.isCourseGroup(grouperName)){
-							if (grouperName.endsWith(createDeleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+							if (grouperName.endsWith(deleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
 								groupAdapter.deleteGroup(grouperName, grouperName);
 							}
 						}
