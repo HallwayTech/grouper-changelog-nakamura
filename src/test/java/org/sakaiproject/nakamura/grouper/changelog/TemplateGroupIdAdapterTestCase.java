@@ -11,6 +11,7 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 
 	private Set<String> pseudoGroupSuffixes = ImmutableSet.of("student", "ta", "lecturer", "manager", "members");
 	private Set<String> includeExcludeSuffixes = ImmutableSet.of("_includes", "_excludes", "_systemOfRecord", "_systemOfRecordAndIncludes");
+	private String roleMappings = "TAs:ta, lecturers:lecturer, students:student, managers:manager";
 	
 	TemplateGroupIdAdapter adaptor;
 	
@@ -21,6 +22,7 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 		adaptor.setIncludeExcludeSuffixes(includeExcludeSuffixes);
 		adaptor.setProvisionedStem("apps:sakaioae:provisioned:courses");
 		adaptor.setAdhocStem("apps:sakaioae:adhoc:courses");
+		adaptor.setRoleMap(roleMappings);
 		
 	}
 

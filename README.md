@@ -87,9 +87,10 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
 changeLog.consumer.courseGroups.createDeleteRole = student
 
     # Regex indices                                            0       1       2       3       4       5       6
-    changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupName.regex = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
-	changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
-    changeLog.consumer.courseGroups.psuedoGroup.suffixes = member, manager, student, lecturer, ta
+    changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupName.regex  = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
+    changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
+    changeLog.consumer.courseGroups.TemplateGroupIdAdapter.role.map         = TAs:ta, lecturers:lecturer, students:student, managers:manager
+    changeLog.consumer.courseGroups.psuedoGroup.suffixes                    = member, manager, student, lecturer, ta
 
     changeLog.consumer.courseGroups.nakamura.url = http://localhost:8080
     changeLog.consumer.courseGroups.nakamura.username = grouper-admin
