@@ -13,6 +13,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -206,6 +207,10 @@ public abstract class BaseGroupAdapter {
 		if (dryrun){
 			log.debug("Dry run is set. Not executing for " + method.getPath());
 			return new JSONObject();
+		}
+		NameValuePair batchRequests = method.getParameter(BATCH_REQUESTS_PARAM);
+		if (batchRequests != null && log.isDebugEnabled()){
+			log.debug(batchRequests.getName() + " = " + batchRequests.getValue());
 		}
 
 		int responseCode = -1;
