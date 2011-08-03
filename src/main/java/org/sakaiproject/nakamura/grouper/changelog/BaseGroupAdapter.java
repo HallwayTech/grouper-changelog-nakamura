@@ -213,9 +213,11 @@ public abstract class BaseGroupAdapter {
 			log.debug("Dry run is set. Not executing for " + method.getPath());
 			return new JSONObject();
 		}
-		NameValuePair batchRequests = method.getParameter(BATCH_REQUESTS_PARAM);
-		if (batchRequests != null && log.isDebugEnabled()){
-			log.debug(batchRequests.getName() + " = " + batchRequests.getValue());
+		if (log.isDebugEnabled()){
+			log.debug(method.getName() + " " + method.getPath() + "params:");
+			for (NameValuePair nvp : method.getParameters()){
+				log.debug(nvp.getName() + " = " + nvp.getValue());
+			}
 		}
 
 		int responseCode = -1;
