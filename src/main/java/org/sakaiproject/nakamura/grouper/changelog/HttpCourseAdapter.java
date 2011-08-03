@@ -478,6 +478,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    	for (String roleGroupId: new String[]{ studentGroupId, taGroupId, lecturerGroupId}){
 	    		JSONObject request = new JSONObject();
 	    		request.put("url", "/p/" + docHash + ".members.html");
+	    		request.put("method", "POST");
 	    		request.put(CHARSET_PARAM, UTF_8);
 	    		request.put("parameters", ImmutableMap.of(":manager", roleGroupId, CHARSET_PARAM, UTF_8));
 	    		batchPosts.add(request);
