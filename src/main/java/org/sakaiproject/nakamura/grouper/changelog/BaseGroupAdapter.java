@@ -259,6 +259,9 @@ public abstract class BaseGroupAdapter {
 				errorMessage = "Unknown HTTP response " + responseCode;
 				break;
 			}
+			if(log.isDebugEnabled()){
+				log.debug(responseCode + " " + method.getName() + " " + method.getPath() + " reponse: " + responseString);
+			}
 		}
 		catch (Exception e) {
 			errorMessage = "An exception occurred communicatingSakai OAE. " + e.toString();
