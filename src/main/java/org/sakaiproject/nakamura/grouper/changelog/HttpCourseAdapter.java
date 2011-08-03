@@ -491,7 +491,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    method.setParameter(CHARSET_PARAM, UTF_8);
 	    http(client, method);
 
-	    method = new PostMethod(url + "/~" + parentGroupId + ".docstructure");
+	    method = new PostMethod(url + "/~" + parentGroupId + "/docstructure");
 
 	    method.setParameter(":operation", "import");
 	    method.setParameter(":contentType", "json");
