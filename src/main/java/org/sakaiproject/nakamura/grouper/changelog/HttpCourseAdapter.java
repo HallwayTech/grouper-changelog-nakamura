@@ -509,7 +509,8 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    method.setParameter(CHARSET_PARAM, UTF_8);
 	    http(client, method);
 
-	    log.info("Imported docstructure.");
+	    log.debug("Imported docstructure.");
+	    log.info("Successfully created the course in sakai for " + parentGroupId);
 	}
 
 	@Override

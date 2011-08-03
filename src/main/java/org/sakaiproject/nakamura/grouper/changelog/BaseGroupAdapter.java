@@ -281,7 +281,7 @@ public abstract class BaseGroupAdapter {
 			}
 			catch (JSONException je){
 				if (response.startsWith("<html>")){
-					log.error("Expected a JSON response, got html");
+					log.debug("Expected a JSON response, got html");
 				}
 				else {
 					log.error("Could not parse JSON response. " + response);
