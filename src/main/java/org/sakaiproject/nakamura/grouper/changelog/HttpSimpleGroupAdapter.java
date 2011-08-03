@@ -66,7 +66,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		}
 
 		method = new PostMethod(url + GROUP_CREATE_URI);
-		method.setParameter("_charset_", "utf-8");
+		method.setParameter(CHARSET_PARAM, UTF_8);
 		method.setParameter(":name", parentGroupId);
 		method.setParameter("sakai:group-title", parentGroupId);
 		method.setParameter("sakai:group-description", parentGroupId);
@@ -94,11 +94,11 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 			JSONObject params = new JSONObject();
 			// courseId-managerRoleName will be a manager of roleName
 			params.put(":manager", managerGroupId);
-			params.put("_charset_", "utf-8");
+			params.put(CHARSET_PARAM, UTF_8);
 			request.put("url", GROUP_PATH_PREFIX + "/" + roleGroupId + ".update.json");
 			request.put("method", "POST");
 			request.put("parameters", params);
-			request.put("_charset_", "utf-8");
+			request.put(CHARSET_PARAM, UTF_8);
 			batchPosts.add(request);
 		}
 
@@ -117,11 +117,11 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		JSONObject p1 = new JSONObject();
 		p1.put(":member", creator);
 		p1.put(":viewer", creator);
-		p1.put("_charset_", "utf-8");
+		p1.put(CHARSET_PARAM, UTF_8);
 		req1.put("url", GROUP_PATH_PREFIX + "/" + managerGroupId + ".update.json");
 		req1.put("method", "POST");
 		req1.put("parameters", p1);
-		req1.put("_charset_", "utf-8");
+		req1.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req1);
 
 		for (String roleGroupId: new String[] { managerGroupId, memberGroupId }){
@@ -129,11 +129,11 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 			JSONObject params = new JSONObject();
 			params.put(":member", roleGroupId);
 			params.put(":viewer", roleGroupId);
-			params.put("_charset_", "utf-8");
+			params.put(CHARSET_PARAM, UTF_8);
 			request.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
 			request.put("method", "POST");
 			request.put("parameters", params);
-			request.put("_charset_", "utf-8");
+			request.put(CHARSET_PARAM, UTF_8);
 			batchPosts.add(request);
 		}
 
@@ -152,33 +152,33 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		p1.put("rep:group-viewers@Delete", "");
 		p1.put("sakai:group-visible", "public");
 		p1.put("sakai:group-joinable", "yes");
-		p1.put("_charset_", "utf-8");
+		p1.put(CHARSET_PARAM, UTF_8);
 		req1.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
 		req1.put("method", "POST");
 		req1.put("parameters", p1);
-		req1.put("_charset_", "utf-8");
+		req1.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req1);
 
 		JSONObject req2 = new JSONObject();
 		JSONObject p2 = new JSONObject();
 		p2.put("principalId", "everyone");
 		p2.put("privilege@jcr:read", "granted");
-		p2.put("_charset_", "utf-8");
+		p2.put(CHARSET_PARAM, UTF_8);
 		req2.put("url", "/~" + parentGroupId + ".modifyAce.html");
 		req2.put("method", "POST");
 		req2.put("parameters", p2);
-		req2.put("_charset_", "utf-8");
+		req2.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req2);
 
 		JSONObject req3 = new JSONObject();
 		JSONObject p3 = new JSONObject();
 		p3.put("principalId", "anonymous");
 		p3.put("privilege@jcr:read", "granted");
-		p3.put("_charset_", "utf-8");
+		p3.put(CHARSET_PARAM, UTF_8);
 		req3.put("url", "/~" + parentGroupId + ".modifyAce.html");
 		req3.put("method", "POST");
 		req3.put("parameters", p3);
-		req3.put("_charset_", "utf-8");
+		req3.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req3);
 
 		method = new PostMethod(url + BATCH_URI);
@@ -197,13 +197,13 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    libraryP.put("sakai:copyright", "creativecommons");
 	    libraryP.put("structure0", "{\"library\":{\"_ref\":\"id9867543247\",\"_order\":0,\"_nonEditable\":true,\"_title\":\"Library\",\"main\":{\"_ref\":\"id9867543247\",\"_order\":0,\"_nonEditable\":true,\"_title\":\"Library\"}}}");
 	    libraryP.put("sakai:custom-mimetype", "x-sakai/document");
-	    libraryP.put("_charset_", "utf-8");
+	    libraryP.put(CHARSET_PARAM, UTF_8);
 
 	    req1 = new JSONObject();
 	    req1.put("url", CREATE_FILE_URI);
 	    req1.put("method", "POST");
 	    req1.put("parameters", libraryP);
-	    req1.put("_charset_", "utf-8");
+	    req1.put(CHARSET_PARAM, UTF_8);
 	    batchPosts.add(req1);
 
 	    JSONObject participantsP = new JSONObject();
@@ -213,13 +213,13 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    participantsP.put("sakai:copyright", "creativecommons");
 	    participantsP.put("structure0", "{\"participants\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_nonEditable\":true,\"_title\":\"Participants\",\"main\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_nonEditable\":true,\"_title\":\"Participants\"}}}");
 	    participantsP.put("sakai:custom-mimetype", "x-sakai/document");
-	    participantsP.put("_charset_", "utf-8");
+	    participantsP.put(CHARSET_PARAM, UTF_8);
 
 	    req2 = new JSONObject();
 	    req2.put("url", CREATE_FILE_URI);
 	    req2.put("method", "POST");
 	    req2.put("parameters", participantsP);
-	    req2.put("_charset_", "utf-8");
+	    req2.put(CHARSET_PARAM, UTF_8);
 	    batchPosts.add(req2);
 
 	    method = new PostMethod(url + BATCH_URI);
@@ -266,7 +266,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    libraryParams.put(":contentType", "json");
 	    libraryParams.put(":replace", true);
 	    libraryParams.put(":replaceProperties", true);
-	    libraryParams.put("_charset_", "utf-8");
+	    libraryParams.put(CHARSET_PARAM, UTF_8);
 	    JSONObject libraryContent = new JSONObject();
 	    libraryContent.put("id9867543247", JSONSerializer.toJSON(ImmutableMap.of("page", "<img id='widget_mylibrary_id1367865652332' class='widget_inline' style='display: block; padding: 10px; margin: 4px;' src='/devwidgets/mylibrary/images/mylibrary.png' data-mce-src='/devwidgets/mylibrary/images/mylibrary.png' data-mce-style='display: block; padding: 10px; margin: 4px;' border='1'><br></p>")));
 	    libraryContent.put("id1367865652332", JSONSerializer.toJSON(ImmutableMap.of("mylibrary", ImmutableMap.of("groupid", parentGroupId))));
@@ -276,14 +276,14 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    libraryRequest.put("url", "/p/" + libraryDocHash + ".resource");
 	    libraryRequest.put("method", "POST");
 	    libraryRequest.put("parameters", libraryParams);
-	    libraryRequest.put("_charset", "utf-8");
+	    libraryRequest.put("_charset", UTF_8);
 
 	    JSONObject participantsParams = new JSONObject();
 	    participantsParams.put(":operation", "import");
 	    participantsParams.put(":contentType", "json");
 	    participantsParams.put(":replace", true);
 	    participantsParams.put(":replaceProperties", true);
-	    participantsParams.put("_charset_", "utf-8");
+	    participantsParams.put(CHARSET_PARAM, UTF_8);
 	    JSONObject participantsContent = new JSONObject();
 	    participantsContent.put("id6573920372", JSONSerializer.toJSON(ImmutableMap.of("page", "<img id='widget_participants_id439704665' class='widget_inline' style='display: block; padding: 10px; margin: 4px;' src='/devwidgets/participants/images/participants.png' data-mce-src='/devwidgets/participants/images/participants.png' data-mce-style='display: block; padding: 10px; margin: 4px;' border='1'><br></p>")));
 	    participantsContent.put("id6573920372", JSONSerializer.toJSON(ImmutableMap.of("participants", ImmutableMap.of("groupid", parentGroupId))));
@@ -293,7 +293,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    participantsRequest.put("url", "/p/" + participantsDocHash + ".resource");
 	    participantsRequest.put("method", "POST");
 	    participantsRequest.put("parameters", participantsParams);
-	    participantsRequest.put("_charset", "utf-8");
+	    participantsRequest.put("_charset", UTF_8);
 
 	    batchPosts.add(libraryRequest);
 	    batchPosts.add(participantsRequest);
@@ -313,36 +313,36 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		req1.put("url", "/p/" + libraryDocHash + ".members.html");
 		req1.put("method", "POST");
 		req1.put("parameters", ImmutableMap.of(":viewer", new String[] {"everyone", "anonymous" }));
-		req1.put("_charset_", "utf-8");
+		req1.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req1);
 
 		req2 = new JSONObject();
 		p2 = new JSONObject();
 		p2.put("principalId", new String[] {"everyone", "anonymous"});
 		p2.put("privilege@jcr:read", "granted");
-		p2.put("_charset_", "utf-8");
+		p2.put(CHARSET_PARAM, UTF_8);
 		req2.put("url", "/~" + libraryDocHash + ".modifyAce.html");
 		req2.put("method", "POST");
 		req2.put("parameters", p2);
-		req2.put("_charset_", "utf-8");
+		req2.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req2);
 
 		req3 = new JSONObject();
 		req3.put("url", "/~" + participantsDocHash + ".members.html");
 		req3.put("method", "POST");
 		req3.put("parameters", ImmutableMap.of(":viewer", new String[] {"everyone", "anonymous" }));
-		req3.put("_charset_", "utf-8");
+		req3.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req3);
 
 		JSONObject req4 = new JSONObject();
 		JSONObject p4 = new JSONObject();
 		p4.put("principalId", new String[] {"everyone", "anonymous"});
 		p4.put("privilege@jcr:read", "granted");
-		p4.put("_charset_", "utf-8");
+		p4.put(CHARSET_PARAM, UTF_8);
 		req4.put("url", "/~" + participantsDocHash + ".modifyAce.html");
 		req4.put("method", "POST");
 		req4.put("parameters", p4);
-		req4.put("_charset_", "utf-8");
+		req4.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req4);
 
 		method = new PostMethod(url + BATCH_URI);
@@ -359,29 +359,29 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		req1 = new JSONObject();
 		req1.put("url", "/p/" + libraryDocHash + ".members.html");
 		req1.put("method", "POST");
-		req1.put("parameters", ImmutableMap.of(":viewer", memberGroupId, "_charset_", "utf-8"));
-		req1.put("_charset_", "utf-8");
+		req1.put("parameters", ImmutableMap.of(":viewer", memberGroupId, CHARSET_PARAM, UTF_8));
+		req1.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req1);
 
 		req2 = new JSONObject();
 		req2.put("url", "/~" + libraryDocHash + ".members.html");
 		req2.put("method", "POST");
-		req2.put("parameters", ImmutableMap.of(":viewer", managerGroupId, "_charset_", "utf-8"));
-		req2.put("_charset_", "utf-8");
+		req2.put("parameters", ImmutableMap.of(":viewer", managerGroupId, CHARSET_PARAM, UTF_8));
+		req2.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req2);
 
 		req3 = new JSONObject();
 		req3.put("url", "/~" + participantsDocHash + ".members.html");
 		req3.put("method", "POST");
-		req3.put("parameters", ImmutableMap.of(":viewer", memberGroupId, "_charset_", "utf-8"));
-		req3.put("_charset_", "utf-8");
+		req3.put("parameters", ImmutableMap.of(":viewer", memberGroupId, CHARSET_PARAM, UTF_8));
+		req3.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req3);
 
 		req4 = new JSONObject();
 		req4.put("url", "/~" + participantsDocHash + ".modifyAce.html");
 		req4.put("method", "POST");
-		req4.put("parameters", ImmutableMap.of(":viewer", managerGroupId, "_charset_", "utf-8"));
-		req4.put("_charset_", "utf-8");
+		req4.put("parameters", ImmutableMap.of(":viewer", managerGroupId, CHARSET_PARAM, UTF_8));
+		req4.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req4);
 
 		method = new PostMethod(url + BATCH_URI);
@@ -404,7 +404,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    method.setParameter(":operation", "import");
 	    method.setParameter(":replace", "true");
 	    method.setParameter(":replaceProperties", "true");
-	    method.setParameter("_charset_", "utf-8");
+	    method.setParameter(CHARSET_PARAM, UTF_8);
 
 	    http(client, method);
 	}
