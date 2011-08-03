@@ -50,7 +50,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		// TODO - Fix this. Either key off of the lecturers group and grab the
 		// first member or use an attribute.
 		// We might not have members at add time.
-		String creator = "admin";
+		String creator = username;
 
 		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 		String lecturerGroupId = parentGroupId + "-lecturer";
