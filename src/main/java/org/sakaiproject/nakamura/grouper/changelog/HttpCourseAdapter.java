@@ -72,7 +72,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		// --------------------------------------------------------------------
 		// POST 4 - creating the main group
 		method = new PostMethod(url + GROUP_CREATE_URI);
-		method.setParameter("_charset_", "utf-8");
+		method.setParameter("CHARSET_PARAM", UTF_8);
 		method.setParameter(":name", parentGroupId);
 		method.setParameter("sakai:group-title", parentGroupId);
 		method.setParameter("sakai:group-description", parentGroupId);
@@ -102,11 +102,11 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 				params = new JSONObject();
 				// courseId-managerRoleName will be a manager of roleName
 				params.put(":manager", managerGroupId);
-				params.put("_charset_", "utf-8");
+				params.put("CHARSET_PARAM", UTF_8);
 				request.put("url", GROUP_PATH_PREFIX + "/" + roleGroupId + ".update.json");
 				request.put("method", "POST");
 				request.put("parameters", params);
-				request.put("_charset_", "utf-8");
+				request.put("CHARSET_PARAM", UTF_8);
 				batchPosts.add(request);
 			}
 
@@ -114,17 +114,18 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 			request = new JSONObject();
 			params = new JSONObject();
 			params.put(":manager", managerGroupId);
-			params.put("_charset_", "utf-8");
+			params.put("CHARSET_PARAM", UTF_8);
 			request.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
 			request.put("method", "POST");
 			request.put("parameters", params);
-			request.put("_charset_", "utf-8");
+			request.put("CHARSET_PARAM", UTF_8);
 			batchPosts.add(request);
 		}
 
 		method = new PostMethod(url + BATCH_URI);
 		JSONArray json = JSONArray.fromObject(batchPosts);
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
+		method.setParameter(CHARSET_PARAM, UTF_8);
 		http(client, method);
 		log.debug("Updated the group managers.");
 
@@ -136,11 +137,11 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		JSONObject p1 = new JSONObject();
 		p1.put(":member", creator);
 		p1.put(":viewer", creator);
-		p1.put("_charset_", "utf-8");
+		p1.put("CHARSET_PARAM", UTF_8);
 		req1.put("url", GROUP_PATH_PREFIX + "/" + lecturerGroupId + ".update.json");
 		req1.put("method", "POST");
 		req1.put("parameters", p1);
-		req1.put("_charset_", "utf-8");
+		req1.put("CHARSET_PARAM", UTF_8);
 		batchPosts.add(req1);
 
 		for (String roleGroupId: new String[] { studentGroupId, taGroupId, lecturerGroupId }){
@@ -148,28 +149,29 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 			JSONObject params = new JSONObject();
 			params.put(":member", roleGroupId);
 			params.put(":viewer", roleGroupId);
-			params.put("_charset_", "utf-8");
+			params.put("CHARSET_PARAM", UTF_8);
 			request.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
 			request.put("method", "POST");
 			request.put("parameters", params);
-			request.put("_charset_", "utf-8");
+			request.put("CHARSET_PARAM", UTF_8);
 			batchPosts.add(request);
 		}
 		for (String roleName: new String[] { "ta", "lecturer" }){
 			JSONObject request = new JSONObject();
 			JSONObject params = new JSONObject();
 			params.put(":viewer", parentGroupId + "-student");
-			params.put("_charset_", "utf-8");
+			params.put("CHARSET_PARAM", UTF_8);
 			request.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + "-" + roleName + ".update.json");
 			request.put("method", "POST");
 			request.put("parameters", params);
-			request.put("_charset_", "utf-8");
+			request.put("CHARSET_PARAM", UTF_8);
 			batchPosts.add(req1);
 		}
 
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
+		method.setParameter(CHARSET_PARAM, UTF_8);
 		http(client, method);
 		log.debug("Updated the group members.");
 
@@ -180,7 +182,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		method.setParameter("rep:group-viewers@Delete", "");
 		method.setParameter("sakai:group-visible", "public");
 		method.setParameter("sakai:group-joinable", "yes");
-		method.setParameter("_charset_", "utf-8");
+		method.setParameter("CHARSET_PARAM", UTF_8);
 		http(client, method);
 		log.debug("Updated the visibilty and joinability.");
 
@@ -194,13 +196,13 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    syllabusP.put("sakai:copyright", "creativecommons");
 	    syllabusP.put("structure0", "{\"week1\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_title\":\"Week 1\",\"main\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_title\":\"Week 1\"}},\"week2\":{\"_ref\":\"id569856425\",\"_title\":\"Week 2\",\"_order\":1,\"main\":{\"_ref\":\"id569856425\",\"_order\":0,\"_title\":\"Week 2\"}},\"week3\":{\"_ref\":\"id647321988\",\"_title\":\"Week 3\",\"_order\":2,\"main\":{\"_ref\":\"id647321988\",\"_order\":0,\"_title\":\"Week 3\"}}}");
 	    syllabusP.put("sakai:custom-mimetype", "x-sakai/document");
-	    syllabusP.put("_charset_", "utf-8");
+	    syllabusP.put("CHARSET_PARAM", UTF_8);
 
 	    req1 = new JSONObject();
 	    req1.put("url", CREATE_FILE_URI);
 	    req1.put("method", "POST");
 	    req1.put("parameters", syllabusP);
-	    req1.put("_charset_", "utf-8");
+	    req1.put("CHARSET_PARAM", UTF_8);
 	    batchPosts.add(req1);
 
 	    JSONObject contactP = new JSONObject();
@@ -210,13 +212,13 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    contactP.put("sakai:copyright", "creativecommons");
 	    contactP.put("structure0", "{\"about\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_title\":\"About\",\"main\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_title\":\"About\"}},\"prospective\":{\"_ref\":\"id373710599\",\"_title\":\"Prospective Students\",\"_order\":1,\"main\":{\"_ref\":\"id373710599\",\"_order\":0,\"_title\":\"Prospective Students\"}}}");
 	    contactP.put("sakai:custom-mimetype", "x-sakai/document");
-	    contactP.put("_charset_", "utf-8");
+	    contactP.put("CHARSET_PARAM", UTF_8);
 
 	    JSONObject req2 = new JSONObject();
 	    req2.put("url", CREATE_FILE_URI);
 	    req2.put("method", "POST");
 	    req2.put("parameters", contactP);
-	    req2.put("_charset_", "utf-8");
+	    req2.put("CHARSET_PARAM", UTF_8);
 	    batchPosts.add(req2);
 
 	    JSONObject orgNotesP = new JSONObject();
@@ -226,13 +228,13 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    orgNotesP.put("sakai:copyright", "creativecommons");
 	    orgNotesP.put("structure0", "{\"organizationnotes\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_title\":\"Organization Notes\",\"main\":{\"_ref\":\"id6573920372\",\"_order\":0,\"_title\":\"Organization Notes\"}}}");
 	    orgNotesP.put("sakai:custom-mimetype", "x-sakai/document");
-	    orgNotesP.put("_charset_", "utf-8");
+	    orgNotesP.put("CHARSET_PARAM", UTF_8);
 
 	    JSONObject req3 = new JSONObject();
 	    req3.put("url", CREATE_FILE_URI);
 	    req3.put("method", "POST");
 	    req3.put("parameters", orgNotesP);
-	    req3.put("_charset_", "utf-8");
+	    req3.put("CHARSET_PARAM", UTF_8);
 	    batchPosts.add(req3);
 
 	    JSONObject wikiP = new JSONObject();
@@ -242,18 +244,19 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    wikiP.put("sakai:copyright", "creativecommons");
 	    wikiP.put("structure0", "{\"studentwiki\":{\"_ref\":\"id849031890418\",\"_order\":0,\"_title\":\"Student Wiki\",\"main\":{\"_ref\":\"id849031890418\",\"_order\":0,\"_title\":\"Organization Notes\"}}}");
 	    wikiP.put("sakai:custom-mimetype", "x-sakai/document");
-	    wikiP.put("_charset_", "utf-8");
+	    wikiP.put("CHARSET_PARAM", UTF_8);
 
 	    JSONObject req4 = new JSONObject();
 	    req4.put("url", CREATE_FILE_URI);
 	    req4.put("method", "POST");
 	    req4.put("parameters", wikiP);
-	    req4.put("_charset_", "utf-8");
+	    req4.put("CHARSET_PARAM", UTF_8);
 	    batchPosts.add(req4);
 
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
+	    method.setParameter(CHARSET_PARAM, UTF_8);
 	    JSONObject post8Response = http(client, method);
 
 	    // Go through the response and get the document UUID for the library and participants items.
@@ -303,7 +306,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    syllabusParams.put(":contentType", "json");
 	    syllabusParams.put(":replace", true);
 	    syllabusParams.put(":replaceProperties", true);
-	    syllabusParams.put("_charset_", "utf-8");
+	    syllabusParams.put("CHARSET_PARAM", UTF_8);
 	    JSONObject syllabusContent = new JSONObject();
 	    syllabusContent.put("id6573920372", JSONSerializer.toJSON(ImmutableMap.of("page", "<p>Lorem ipsum dolor sit amet</p>")));
 	    syllabusContent.put("id569856425", JSONSerializer.toJSON(ImmutableMap.of("page", "<p>Week 2</p>")));
@@ -314,14 +317,14 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    syllabusRequest.put("url", "/p/" + syllabusDocHash + ".resource");
 	    syllabusRequest.put("method", "POST");
 	    syllabusRequest.put("parameters", syllabusParams);
-	    syllabusRequest.put("_charset", "utf-8");
+	    syllabusRequest.put("_charset", UTF_8);
 
 	    JSONObject contactParams = new JSONObject();
 	    contactParams.put(":operation", "import");
 	    contactParams.put(":contentType", "json");
 	    contactParams.put(":replace", true);
 	    contactParams.put(":replaceProperties", true);
-	    contactParams.put("_charset_", "utf-8");
+	    contactParams.put("CHARSET_PARAM", UTF_8);
 	    JSONObject contactContent = new JSONObject();
 	    contactContent.put("id6573920372", JSONSerializer.toJSON(ImmutableMap.of("page", "<p><strong>Contact Us</strong></p><p>16 Mill Lane<br>1st Floor<br>CB2 1SB Cambridge</p><p><img id='widget_googlemaps_id439704665' class='widget_inline' style='display: block; padding: 10px; margin: 4px;' src='/devwidgets/googlemaps/images/googlemaps.png' data-mce-src='/devwidgets/googlemaps/images/googlemaps.png' data-mce-style='display: block; padding: 10px; margin: 4px;' border='1'><br></p>")));
 	    contactParams.put(":content", contactContent);
@@ -330,14 +333,14 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    contactRequest.put("url", "/p/" + contactUsDocHash + ".resource");
 	    contactRequest.put("method", "POST");
 	    contactRequest.put("parameters", contactParams);
-	    contactRequest.put("_charset", "utf-8");
+	    contactRequest.put("_charset", UTF_8);
 
 	    JSONObject orgNotesParams = new JSONObject();
 	    orgNotesParams.put(":operation", "import");
 	    orgNotesParams.put(":contentType", "json");
 	    orgNotesParams.put(":replace", true);
 	    orgNotesParams.put(":replaceProperties", true);
-	    orgNotesParams.put("_charset_", "utf-8");
+	    orgNotesParams.put("CHARSET_PARAM", UTF_8);
 	    JSONObject orgNotesContent = new JSONObject();
 	    orgNotesContent.put("id6573920372", JSONSerializer.toJSON(ImmutableMap.of("page", "<p>This is some information about the course<br></p>")));
 	    orgNotesContent.put("id373710599", JSONSerializer.toJSON(ImmutableMap.of("page", "<p>This is some information for prospective students<br>")));
@@ -346,7 +349,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    JSONObject orgNotesRequest = new JSONObject();
 	    orgNotesRequest.put("url", "/p/" + orgNotesDocHash + ".resource");
 	    orgNotesRequest.put("method", "POST");
-	    orgNotesRequest.put("_charset", "utf-8");
+	    orgNotesRequest.put("_charset", UTF_8);
 	    orgNotesRequest.put("parameters", orgNotesParams);
 
 	    JSONObject wikiParams = new JSONObject();
@@ -354,7 +357,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    wikiParams.put(":contentType", "json");
 	    wikiParams.put(":replace", true);
 	    wikiParams.put(":replaceProperties", true);
-	    wikiParams.put("_charset_", "utf-8");
+	    wikiParams.put("CHARSET_PARAM", UTF_8);
 	    JSONObject wikiContent = new JSONObject();
 	    wikiContent.put("id849031890418", JSONSerializer.toJSON(ImmutableMap.of("page", "<p>Student wiki editable by all members of this course<br></p>")));
 	    wikiParams.put(":content", wikiContent);
@@ -362,7 +365,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    JSONObject wikiRequest = new JSONObject();
 	    wikiRequest.put("url", "/p/" + studentWikiDocHash + ".resource");
 	    wikiRequest.put("method", "POST");
-	    wikiRequest.put("_charset", "utf-8");
+	    wikiRequest.put("_charset", UTF_8);
 	    wikiRequest.put("parameters", wikiParams);
 
 	    batchPosts.add(syllabusRequest);
@@ -373,6 +376,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
+	    method.setParameter(CHARSET_PARAM, UTF_8);
 	    http(client, method);
 
 	    log.debug("Added initial content into the sakai documents.");
@@ -461,6 +465,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
+	    method.setParameter(CHARSET_PARAM, UTF_8);
 	    http(client, method);
 
 	    log.debug("Set ACLs on sakai documents.");
@@ -473,8 +478,8 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    	for (String roleGroupId: new String[]{ studentGroupId, taGroupId, lecturerGroupId}){
 	    		JSONObject request = new JSONObject();
 	    		request.put("url", "/p/" + docHash + ".members.html");
-	    		request.put("_charset_", "utf-8");
-	    		request.put("parameters", ImmutableMap.of(":manager", roleGroupId, "_charset_", "utf-8"));
+	    		request.put("CHARSET_PARAM", UTF_8);
+	    		request.put("parameters", ImmutableMap.of(":manager", roleGroupId, "CHARSET_PARAM", UTF_8));
 	    		batchPosts.add(request);
 	    	}
 	    }
@@ -482,6 +487,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
+	    method.setParameter(CHARSET_PARAM, UTF_8);
 	    http(client, method);
 
 	    method = new PostMethod(url + "/~" + parentGroupId + ".docstructure");
@@ -490,7 +496,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    method.setParameter(":contentType", "json");
 	    method.setParameter(":replace", "true");
 	    method.setParameter(":replaceProperties", "true");
-	    method.setParameter("_charset_", "utf-8");
+	    method.setParameter("CHARSET_PARAM", UTF_8);
 	    JSONObject content = new JSONObject();
 	    String structure = "{\"syllabus\":{\"_title\":\"Syllabus\",\"_order\":0,\"_view\":\"[\\\"everyone\\\",\\\"-student\\\",\\\"-ta\\\"]\",\"_edit\":\"[\\\"-lecturer\\\"]\",\"_pid\":\"#{SYLLABUS_DOC_HASH}\"},\"contactus\":{\"_title\":\"Contact us\",\"_order\":1,\"_view\":\"[\\\"-student\\\"]\",\"_edit\":\"[\\\"-lecturer\\\",\\\"-ta\\\"]\",\"_pid\":\"#{CONTACTUS_DOC_HASH}\"},\"organizationnotes\":{\"_title\":\"Organization Notes\",\"_order\":3,\"_view\":\"[\\\"-ta\\\"]\",\"_edit\":\"[\\\"-lecturer\\\"]\",\"_pid\":\"#{ORGNOTES_DOC_HASH}\"},\"studentwiki\":{\"_title\":\"Student Wiki\",\"_order\":4,\"_view\":\"[]\",\"_edit\":\"[\\\"-lecturer\\\",\\\"-ta\\\",\\\"-student\\\"]\",\"_pid\":\"#{STUDENTWIKI_DOC_HASH}\"}}";
 	    structure = structure.replaceAll("#\\{SYLLABUS_DOC_HASH\\}", syllabusDocHash);
@@ -499,6 +505,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    structure = structure.replaceAll("#\\{STUDENTWIKI_DOC_HASH\\}", studentWikiDocHash);
 	    content.put("structure0", structure);
 	    method.setParameter("content", content.toString());
+	    method.setParameter(CHARSET_PARAM, UTF_8);
 	    http(client, method);
 
 	    log.info("Imported docstructure.");

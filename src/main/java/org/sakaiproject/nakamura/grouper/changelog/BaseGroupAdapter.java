@@ -47,6 +47,9 @@ public abstract class BaseGroupAdapter {
 	protected static final String BATCH_URI         = "/system/batch";
 	protected static final String BATCH_REQUESTS_PARAM = "requests";
 
+	protected static final String CHARSET_PARAM = "_charset_";
+	protected static final String UTF_8 = "utf-8";
+
 	// Creates new files
 	protected static final String CREATE_FILE_URI   = "/system/pool/createfile";
 
