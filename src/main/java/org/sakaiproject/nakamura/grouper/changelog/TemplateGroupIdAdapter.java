@@ -2,7 +2,6 @@ package org.sakaiproject.nakamura.grouper.changelog;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
