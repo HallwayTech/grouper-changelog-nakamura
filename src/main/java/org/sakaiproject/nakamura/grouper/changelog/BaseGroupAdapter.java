@@ -207,6 +207,8 @@ public abstract class BaseGroupAdapter {
 		String responseString = null;
 		JSONObject responseJSON = null;
 
+		boolean isJSONRequest = ! method.getPath().toString().endsWith(".html");
+
 		if (dryrun){
 			log.debug("Dry run is set. Not executing for " + method.getPath());
 			return new JSONObject();
@@ -221,19 +223,12 @@ public abstract class BaseGroupAdapter {
 			responseCode = client.executeMethod(method);
 			responseString = StringUtils.trimToNull(IOUtils.toString(method.getResponseBodyAsStream()));
 
-			boolean isJSONRequest = ! method.getURI().toString().endsWith(".html");
-			if (responseString != null && isJSONRequest){
-				try {
-					responseJSON = JSONObject.fromObject(responseString);
-				}
-				catch (JSONException je){
-					if (responseString.startsWith("<html>")){
-						log.error("Expected a JSON response, got html at " + method.getURI());
-					}
-					else {
-						log.error("Could not parse JSON response. " + responseString);
-					}
-				}
+			if(isJSONRequest){
+				responseJSON = parseJSONResponse(responseString);
+			}
+
+			if(log.isDebugEnabled()){
+				log.debug(responseCode + " " + method.getName() + " " + method.getPath() + " reponse: " + responseString);
 			}
 
 			switch (responseCode){
@@ -253,14 +248,11 @@ public abstract class BaseGroupAdapter {
 				}
 				break;
 			default:
-				if (log.isErrorEnabled()){
-					log.error("Unhandled response. code=" + responseCode + "\nResponse: " + responseString);
-				}
 				errorMessage = "Unknown HTTP response " + responseCode;
+				if (log.isErrorEnabled()){
+					log.error(errorMessage);
+				}
 				break;
-			}
-			if(log.isDebugEnabled()){
-				log.debug(responseCode + " " + method.getName() + " " + method.getPath() + " reponse: " + responseString);
 			}
 		}
 		catch (Exception e) {
@@ -275,6 +267,29 @@ public abstract class BaseGroupAdapter {
 			errorToException(responseCode, errorMessage);
 		}
 		return responseJSON;
+	}
+
+	/**
+	 * Try to parse the HTTP response as JSON.
+	 * @param response the HTTP response body as a String.
+	 * @return a JSONObject representing hte parsed response. null if not JSON or null.
+	 */
+	protected JSONObject parseJSONResponse(String response){
+		JSONObject json = null;
+		if (response != null){
+			try {
+				json = JSONObject.fromObject(response);
+			}
+			catch (JSONException je){
+				if (response.startsWith("<html>")){
+					log.error("Expected a JSON response, got html");
+				}
+				else {
+					log.error("Could not parse JSON response. " + response);
+				}
+			}
+		}
+		return json;
 	}
 
 	/**
