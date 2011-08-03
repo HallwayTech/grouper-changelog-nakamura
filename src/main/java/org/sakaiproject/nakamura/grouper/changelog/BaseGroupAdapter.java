@@ -249,9 +249,6 @@ public abstract class BaseGroupAdapter {
 				break;
 			default:
 				errorMessage = "Unknown HTTP response " + responseCode;
-				if (log.isErrorEnabled()){
-					log.error(errorMessage);
-				}
 				break;
 			}
 		}
