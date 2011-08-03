@@ -104,7 +104,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
-					log.info(ChangeLogTypeBuiltin.GROUP_ADD + ": name=" + grouperName);
+					log.info("START GROUP_ADD : " + grouperName);
 					if (isSupportedGroup(grouperName)) {
 						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 
@@ -119,7 +119,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 									log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
 									groupAdapter.createGroup(group);
 									coursesInSakai.add(parentGroupId);
-									log.info("DONE with the GROUP_ADD event for " + grouperName);
 								}
 							}
 						}
@@ -127,11 +126,12 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 							log.error("Group added event received for a group that doesn't exist? " + grouperName);
 						}
 					}
+					log.info("DONE GROUP_ADD : " + grouperName);
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
-					log.info(ChangeLogTypeBuiltin.GROUP_DELETE + ": name=" + grouperName);
+					log.info("START GROUP_DELETE : " + grouperName);
 					if (isSupportedGroup(grouperName)) {
 						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 						if (group == null || NakamuraUtils.isCourseGroup(grouperName)){
@@ -143,6 +143,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 							log.error("Received a delete event for a group that still exists!");
 						}
 					}
+					log.info("DONE GROUP_DELETE : " + grouperName);
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
@@ -150,16 +151,16 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
+					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 
 					if (isSupportedGroup(grouperName)) {
 						if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-							log.info("Membership add, group: " + grouperName + " subjectId: " + memberId);
-
 							if (NakamuraUtils.isCourseGroup(grouperName)){
 								groupAdapter.addMembership(groupId, grouperName, memberId);
 							}
 						}
 					}
+					log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
@@ -168,14 +169,15 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
 
+					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 					if (isSupportedGroup(grouperName)) {
 						if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-							log.info("Membership delete, group: " + grouperName + " subjectId: " + memberId);
 							if (NakamuraUtils.isCourseGroup(grouperName)){
 								groupAdapter.deleteMembership(groupId, grouperName, memberId);
 							}
 						}
 					}
+					log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 				}
 				// we successfully processed this record
 			}
