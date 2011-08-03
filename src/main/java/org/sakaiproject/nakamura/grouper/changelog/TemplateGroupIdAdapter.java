@@ -39,10 +39,6 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 	private Pattern pattern;
 	// Used to create an id for Sakai OAE
 	private String nakamuraIdTemplate;
-	// Psuedogroup suffixes in OAE
-	private Set<String> pseudoGroupSuffixes;
-	// suffixes for the Grouper addIncludeExclude group type component groups
-	private Set<String> includeExcludeSuffixes;
 
 	private String adhocStem;
 	private String provisionedStem;
@@ -133,14 +129,6 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 
 	public void setNakamuraIdTemplate(String nakamuraIdTemplate) {
 		this.nakamuraIdTemplate = nakamuraIdTemplate;
-	}
-
-	public void setPseudoGroupSuffixes(Set<String> pseudoGroupSuffixes) {
-		this.pseudoGroupSuffixes = pseudoGroupSuffixes;
-	}
-
-	public void setIncludeExcludeSuffixes(Set<String> includeExcludeSuffixes) {
-		this.includeExcludeSuffixes = includeExcludeSuffixes;
 	}
 
 	public void setAdhocStem(String adhocStem) {
