@@ -505,7 +505,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    structure = structure.replaceAll("#\\{SYLLABUS_DOC_HASH\\}", syllabusDocHash);
 	    structure = structure.replaceAll("#\\{STUDENTWIKI_DOC_HASH\\}", studentWikiDocHash);
 	    content.put("structure0", structure);
-	    method.setParameter("content", content.toString());
+	    method.setParameter(":content", content.toString());
 	    method.setParameter(CHARSET_PARAM, UTF_8);
 	    http(client, method);
 
