@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
-import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.exception.GrouperException;
@@ -83,8 +83,8 @@ public abstract class BaseGroupAdapter {
 	}
 
 	/**
-	 * Add a subjectId to a group by POSTing to:
-	 * http://localhost:8080/system/userManager/group/groupId.update.html :member=subjectId
+	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
+	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
 	 */
 	public void addMembership(String nakamuraGroupId, String memberId)
 			throws GroupModificationException {
@@ -102,8 +102,8 @@ public abstract class BaseGroupAdapter {
 	}
 
 	/**
-	 * Delete a subjectId from a group by POSTing to:
-	 * http://localhost:8080/system/userManager/group/groupId.update.html :member=subjectId
+	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
+	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
 	 */
 	public void deleteMembership(String nakamuraGroupId, String memberId)
 			throws GroupModificationException {
@@ -115,6 +115,19 @@ public abstract class BaseGroupAdapter {
 	    if (log.isInfoEnabled()){
 	        log.info("SUCCESS: deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
 	    }
+	}
+	
+	/**
+	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
+	 * POST http://localhost:8080/system/userManager/group/groupId.update.json key=value
+	 */
+	public void setProperty(String groupId, String key, String value) throws GroupModificationException {
+		log.debug("Set " + groupId + " : "+ key + "=" + value);
+		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+		PostMethod method = new PostMethod(url.toString() + getUpdateURI(groupId));
+		method.setParameter(key, value);
+		method.setParameter(CHARSET_PARAM, UTF_8);
+		http(client, method);
 	}
 
 	protected void createPseudoGroup(String nakamuraGroupId, Group group) throws GroupModificationException {

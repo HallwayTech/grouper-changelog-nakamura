@@ -86,7 +86,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseGroups.provisioned.stem = edu:apps:sakaioae:provisioned:courses
     changeLog.consumer.courseGroups.deleteRole = student
 
-    # Regex indices                                            0       1       2       3       4       5       6
+    # Regex indices                                                                                                    0       1       2       3       4       5       6
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupName.regex  = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.role.map         = TAs:ta, lecturers:lecturer, students:student, managers:manager
@@ -97,6 +97,34 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseGroups.nakamura.password = grouper
     # Set to true to test.
     changeLog.consumer.courseGroups.nakamura.dryrun = false
+    
+    #########################################################################################################################
+    #########################################################################################################################
+
+    changeLog.consumer.courseTitles.quartzCron = 0 0 * * * ?
+    changeLog.consumer.courseTitles.class = org.sakaiproject.nakamura.grouper.changelog.esb.CourseTitleEsbConsumer
+
+    # You may have to change this stem. 
+    # If you do make sure to update nakamura.courses.adhoc.stem and nakamura.courses.provisioned.stem
+    changeLog.consumer.courseTitles.elfilter = (event.name          =~ '^edu\\:inst\\:sis\\:courses.*$' \
+                                                   || event.groupName =~ '^edu\\:inst\\:sis\\:courses.*$') \
+                                               &&  (event.eventType eq 'STEM_UPDATE' )
+    
+    changeLog.consumer.courseTitles.section.stem.regex  = edu:inst:sis:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
+    changeLog.consumer.courseTitles.adhoc.stem = edu:apps:sakaioae:adhoc:courses
+    changeLog.consumer.courseTitles.provisioned.stem = edu:apps:sakaioae:provisioned:courses
+
+    # Regex indices                                                                                                    0       1       2       3       4       5       6
+    changeLog.consumer.courseTitles.TemplateGroupIdAdapter.groupName.regex  = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
+    changeLog.consumer.courseTitles.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
+    changeLog.consumer.courseTitles.TemplateGroupIdAdapter.role.map         = TAs:ta, lecturers:lecturer, students:student, managers:manager
+    changeLog.consumer.courseTitles.psuedoGroup.suffixes                    = member, manager, student, lecturer, ta
+
+    changeLog.consumer.courseTitles.nakamura.url = http://localhost:8080
+    changeLog.consumer.courseTitles.nakamura.username = grouper-admin
+    changeLog.consumer.courseTitles.nakamura.password = grouper
+    # Set to true to test.
+    changeLog.consumer.courseTitles.nakamura.dryrun = false
 
     
 Run the Grouper Loader
