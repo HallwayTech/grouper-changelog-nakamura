@@ -8,7 +8,7 @@ import edu.internet2.middleware.grouper.exception.GrouperException;
 public interface NakamuraGroupAdapter {
 	
 	/**
-	 * Create a group.
+	 * Create a group in Sakai OAE
 	 * @param groupId the internal grouper id
 	 * @param groupName the full name of the group (includes stem)
 	 * @throws GroupModificationException
@@ -16,8 +16,8 @@ public interface NakamuraGroupAdapter {
 	public void createGroup(Group group) throws GroupModificationException;
 	
 	/**
-	 * Delete a group.
-	 * @param groupId the internal grouper id
+	 * Delete a group from Sakai OAE
+	 * @param groupId the id of the group in OAE
 	 * @param groupName the full name of the group (includes stem)
 	 * @throws GroupModificationException
 	 */
@@ -25,7 +25,7 @@ public interface NakamuraGroupAdapter {
 	
 	/**
 	 * Add a subject to a group.
-	 * @param groupId the internal grouper id
+	 * @param groupId the id of the group in OAE
 	 * @param groupName the full name of the group (includes stem)
 	 * @param subjectId the id of the subject being added
 	 * @throws GroupModificationException
@@ -34,7 +34,7 @@ public interface NakamuraGroupAdapter {
 	
 	/**
 	 * Remove a subject from a group.
-	 * @param groupId the internal grouper id
+	 * @param groupId the id of the group in OAE
 	 * @param groupName the full name of the group (includes stem)
 	 * @param subjectId the id of the subject being removed
 	 * @throws GroupModificationException
@@ -43,8 +43,17 @@ public interface NakamuraGroupAdapter {
 
 	/**
 	 * Does the group exist in SakaiOAE?
-	 * @param groupId
+	 * @param groupId the id of the group in OAE
 	 * @return whether or not the group already exists.
 	 */
 	public boolean groupExists(String groupId) throws GrouperException;
+
+	/**
+	 * Set a property on a group in Sakai OAE
+	 * @param groupId the id of the group in OAE
+	 * @param key the property key
+	 * @param value the value to store
+	 * @throws GrouperException
+	 */
+	public void setProperty(String groupName, String key, String value) throws GroupModificationException;
 }
