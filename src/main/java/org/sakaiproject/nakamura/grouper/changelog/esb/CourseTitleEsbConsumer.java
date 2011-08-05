@@ -18,7 +18,7 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 
 /**
  * Update course titles in Sakai OAE when the description is updated on a stem.
- * The stem will be the last stem in the path to the role groups for that course. 
+ * The stem will be the last stem in the path to the role groups for that course.
  */
 public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 
@@ -35,7 +35,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 
 	// Configuration
 	public static final String PROP_SECTION_STEM_REGEX = "section.stem.regex";
-	
+
 	public static final String COURSE_TITLE_PROPERTY = "sakai:group-title";
 
 	protected void loadConfiguration(String consumerName) {
@@ -51,12 +51,12 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 
 		TemplateGroupIdAdapter tmplAdapter = new TemplateGroupIdAdapter();
 		tmplAdapter.loadConfiguration(consumerName);
-		
+
 		groupIdAdapter = new GroupIdAdapterImpl();
 		groupIdAdapter.loadConfiguration(consumerName);
 		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
 		groupIdAdapter.setTemplateGroupIdAdapter(tmplAdapter);
-		
+
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	 * @return whether or not to ignore this entry
 	 */
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
-		boolean ignore = false;		
+		boolean ignore = false;
 
 		if(!entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.STEM_UPDATE)){
 			log.debug("Entry was not a stem update.");

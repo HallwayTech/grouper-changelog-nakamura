@@ -1,7 +1,5 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,10 +7,9 @@ import org.apache.commons.jexl2.Expression;
 import org.apache.commons.jexl2.JexlContext;
 import org.apache.commons.jexl2.JexlEngine;
 import org.apache.commons.jexl2.MapContext;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
@@ -39,58 +36,48 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 	// Used to create an id for Sakai OAE
 	private String nakamuraIdTemplate;
 
-	private String adhocStem;
-	private String provisionedStem;
-	private Map<String,String> roleMap;
-
+	// Configuration keys
 	public static final String PROP_REGEX = "TemplateGroupIdAdapter.groupName.regex";
 	public static final String PROP_NAKID_TEMPLATE = "TemplateGroupIdAdapter.groupId.template";
-	public static final String PROP_NAKID_ROLE_MAPPINGS = "TemplateGroupIdAdapter.role.map";
 
+	/**
+	 * Load the configuration from the grouper-loader.properties
+	 */
 	public void loadConfiguration(String consumerName) {
+		super.loadConfiguration(consumerName);
 		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
- 		setPattern(Pattern.compile(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_REGEX, true)));
+		setPattern(Pattern.compile(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_REGEX, true)));
 		setNakamuraIdTemplate(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_TEMPLATE, true));
-		setRoleMap(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_ROLE_MAPPINGS, true));
 	}
 
-	public String getNakamuraGroupId(String grouperName) {
+	@Override
+	public String getGroupId(String grouperName) {
 
 		if (grouperName == null){
 			return null;
 		}
 
-		String nakamuraGroupId;
+		String nakamuraGroupId = applyTemplate(grouperName);
 
-		if (grouperName.startsWith(adhocStem)){
-			nakamuraGroupId = grouperName.substring(adhocStem.length() + 1).replaceAll(":", "_");
-		}
-		else {
-			grouperName = grouperName.substring(provisionedStem.length());
-			nakamuraGroupId = applyTemplate(grouperName);
-
-			// If the groupername ends in _SUFFIX_systemOfRecord we change that to -SUFFIX
-			for (String ieSuffix: includeExcludeSuffixes) {
-				if (nakamuraGroupId.endsWith(ieSuffix)){
-					nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.length() - ieSuffix.length());
-					break;
-				}
+		// If the groupername ends in _SUFFIX_systemOfRecord we change that to -SUFFIX
+		for (String ieSuffix: includeExcludeSuffixes) {
+			if (nakamuraGroupId.endsWith(ieSuffix)){
+				nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.length() - ieSuffix.length());
+				break;
 			}
-
-			// If the groupername ends in _SUFFIX we change that to -SUFFIX
-			for (String psSuffix: pseudoGroupSuffixes){
-				String nakamuraSuffix = roleMap.get(psSuffix);
-				if (nakamuraSuffix == null){
-					nakamuraSuffix = psSuffix;
-				}
-				if (nakamuraGroupId.endsWith("_" + psSuffix)){
-					nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_")) + "-" + nakamuraSuffix;
-					break;
-				}
-			}
-
 		}
 
+		// If the groupername ends in _SUFFIX we change that to -SUFFIX
+		for (String psSuffix: pseudoGroupSuffixes){
+			String nakamuraSuffix = roleMap.get(psSuffix);
+			if (nakamuraSuffix == null){
+				nakamuraSuffix = psSuffix;
+			}
+			if (nakamuraGroupId.endsWith("_" + psSuffix)){
+				nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_")) + "-" + nakamuraSuffix;
+				break;
+			}
+		}
 		log.debug(grouperName + " => " + nakamuraGroupId);
 		return nakamuraGroupId;
 	}
@@ -128,21 +115,5 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 
 	public void setNakamuraIdTemplate(String nakamuraIdTemplate) {
 		this.nakamuraIdTemplate = nakamuraIdTemplate;
-	}
-
-	public void setAdhocStem(String adhocStem) {
-		this.adhocStem = adhocStem;
-	}
-
-	public void setProvisionedStem(String provisionedStem) {
-		this.provisionedStem = provisionedStem;
-	}
-
-	public void setRoleMap(String propertyString) {
-		roleMap = new HashMap<String,String>();
-		for(String map: StringUtils.split(propertyString, ",")){
-			String[] m = StringUtils.split(map.trim(), ":");
-			roleMap.put(m[0], m[1]);
-		}
 	}
 }

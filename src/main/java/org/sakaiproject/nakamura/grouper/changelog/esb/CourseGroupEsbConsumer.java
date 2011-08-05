@@ -5,7 +5,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 
@@ -16,7 +20,6 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
-import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
 
 /**
@@ -46,12 +49,12 @@ import edu.internet2.middleware.subject.Subject;
  */
 public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
-	private static Log log = GrouperUtil.getLog(CourseGroupEsbConsumer.class);
+	private static Log log = LogFactory.getLog(CourseGroupEsbConsumer.class);
 
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpCourseAdapter groupAdapter;
 
-	protected TemplateGroupIdAdapter groupIdAdapter;
+	protected GroupIdAdapterImpl groupIdAdapter;
 
 	// Courses already created in sakai by this object
 	protected Set<String> coursesInSakai;
@@ -63,12 +66,14 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	protected void loadConfiguration(String consumerName) {
 		super.loadConfiguration(consumerName);
 
-		groupIdAdapter = new TemplateGroupIdAdapter();
+		groupIdAdapter = new GroupIdAdapterImpl();
 		groupIdAdapter.loadConfiguration(consumerName);
-		groupIdAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
-		groupIdAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
-		groupIdAdapter.setAdhocStem(adhocStem);
-		groupIdAdapter.setProvisionedStem(provisionedStem);
+
+		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
+		simpleAdapter.loadConfiguration(consumerName);
+
+		TemplateGroupIdAdapter tmplAdapter = new TemplateGroupIdAdapter();
+		tmplAdapter.loadConfiguration(consumerName);
 
 		groupAdapter = new HttpCourseAdapter();
 		groupAdapter.setUrl(url);
@@ -110,7 +115,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 						if (group != null){
 							if (NakamuraUtils.isCourseGroup(group)){
-								String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(grouperName);
+								String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
 								String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 
 								// Create the OAE Course objects when the first role group is created.
@@ -135,7 +140,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					if (isSupportedGroup(grouperName)) {
 						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 						if (group == null || NakamuraUtils.isCourseGroup(grouperName)){
-							if (grouperName.endsWith(deleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+							if (grouperName.endsWith(deleteRole + BaseGroupIdAdapter.DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
 								groupAdapter.deleteGroup(grouperName, grouperName);
 							}
 						}

@@ -40,7 +40,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	 */
 	public void createGroup(Group group) throws GroupModificationException {
 
-		String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(group.getName());
+		String nakamuraGroupId = groupIdAdapter.getGroupId(group.getName());
 		if(log.isDebugEnabled()){
 			log.debug(group.getName() + " converted to " + nakamuraGroupId + " for nakamura.");
 		}
@@ -415,7 +415,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	 */
 	public void deleteGroup(String groupId, String groupName) throws GroupModificationException {
 
-		String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(groupName);
+		String nakamuraGroupId = groupIdAdapter.getGroupId(groupName);
 
 		if (nakamuraGroupId.endsWith(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
 			String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
@@ -442,11 +442,11 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 
 	public void addMembership(String groupId, String groupName, String memberId)
 	throws GroupModificationException {
-		addMembership(groupIdAdapter.getNakamuraGroupId(groupName), memberId);
+		addMembership(groupIdAdapter.getGroupId(groupName), memberId);
 	}
 
 	public void deleteMembership(String groupId, String groupName, String memberId)
 	throws GroupModificationException {
-		deleteMembership(groupIdAdapter.getNakamuraGroupId(groupName), memberId);
+		deleteMembership(groupIdAdapter.getGroupId(groupName), memberId);
 	}
 }

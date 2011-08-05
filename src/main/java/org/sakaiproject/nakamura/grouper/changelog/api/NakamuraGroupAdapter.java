@@ -6,7 +6,7 @@ import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 
 public interface NakamuraGroupAdapter {
-	
+
 	/**
 	 * Create a group in Sakai OAE
 	 * @param groupId the internal grouper id
@@ -14,7 +14,7 @@ public interface NakamuraGroupAdapter {
 	 * @throws GroupModificationException
 	 */
 	public void createGroup(Group group) throws GroupModificationException;
-	
+
 	/**
 	 * Delete a group from Sakai OAE
 	 * @param groupId the id of the group in OAE
@@ -22,7 +22,7 @@ public interface NakamuraGroupAdapter {
 	 * @throws GroupModificationException
 	 */
 	public void deleteGroup(String groupId, String groupName) throws GroupModificationException;
-	
+
 	/**
 	 * Add a subject to a group.
 	 * @param groupId the id of the group in OAE
@@ -31,7 +31,7 @@ public interface NakamuraGroupAdapter {
 	 * @throws GroupModificationException
 	 */
 	public void addMembership(String groupId, String groupName, String subjectId) throws GroupModificationException;
-	
+
 	/**
 	 * Remove a subject from a group.
 	 * @param groupId the id of the group in OAE

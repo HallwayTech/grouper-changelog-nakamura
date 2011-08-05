@@ -116,7 +116,7 @@ public abstract class BaseGroupAdapter {
 	        log.info("SUCCESS: deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
 	    }
 	}
-	
+
 	/**
 	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json key=value

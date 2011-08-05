@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
+import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
-import org.sakaiproject.nakamura.grouper.changelog.util.api.GroupIdAdapter;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -31,7 +31,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpSimpleGroupAdapter groupAdapter;
 
-	private GroupIdAdapter idAdapter;
+	private GroupIdAdapterImpl idAdapter;
 
 	private Set<String> simpleGroupsInSakai;
 
@@ -43,11 +43,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 		simpleGroupsInSakai = new HashSet<String>();
 
-		SimpleGroupIdAdapter idAdapter = new SimpleGroupIdAdapter();
-		idAdapter.setProvisionedSimpleGroupsStem(provisionedStem);
-		idAdapter.setAdhocSimpleGroupsStem(adhocStem);
-		idAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
-		idAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
+		idAdapter = new GroupIdAdapterImpl();
 
 		groupAdapter = new HttpSimpleGroupAdapter();
 		groupAdapter.setUrl(url);
@@ -93,7 +89,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 						if (group != null) {
 							if (NakamuraUtils.isSimpleGroup(group)){
-								String nakamuraGroupId = idAdapter.getNakamuraGroupId(grouperName);
+								String nakamuraGroupId = idAdapter.getGroupId(grouperName);
 								String parentGroupId = idAdapter.getPseudoGroupParent(nakamuraGroupId);
 								// Create the OAE Course objects when the first role group is created.
 								if (!simpleGroupsInSakai.contains(parentGroupId) &&
@@ -117,7 +113,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					if (isSupportedGroup(grouperName)) {
 						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 						if (group == null || NakamuraUtils.isSimpleGroup(grouperName)){
-							if (grouperName.endsWith(deleteRole + DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
+							if (grouperName.endsWith(deleteRole + BaseGroupIdAdapter.DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
 								groupAdapter.deleteGroup(grouperName, grouperName);
 							}
 						}

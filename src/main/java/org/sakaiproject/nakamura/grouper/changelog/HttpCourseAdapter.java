@@ -41,7 +41,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	@Override
 	public void createGroup(Group group) throws GroupModificationException {
 
-		String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(group.getName());
+		String nakamuraGroupId = groupIdAdapter.getGroupId(group.getName());
 		log.debug(group.getName() + " converted to " + nakamuraGroupId + " for nakamura.");
 
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
@@ -516,7 +516,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	@Override
 	public void deleteGroup(String groupId, String groupName)
 			throws GroupModificationException {
-		String nakamuraGroupId = groupIdAdapter.getNakamuraGroupId(groupName);
+		String nakamuraGroupId = groupIdAdapter.getGroupId(groupName);
 
 		if (nakamuraGroupId.endsWith(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
 			String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
@@ -546,12 +546,12 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	@Override
 	public void addMembership(String groupId, String groupName, String memberId)
 	throws GroupModificationException {
-		addMembership(groupIdAdapter.getNakamuraGroupId(groupName), memberId);
+		addMembership(groupIdAdapter.getGroupId(groupName), memberId);
 	}
 
 	@Override
 	public void deleteMembership(String groupId, String groupName, String memberId)
 	throws GroupModificationException {
-		deleteMembership(groupIdAdapter.getNakamuraGroupId(groupName), memberId);
+		deleteMembership(groupIdAdapter.getGroupId(groupName), memberId);
 	}
 }

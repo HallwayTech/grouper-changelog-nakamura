@@ -12,7 +12,7 @@ public class NakamuraUtilsTest extends TestCase {
 		assertTrue(NakamuraUtils.isCourseGroup("some:stem:group:ta"));
 		assertTrue(NakamuraUtils.isCourseGroup("some:stem:group:lecturer"));
 		assertFalse(NakamuraUtils.isCourseGroup("some:stem:group:manager"));
-		
+
 		// Not sure what to do about this one.
 		assertFalse(NakamuraUtils.isCourseGroup("some:stem:group:members"));
 	}

@@ -29,7 +29,7 @@ public class NakamuraHttpUtils {
 
 	/**
 	 * If you don't specify a port when creating a {@link URL} {@link URL#getPort()} will return -1.
-	 * This function uses the default HTTP/s ports  
+	 * This function uses the default HTTP/s ports
 	 * @return the port for this.url. 80 or 433 if not specified.
 	 */
 	public static int getPort(URL url){

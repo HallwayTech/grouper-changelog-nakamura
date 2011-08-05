@@ -3,10 +3,8 @@ package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
 
@@ -55,18 +53,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	// Decides where we accept events from
 	public static final String PROP_ADHOC_STEM = "adhoc.stem";
 	public static final String PROP_PROVISIONED_STEM = "provisioned.stem";
-
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
-	// addIncludeExclude group suffixes
-	public static final String PROP_SYSTEM_OF_RECORD_SUFFIX = "grouperIncludeExclude.systemOfRecord.extension.suffix";
-	public static final String PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX = "grouperIncludeExclude.systemOfRecordAndIncludes.extension.suffix";
-	public static final String PROP_INCLUDES_SUFFIX = "grouperIncludeExclude.include.extension.suffix";
-	public static final String PROP_EXCLUDES_SUFFIX = "grouperIncludeExclude.exclude.extension.suffix";
-
-	public static final String DEFAULT_SYSTEM_OF_RECORD_SUFFIX = "_systemOfRecord";
-	public static final String DEFAULT_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX = "_systemOfRecordAndIncludes";
-	public static final String DEFAULT_INCLUDES_SUFFIX = "_includes";
-	public static final String DEFAULT_EXCLUDES_SUFFIX = "_excludes";
 
 	public static final String PROP_SIMPLEGROUP_REGEX = "simplegroup.regex";
 	public static final String PROP_COURSEGROUP_REGEX = "coursegroup.regex";
@@ -84,20 +71,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, false);
 
-		includeExcludeSuffixes = new HashSet<String>();
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_SUFFIX));
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_AND_INCLUDES_SUFFIX));
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_INCLUDES_SUFFIX, DEFAULT_INCLUDES_SUFFIX));
-		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_EXCLUDES_SUFFIX, DEFAULT_EXCLUDES_SUFFIX));
-
-		pseudoGroupSuffixes = new HashSet<String>();
-		String str = GrouperLoaderConfig.getPropertyString(cfgPrefix + "psuedoGroup.suffixes");
-		for(String suffix: StringUtils.split(str, ",")){
-			pseudoGroupSuffixes.add(suffix.trim());
-		}
 		adhocStem = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADHOC_STEM, true);
 		provisionedStem = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_STEM, true);
-
 		supportedStems = ImmutableSet.of(adhocStem, provisionedStem);
 	}
 
