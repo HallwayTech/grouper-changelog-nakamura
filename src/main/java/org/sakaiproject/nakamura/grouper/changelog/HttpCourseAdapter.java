@@ -83,7 +83,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		method.setParameter("sakai:joinable", "yes");
 		method.setParameter("sakai:roles", "[{\"id\":\"student\",\"roleTitle\":\"Students\",\"title\":\"Student\",\"allowManage\":false},{\"id\":\"ta\",\"roleTitle\":\"Teaching Assistants\",\"title\":\"Teaching Assistant\",\"allowManage\":true},{\"id\":\"lecturer\",\"roleTitle\":\"Lecturers\",\"title\":\"Lecturer\",\"allowManage\":true}]");
 		try {
-			http(client, method);
+			if (!dryrun){
+				NakamuraHttpUtils.http(client, method);
+			}
 		}
 		catch (GroupAlreadyExistsException gme){
 			log.debug(parentGroupId + " already exists. No worries.");
@@ -126,7 +128,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		JSONArray json = JSONArray.fromObject(batchPosts);
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
 		method.setParameter(CHARSET_PARAM, UTF_8);
-		http(client, method);
+		if (!dryrun){
+			NakamuraHttpUtils.http(client, method);
+		}
 		log.debug("Updated the group managers.");
 
 		// --------------------------------------------------------------------
@@ -172,7 +176,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    json = JSONArray.fromObject(batchPosts);
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
 		method.setParameter(CHARSET_PARAM, UTF_8);
-		http(client, method);
+		if (!dryrun){
+			NakamuraHttpUtils.http(client, method);
+		}
 		log.debug("Updated the group members.");
 
 		// --------------------------------------------------------------------
@@ -183,7 +189,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		method.setParameter("sakai:group-visible", "public");
 		method.setParameter("sakai:group-joinable", "yes");
 		method.setParameter(CHARSET_PARAM, UTF_8);
-		http(client, method);
+		if (!dryrun){
+			NakamuraHttpUtils.http(client, method);
+		}
 		log.debug("Updated the visibilty and joinability.");
 
 		// --------------------------------------------------------------------
@@ -257,7 +265,10 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
 	    method.setParameter(CHARSET_PARAM, UTF_8);
-	    JSONObject post8Response = http(client, method);
+	    JSONObject post8Response = null;
+	    if (!dryrun){
+	    	post8Response = NakamuraHttpUtils.http(client, method);
+	    }
 
 	    // Go through the response and get the document UUID for the library and participants items.
 	    String syllabusDocHash = "DUMMY_HASH";
@@ -377,7 +388,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
 	    method.setParameter(CHARSET_PARAM, UTF_8);
-	    http(client, method);
+	    if (!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+	    }
 
 	    log.debug("Added initial content into the sakai documents.");
 
@@ -466,7 +479,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
 	    method.setParameter(CHARSET_PARAM, UTF_8);
-	    http(client, method);
+	    if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+	    }
 
 	    log.debug("Set ACLs on sakai documents.");
 
@@ -489,7 +504,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
 	    method.setParameter(CHARSET_PARAM, UTF_8);
-	    http(client, method);
+	    if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+	    }
 
 	    method = new PostMethod(url + "/~" + parentGroupId + "/docstructure");
 
@@ -507,7 +524,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    content.put("structure0", structure);
 	    method.setParameter(":content", content.toString());
 	    method.setParameter(CHARSET_PARAM, UTF_8);
-	    http(client, method);
+	    if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+	    }
 
 	    log.debug("Imported docstructure.");
 	    log.info("Successfully created the course in sakai for " + parentGroupId);
@@ -530,7 +549,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 				method.addParameter(":operation", "delete");
 				method.addParameter("go", "1");
 				try {
-					http(client, method);
+					if(!dryrun){
+				    	NakamuraHttpUtils.http(client, method);
+					}
 				}
 				catch (GroupModificationException e) {
 					if (e.code != HttpStatus.SC_NOT_FOUND){

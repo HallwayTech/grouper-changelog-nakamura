@@ -6,22 +6,15 @@ import java.net.URL;
 import java.util.Set;
 import java.util.UUID;
 
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
-import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.exception.GrouperException;
@@ -32,10 +25,6 @@ import edu.internet2.middleware.grouper.exception.GrouperException;
 public abstract class BaseGroupAdapter {
 
 	private static Log log = LogFactory.getLog(BaseGroupAdapter.class);
-
-	// This could be anything but I think this is explanatory
-	private static final String HTTP_REFERER = "/system/console/grouper";
-	private static final String HTTP_USER_AGENT = "Nakamura Grouper Sync";
 
 	// URI for the OAE user and group management servlets.
 	protected static String USER_MANAGER_URI = "/system/userManager";
@@ -95,7 +84,9 @@ public abstract class BaseGroupAdapter {
         if (createUsers){
         	createOAEUser(memberId);
         }
-        http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+        if (!dryrun){
+            NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+        }
 	    if (log.isInfoEnabled()){
 	        log.info("SUCCESS: add subjectId=" + memberId + " to group=" + nakamuraGroupId);
 	    }
@@ -111,7 +102,9 @@ public abstract class BaseGroupAdapter {
         method.addParameter(":member@Delete", memberId);
         method.addParameter(":viewer@Delete", memberId);
         method.addParameter("_charset_", "utf-8");
-        http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+        if (!dryrun){
+            NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+        }
 	    if (log.isInfoEnabled()){
 	        log.info("SUCCESS: deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
 	    }
@@ -127,7 +120,9 @@ public abstract class BaseGroupAdapter {
 		PostMethod method = new PostMethod(url.toString() + getUpdateURI(groupId));
 		method.setParameter(key, value);
 		method.setParameter(CHARSET_PARAM, UTF_8);
-		http(client, method);
+		if (!dryrun){
+            NakamuraHttpUtils.http(client, method);
+		}
 	}
 
 	protected void createPseudoGroup(String nakamuraGroupId, Group group) throws GroupModificationException {
@@ -143,7 +138,9 @@ public abstract class BaseGroupAdapter {
 		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
 		method.setParameter("sakai:group-joinable", "yes");
 		method.addParameter("grouper:name", group.getParentStemName() + ":" + nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
-		http(client, method);
+		if (!dryrun){
+            NakamuraHttpUtils.http(client, method);
+		}
 	}
 
 	/**
@@ -177,7 +174,9 @@ public abstract class BaseGroupAdapter {
 			method.addParameter(":name", userId);
 			method.addParameter("pwd", randomPassword);
 			method.addParameter("pwdConfirm", randomPassword);
-			http(client, method);
+			if (!dryrun){
+                NakamuraHttpUtils.http(client, method);
+			}
 			log.info("Created a user for " + userId);
 		}
 	}
@@ -202,125 +201,6 @@ public abstract class BaseGroupAdapter {
 			}
 		}
 		return exists;
-	}
-
-	/**
-	 * Prepare an HTTP request to Sakai OAE and parse the response (if JSON).
-	 * @param client an {@link HttpClient} to execute the request.
-	 * @param method an HTTP method to send
-	 * @return a JSONObject of the response if the request returns JSON
-	 * @throws GroupModificationException if there was an error updating the group information.
-	 */
-	public JSONObject http(HttpClient client, PostMethod method) throws GroupModificationException {
-
-		method.setRequestHeader("User-Agent", HTTP_USER_AGENT);
-		method.setRequestHeader("Referer", HTTP_REFERER);
-
-		String errorMessage = null;
-		String responseString = null;
-		JSONObject responseJSON = null;
-
-		boolean isJSONRequest = ! method.getPath().toString().endsWith(".html");
-
-		if (dryrun){
-			log.debug("Dry run is set. Not executing for " + method.getPath());
-			return new JSONObject();
-		}
-		if (log.isDebugEnabled()){
-			log.debug(method.getName() + " " + method.getPath() + "params:");
-			for (NameValuePair nvp : method.getParameters()){
-				log.debug(nvp.getName() + " = " + nvp.getValue());
-			}
-		}
-
-		int responseCode = -1;
-		try{
-			responseCode = client.executeMethod(method);
-			responseString = StringUtils.trimToNull(IOUtils.toString(method.getResponseBodyAsStream()));
-
-			if(isJSONRequest){
-				responseJSON = parseJSONResponse(responseString);
-			}
-
-			if(log.isDebugEnabled()){
-				log.debug(responseCode + " " + method.getName() + " " + method.getPath() + " reponse: " + responseString);
-			}
-
-			switch (responseCode){
-
-			case HttpStatus.SC_OK: // 200
-			case HttpStatus.SC_CREATED: // 201
-				break;
-			case HttpStatus.SC_BAD_REQUEST: // 400
-			case HttpStatus.SC_UNAUTHORIZED: // 401
-			case HttpStatus.SC_NOT_FOUND: // 404
-			case HttpStatus.SC_INTERNAL_SERVER_ERROR: // 500
-				if (isJSONRequest && responseJSON != null){
-					errorMessage = responseJSON.getString("status.message");
-				}
-				if (errorMessage == null){
-					errorMessage = "Empty "+ responseCode + " error. Check the logs on the Sakai OAE server at " + url;
-				}
-				break;
-			default:
-				errorMessage = "Unknown HTTP response " + responseCode;
-				break;
-			}
-		}
-		catch (Exception e) {
-			errorMessage = "An exception occurred communicatingSakai OAE. " + e.toString();
-		}
-		finally {
-			method.releaseConnection();
-		}
-
-		if (errorMessage != null){
-			log.error(errorMessage);
-			errorToException(responseCode, errorMessage);
-		}
-		return responseJSON;
-	}
-
-	/**
-	 * Try to parse the HTTP response as JSON.
-	 * @param response the HTTP response body as a String.
-	 * @return a JSONObject representing hte parsed response. null if not JSON or null.
-	 */
-	protected JSONObject parseJSONResponse(String response){
-		JSONObject json = null;
-		if (response != null){
-			try {
-				json = JSONObject.fromObject(response);
-			}
-			catch (JSONException je){
-				if (response.startsWith("<html>")){
-					log.debug("Expected a JSON response, got html");
-				}
-				else {
-					log.error("Could not parse JSON response. " + response);
-				}
-			}
-		}
-		return json;
-	}
-
-	/**
-	 * Throw a specific exception given a JSON response from a Sakai OAE server.
-	 * @param response
-	 * @throws GroupModificationException
-	 * @throws GroupAlreadyExistsException
-	 */
-	protected void errorToException(int code, String errorMessage) throws GroupModificationException, GroupAlreadyExistsException {
-		if (errorMessage == null){
-			return;
-		}
-		// TODO: If this is a constant somewhere include the nakamura jar in the
-		// lib directory and use the constant.
-		if (errorMessage.startsWith("A principal already exists with the requested name")){
-			throw new GroupAlreadyExistsException(errorMessage);
-		}
-
-		throw new GroupModificationException(code, errorMessage);
 	}
 
 	protected void setUrl(String urlString){

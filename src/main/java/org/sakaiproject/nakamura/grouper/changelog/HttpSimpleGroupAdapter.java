@@ -78,7 +78,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		method.setParameter("grouper:name", group.getName());
 
 		try {
-			http(client, method);
+			NakamuraHttpUtils.http(client, method);
 		}
 		catch (GroupAlreadyExistsException gme){
 			log.debug(parentGroupId + " already exists. No worries.");
@@ -105,7 +105,9 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		method = new PostMethod(url + BATCH_URI);
 		JSONArray json = JSONArray.fromObject(batchPosts);
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-		http(client, method);
+		if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+		}
 		log.debug("Updated the group managers.");
 
 		// --------------------------------------------------------------------
@@ -140,7 +142,9 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-		http(client, method);
+		if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+		}
 		log.debug("Updated the group members.");
 
 		// --------------------------------------------------------------------
@@ -184,7 +188,9 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		method = new PostMethod(url + BATCH_URI);
 		json = JSONArray.fromObject(batchPosts);
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-		http(client, method);
+		if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+		}
 		log.debug("Updated the visibilty and joinability.");
 
 		// --------------------------------------------------------------------
@@ -225,7 +231,10 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-	    JSONObject createDocsResponse = http(client, method);
+	    JSONObject createDocsResponse = null;
+	    if(!dryrun){
+	    	createDocsResponse = NakamuraHttpUtils.http(client, method);
+	    }
 
 	    // Go through the response and get the document UUID for the library and participants items.
 	    String libraryDocHash = null;
@@ -301,7 +310,9 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-	    http(client, method);
+	    if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+	    }
 
 	    log.debug("Added initial content into the sakai documents.");
 
@@ -348,7 +359,9 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-	    http(client, method);
+	    if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+	    }
 
 	    log.debug("Set global viewers and perms on the sakai documents.");
 
@@ -387,7 +400,9 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		method = new PostMethod(url + BATCH_URI);
 	    json = JSONArray.fromObject(batchPosts);
 	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
-	    http(client, method);
+	    if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+	    }
 
 	    log.debug("Set the member viewer and manager viewer on the sakai documents.");
 
@@ -406,7 +421,10 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    method.setParameter(":replaceProperties", "true");
 	    method.setParameter(CHARSET_PARAM, UTF_8);
 
-	    http(client, method);
+	    if(!dryrun){
+	    	NakamuraHttpUtils.http(client, method);
+	    }
+	    log.info("Done creating the Sakai OAE group " + parentGroupId);
 	}
 
 	/**
@@ -428,7 +446,9 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 				method.addParameter(":operation", "delete");
 				method.addParameter("go", "1");
 				try {
-					http(client, method);
+					if (!dryrun){
+						NakamuraHttpUtils.http(client, method);
+					}
 				}
 				catch (GroupModificationException e) {
 					if (e.code != HttpStatus.SC_NOT_FOUND){
