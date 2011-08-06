@@ -57,6 +57,13 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.simpleGroup.deleteRole = member
     changeLog.consumer.simpleGroup.psuedoGroup.suffixes = member, manager
 
+    changeLog.consumer.simpleGroups.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
+    changeLog.consumer.simpleGroups.adhoc.coursegroups.stem = edu:apps:sakaioae:adhoc:groups
+    changeLog.consumer.simpleGroups.provisioned.simplegroups.stem = edu:apps:sakaioae:provisioned:simplegroups
+    changeLog.consumer.simpleGroups.provisioned.coursegroups.stem = edu:apps:sakaioae:provisioned:groups
+    changeLog.consumer.simpleGroups.institutional.simplegroups.stem = inst:sis:groups
+    changeLog.consumer.simpleGroups.institutional.coursegroups.stem = inst:sis:simplegroups
+
     changeLog.consumer.simpleGroup.url = http://localhost:8080
     changeLog.consumer.simpleGroup.username = grouper-admin
     changeLog.consumer.simpleGroup.password = grouper
@@ -92,6 +99,13 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.role.map         = TAs:ta, lecturers:lecturer, students:student, managers:manager
     changeLog.consumer.courseGroups.psuedoGroup.suffixes                    = member, manager, student, lecturer, ta
 
+    changeLog.consumer.courseGroups.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
+    changeLog.consumer.courseGroups.adhoc.coursegroups.stem = edu:apps:sakaioae:adhoc:groups
+    changeLog.consumer.courseGroups.provisioned.simplegroups.stem = edu:apps:sakaioae:provisioned:simplegroups
+    changeLog.consumer.courseGroups.provisioned.coursegroups.stem = edu:apps:sakaioae:provisioned:groups
+    changeLog.consumer.courseGroups.institutional.simplegroups.stem = inst:sis:groups
+    changeLog.consumer.courseGroups.institutional.coursegroups.stem = inst:sis:simplegroups
+
     changeLog.consumer.courseGroups.nakamura.url = http://localhost:8080
     changeLog.consumer.courseGroups.nakamura.username = grouper-admin
     changeLog.consumer.courseGroups.nakamura.password = grouper
@@ -119,6 +133,13 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseTitles.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
     changeLog.consumer.courseTitles.TemplateGroupIdAdapter.role.map         = TAs:ta, lecturers:lecturer, students:student, managers:manager
     changeLog.consumer.courseTitles.psuedoGroup.suffixes                    = member, manager, student, lecturer, ta
+
+    changeLog.consumer.courseTitles.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
+    changeLog.consumer.courseTitles.adhoc.coursegroups.stem = edu:apps:sakaioae:adhoc:groups
+    changeLog.consumer.courseTitles.provisioned.simplegroups.stem = edu:apps:sakaioae:provisioned:simplegroups
+    changeLog.consumer.courseTitles.provisioned.coursegroups.stem = edu:apps:sakaioae:provisioned:groups
+    changeLog.consumer.courseTitles.institutional.simplegroups.stem = inst:sis:groups
+    changeLog.consumer.courseTitles.institutional.coursegroups.stem = inst:sis:simplegroups
 
     changeLog.consumer.courseTitles.nakamura.url = http://localhost:8080
     changeLog.consumer.courseTitles.nakamura.username = grouper-admin
