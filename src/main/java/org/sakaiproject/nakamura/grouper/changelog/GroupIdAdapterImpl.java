@@ -4,11 +4,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
 public class GroupIdAdapterImpl implements GroupIdAdapter {
+
+	private static Log log = LogFactory.getLog(GroupIdAdapterImpl.class);
 
 	private Set<String> stems;
 	private Set<String> provisonedStems;
@@ -72,7 +76,10 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 				}
 			}
 		}
-		return StringUtils.trimToNull(groupId.toString());
+		String id = StringUtils.trimToNull(groupId.toString());
+		log.debug(grouperName + " => " + id);
+		return id;
+
 	}
 
 	@Override
