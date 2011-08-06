@@ -66,14 +66,15 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	protected void loadConfiguration(String consumerName) {
 		super.loadConfiguration(consumerName);
 
-		groupIdAdapter = new GroupIdAdapterImpl();
-		groupIdAdapter.loadConfiguration(consumerName);
-
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
 		simpleAdapter.loadConfiguration(consumerName);
+		TemplateGroupIdAdapter templateAdapter = new TemplateGroupIdAdapter();
+		templateAdapter.loadConfiguration(consumerName);
 
-		TemplateGroupIdAdapter tmplAdapter = new TemplateGroupIdAdapter();
-		tmplAdapter.loadConfiguration(consumerName);
+		groupIdAdapter = new GroupIdAdapterImpl();
+		groupIdAdapter.loadConfiguration(consumerName);
+		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
+		groupIdAdapter.setTemplateGroupIdAdapter(templateAdapter);
 
 		groupAdapter = new HttpCourseAdapter();
 		groupAdapter.setUrl(url);
