@@ -328,7 +328,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    syllabusRequest.put("url", "/p/" + syllabusDocHash + ".resource");
 	    syllabusRequest.put("method", "POST");
 	    syllabusRequest.put("parameters", syllabusParams);
-	    syllabusRequest.put("_charset", UTF_8);
+	    syllabusRequest.put(CHARSET_PARAM, UTF_8);
 
 	    JSONObject contactParams = new JSONObject();
 	    contactParams.put(":operation", "import");
@@ -344,7 +344,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    contactRequest.put("url", "/p/" + contactUsDocHash + ".resource");
 	    contactRequest.put("method", "POST");
 	    contactRequest.put("parameters", contactParams);
-	    contactRequest.put("_charset", UTF_8);
+	    contactRequest.put(CHARSET_PARAM, UTF_8);
 
 	    JSONObject orgNotesParams = new JSONObject();
 	    orgNotesParams.put(":operation", "import");
@@ -360,7 +360,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    JSONObject orgNotesRequest = new JSONObject();
 	    orgNotesRequest.put("url", "/p/" + orgNotesDocHash + ".resource");
 	    orgNotesRequest.put("method", "POST");
-	    orgNotesRequest.put("_charset", UTF_8);
+	    orgNotesRequest.put(CHARSET_PARAM, UTF_8);
 	    orgNotesRequest.put("parameters", orgNotesParams);
 
 	    JSONObject wikiParams = new JSONObject();
@@ -376,7 +376,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    JSONObject wikiRequest = new JSONObject();
 	    wikiRequest.put("url", "/p/" + studentWikiDocHash + ".resource");
 	    wikiRequest.put("method", "POST");
-	    wikiRequest.put("_charset", UTF_8);
+	    wikiRequest.put(CHARSET_PARAM, UTF_8);
 	    wikiRequest.put("parameters", wikiParams);
 
 	    batchPosts.add(syllabusRequest);

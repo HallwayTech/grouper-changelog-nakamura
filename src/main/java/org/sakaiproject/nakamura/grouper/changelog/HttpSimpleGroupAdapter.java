@@ -285,7 +285,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    libraryRequest.put("url", "/p/" + libraryDocHash + ".resource");
 	    libraryRequest.put("method", "POST");
 	    libraryRequest.put("parameters", libraryParams);
-	    libraryRequest.put("_charset", UTF_8);
+	    libraryRequest.put(CHARSET_PARAM, UTF_8);
 
 	    JSONObject participantsParams = new JSONObject();
 	    participantsParams.put(":operation", "import");
@@ -302,7 +302,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	    participantsRequest.put("url", "/p/" + participantsDocHash + ".resource");
 	    participantsRequest.put("method", "POST");
 	    participantsRequest.put("parameters", participantsParams);
-	    participantsRequest.put("_charset", UTF_8);
+	    participantsRequest.put(CHARSET_PARAM, UTF_8);
 
 	    batchPosts.add(libraryRequest);
 	    batchPosts.add(participantsRequest);

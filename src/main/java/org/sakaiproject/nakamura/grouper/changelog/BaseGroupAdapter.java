@@ -80,7 +80,7 @@ public abstract class BaseGroupAdapter {
         PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
         method.addParameter(":member", memberId);
         method.addParameter(":viewer", memberId);
-        method.addParameter("_charset_", "utf-8");
+        method.addParameter(CHARSET_PARAM, UTF_8);
         if (createUsers){
         	createOAEUser(memberId);
         }
@@ -101,7 +101,7 @@ public abstract class BaseGroupAdapter {
         PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
         method.addParameter(":member@Delete", memberId);
         method.addParameter(":viewer@Delete", memberId);
-        method.addParameter("_charset_", "utf-8");
+        method.addParameter(CHARSET_PARAM, UTF_8);
         if (!dryrun){
             NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
         }
@@ -129,7 +129,7 @@ public abstract class BaseGroupAdapter {
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = new PostMethod(url + GROUP_CREATE_URI);
 		method.addParameter(":name", nakamuraGroupId);
-		method.addParameter("_charset_", "utf-8");
+		method.addParameter(CHARSET_PARAM, UTF_8);
 		method.addParameter("sakai:group-id", nakamuraGroupId);
 		method.addParameter("sakai:excludeSearch", "true");
 		method.addParameter("sakai:group-description", group.getDescription());
