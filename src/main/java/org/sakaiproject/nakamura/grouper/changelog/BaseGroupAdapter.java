@@ -56,22 +56,6 @@ public abstract class BaseGroupAdapter {
 	protected GroupIdAdapter groupIdAdapter;
 
 	/**
-	 * @param groupId the id of the OAE group
-	 * @return the URI to the delete operation.
-	 */
-	protected String getDeleteURI(String groupId){
-		return GROUP_PATH_PREFIX + "/" + groupId + ".delete.json";
-	}
-
-	/**
-	 * @param groupId the id of the OAE group
-	 * @return the URI to the update operation.
-	 */
-	protected String getUpdateURI(String groupId){
-		return GROUP_PATH_PREFIX + "/" + groupId + ".update.json";
-	}
-
-	/**
 	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
 	 */
@@ -88,7 +72,7 @@ public abstract class BaseGroupAdapter {
             NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
         }
 	    if (log.isInfoEnabled()){
-	        log.info("SUCCESS: add subjectId=" + memberId + " to group=" + nakamuraGroupId);
+	        log.info("Added subjectId=" + memberId + " to group=" + nakamuraGroupId);
 	    }
 	}
 
@@ -106,7 +90,7 @@ public abstract class BaseGroupAdapter {
             NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
         }
 	    if (log.isInfoEnabled()){
-	        log.info("SUCCESS: deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
+	        log.info("Added deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
 	    }
 	}
 
@@ -115,13 +99,15 @@ public abstract class BaseGroupAdapter {
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json key=value
 	 */
 	public void setProperty(String groupId, String key, String value) throws GroupModificationException {
-		log.debug("Set " + groupId + " : "+ key + "=" + value);
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = new PostMethod(url.toString() + getUpdateURI(groupId));
 		method.setParameter(key, value);
 		method.setParameter(CHARSET_PARAM, UTF_8);
 		if (!dryrun){
             NakamuraHttpUtils.http(client, method);
+		}
+		if (log.isInfoEnabled()){
+			log.info("Set " + groupId + " : "+ key + "=" + value);
 		}
 	}
 
@@ -141,6 +127,7 @@ public abstract class BaseGroupAdapter {
 		if (!dryrun){
             NakamuraHttpUtils.http(client, method);
 		}
+		log.info("Created psuedoGroup in OAE for " + nakamuraGroupId);
 	}
 
 	/**
@@ -165,6 +152,7 @@ public abstract class BaseGroupAdapter {
 		}
 
 		if (returnCode == HttpStatus.SC_OK){
+			log.info(userId + " already exists.");
 			return;
 		}
 
@@ -200,7 +188,26 @@ public abstract class BaseGroupAdapter {
 				throw new GrouperException(e.getMessage());
 			}
 		}
+		if (log.isDebugEnabled()){
+			log.debug(groupId + " exists: " + exists);
+		}
 		return exists;
+	}
+
+	/**
+	 * @param groupId the id of the OAE group
+	 * @return the URI to the delete operation.
+	 */
+	protected String getDeleteURI(String groupId){
+		return GROUP_PATH_PREFIX + "/" + groupId + ".delete.json";
+	}
+
+	/**
+	 * @param groupId the id of the OAE group
+	 * @return the URI to the update operation.
+	 */
+	protected String getUpdateURI(String groupId){
+		return GROUP_PATH_PREFIX + "/" + groupId + ".update.json";
 	}
 
 	protected void setUrl(String urlString){
