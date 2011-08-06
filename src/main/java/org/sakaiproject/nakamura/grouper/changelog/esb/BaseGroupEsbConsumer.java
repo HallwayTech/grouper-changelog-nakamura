@@ -94,23 +94,6 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	}
 
 	/**
-	 * Does the group name fall inside of the stems we're configured to keep
-	 * in sync with sakai?
-	 * @param groupName
-	 * @throws UnsupportedGroupException
-	 */
-	protected boolean isSupportedGroup(String groupName) {
-		boolean supported = false;
-		for (String stem: supportedStems){
-			if (groupName.startsWith(stem)) {
-				supported = true;
-				break;
-			}
-		}
-		return supported;
-	}
-
-	/**
 	 * Is this a sub group of the addIncludeExclude group?
 	 * @param grouperName
 	 * @return

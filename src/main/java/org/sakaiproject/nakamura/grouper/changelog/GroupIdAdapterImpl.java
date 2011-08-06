@@ -89,46 +89,42 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 
 	protected boolean isAdhoc(String grouperName){
 		if (grouperName != null){
-			for (String astem : adhocStems){
-				if (grouperName.startsWith(astem)){
-					return true;
-				}
-			}
+			return grouperName.startsWith(adhocCourseGroupsStem) ||
+				grouperName.startsWith(adhocSimpleGroupsStem);
 		}
 		return false;
 	}
 
 	protected boolean isProvisioned(String grouperName){
 		if (grouperName != null){
-			for (String pstem : provisonedStems){
-				if (grouperName.startsWith(pstem)){
-					return true;
-				}
-			}
+			return grouperName.startsWith(provisionedSimpleGroupsStem) ||
+				grouperName.startsWith(provisionedCourseGroupsStem);
+		}
+		return false;
+	}
+
+	protected boolean isInstitutional(String grouperName){
+		if (grouperName != null){
+			return grouperName.startsWith(institutionalSimpleGroupsStem) ||
+				grouperName.startsWith(institutionalCourseGroupsStem);
 		}
 		return false;
 	}
 
 	protected boolean isCourseGroup(String grouperName){
 		if (grouperName != null){
-			for (String stem : new String[]
-			    { provisionedCourseGroupsStem, adhocCourseGroupsStem, institutionalCourseGroupsStem} ){
-				if (grouperName.startsWith(stem)){
-					return true;
-				}
-			}
+			return grouperName.startsWith(adhocCourseGroupsStem) ||
+				grouperName.startsWith(provisionedCourseGroupsStem) ||
+				grouperName.startsWith(institutionalCourseGroupsStem);
 		}
 		return false;
 	}
 
 	protected boolean isSimpleGroup(String grouperName){
 		if (grouperName != null){
-			for (String stem : new String[]
-			    { provisionedSimpleGroupsStem, adhocSimpleGroupsStem, institutionalSimpleGroupsStem} ){
-				if (grouperName.startsWith(stem)){
-					return true;
-				}
-			}
+			return grouperName.startsWith(adhocSimpleGroupsStem) ||
+				grouperName.startsWith(provisionedSimpleGroupsStem) ||
+				grouperName.startsWith(institutionalSimpleGroupsStem);
 		}
 		return false;
 	}
@@ -145,6 +141,10 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 		setProvisionedCourseGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_SIMPLE_GROUPS_STEM, false));
 		setInstitutionalSimpleGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_INST_SIMPLE_GROUPS_STEM, false));
 		setInstitutionalCourseGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_INST_COURSE_GROUPS_STEM, false));
+	}
+
+	public Set<String> getStems(){
+		return stems;
 	}
 
 	// Setters are ugly.

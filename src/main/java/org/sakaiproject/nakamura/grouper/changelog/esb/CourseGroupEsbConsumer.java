@@ -203,6 +203,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		return currentId;
 	}
 
+	private boolean isSupportedGroup(String grouperName) {
+		return groupIdAdapter.getStems().contains(grouperName);
+	}
+
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
 		String groupName = null;

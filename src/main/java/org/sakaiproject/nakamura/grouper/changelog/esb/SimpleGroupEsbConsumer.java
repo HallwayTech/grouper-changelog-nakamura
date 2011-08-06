@@ -31,7 +31,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpSimpleGroupAdapter groupAdapter;
 
-	private GroupIdAdapterImpl idAdapter;
+	private GroupIdAdapterImpl groupIdAdapter;
 
 	private Set<String> simpleGroupsInSakai;
 
@@ -43,14 +43,14 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 		simpleGroupsInSakai = new HashSet<String>();
 
-		idAdapter = new GroupIdAdapterImpl();
+		groupIdAdapter = new GroupIdAdapterImpl();
 
 		groupAdapter = new HttpSimpleGroupAdapter();
 		groupAdapter.setUrl(url);
 		groupAdapter.setUsername(username);
 		groupAdapter.setPassword(password);
 		groupAdapter.setCreateUsers(createUsers);
-		groupAdapter.setGroupIdAdapter(idAdapter);
+		groupAdapter.setGroupIdAdapter(groupIdAdapter);
 		groupAdapter.setDryrun(dryrun);
 		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 	}
@@ -89,8 +89,8 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 						if (group != null) {
 							if (NakamuraUtils.isSimpleGroup(group)){
-								String nakamuraGroupId = idAdapter.getGroupId(grouperName);
-								String parentGroupId = idAdapter.getPseudoGroupParent(nakamuraGroupId);
+								String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
+								String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 								// Create the OAE Course objects when the first role group is created.
 								if (!simpleGroupsInSakai.contains(parentGroupId) &&
 										!groupAdapter.groupExists(parentGroupId)){
@@ -172,5 +172,9 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		}
 
 		return currentId;
+	}
+
+	private boolean isSupportedGroup(String grouperName) {
+		return groupIdAdapter.getStems().contains(grouperName);
 	}
 }
