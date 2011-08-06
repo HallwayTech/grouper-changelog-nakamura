@@ -33,8 +33,8 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     nakamura.coursegroups.regex = .*:groups:.*
     nakamura.contactgroups.regex = edu:apps:sakaioae:users:.*
 
-	#########################################################################################################################
-	# Provision Course Groups
+    #########################################################################################################################
+    # Provision Course Groups
 
     changeLog.consumer.simpleGroup.quartzCron = 0 0 * * * ?
     changeLog.consumer.simpleGroup.class = org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
@@ -96,7 +96,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     # Regex indices                                                                                                    0       1       2       3       4       5       6
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupName.regex  = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
-    changeLog.consumer.courseGroups.TemplateGroupIdAdapter.role.map         = TAs:ta, lecturers:lecturer, students:student, managers:manager
+    changeLog.consumer.courseGroups.role.map                                = TAs:ta, lecturers:lecturer, students:student, managers:manager
     changeLog.consumer.courseGroups.psuedoGroup.suffixes                    = member, manager, student, lecturer, ta
 
     changeLog.consumer.courseGroups.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
@@ -131,7 +131,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     # Regex indices                                                                                                    0       1       2       3       4       5       6
     changeLog.consumer.courseTitles.TemplateGroupIdAdapter.groupName.regex  = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
     changeLog.consumer.courseTitles.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
-    changeLog.consumer.courseTitles.TemplateGroupIdAdapter.role.map         = TAs:ta, lecturers:lecturer, students:student, managers:manager
+    changeLog.consumer.courseTitles.role.map                                = TAs:ta, lecturers:lecturer, students:student, managers:manager
     changeLog.consumer.courseTitles.psuedoGroup.suffixes                    = member, manager, student, lecturer, ta
 
     changeLog.consumer.courseTitles.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
