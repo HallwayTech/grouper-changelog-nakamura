@@ -111,7 +111,7 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 		return false;
 	}
 
-	protected boolean isCourseGroup(String grouperName){
+	public boolean isCourseGroup(String grouperName){
 		if (grouperName != null){
 			return grouperName.startsWith(adhocCourseGroupsStem) ||
 				grouperName.startsWith(provisionedCourseGroupsStem) ||
@@ -120,7 +120,7 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 		return false;
 	}
 
-	protected boolean isSimpleGroup(String grouperName){
+	public boolean isSimpleGroup(String grouperName){
 		if (grouperName != null){
 			return grouperName.startsWith(adhocSimpleGroupsStem) ||
 				grouperName.startsWith(provisionedSimpleGroupsStem) ||
@@ -206,5 +206,29 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 
 	public void setTemplateGroupIdAdapter(TemplateGroupIdAdapter tmplAdapter) {
 		this.templateGroupIdAdapter = tmplAdapter;
+	}
+
+	public String getAdhocSimpleGroupsStem() {
+		return adhocSimpleGroupsStem;
+	}
+
+	public String getAdhocCourseGroupsStem() {
+		return adhocCourseGroupsStem;
+	}
+
+	public String getProvisionedSimpleGroupsStem() {
+		return provisionedSimpleGroupsStem;
+	}
+
+	public String getProvisionedCourseGroupsStem() {
+		return provisionedCourseGroupsStem;
+	}
+
+	public String getInstitutionalSimpleGroupsStem() {
+		return institutionalSimpleGroupsStem;
+	}
+
+	public String getInstitutionalCourseGroupsStem() {
+		return institutionalCourseGroupsStem;
 	}
 }
