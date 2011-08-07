@@ -52,8 +52,6 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
 												 || event.eventType eq 'MEMBERSHIP_ADD')
 
     # Required for org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
-    changeLog.consumer.simpleGroup.adhoc.stem = edu:apps:sakaioae:adhoc:groups
-    changeLog.consumer.simpleGroup.provisioned.stem = edu:apps:sakaioae:provisioned:groups
     changeLog.consumer.simpleGroup.deleteRole = member
     changeLog.consumer.simpleGroup.psuedoGroup.suffixes = member, manager
 
@@ -89,8 +87,6 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' \
 												 || event.eventType eq 'MEMBERSHIP_ADD')
 
-    changeLog.consumer.courseGroups.adhoc.stem = edu:apps:sakaioae:adhoc:courses
-    changeLog.consumer.courseGroups.provisioned.stem = edu:apps:sakaioae:provisioned:courses
     changeLog.consumer.courseGroups.deleteRole = student
 
     # Regex indices                                                                                                    0       1       2       3       4       5       6
@@ -125,8 +121,6 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                &&  (event.eventType eq 'STEM_UPDATE' )
     
     changeLog.consumer.courseTitles.section.stem.regex  = edu:inst:sis:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
-    changeLog.consumer.courseTitles.adhoc.stem = edu:apps:sakaioae:adhoc:courses
-    changeLog.consumer.courseTitles.provisioned.stem = edu:apps:sakaioae:provisioned:courses
 
     # Regex indices                                                                                                    0       1       2       3       4       5       6
     changeLog.consumer.courseTitles.TemplateGroupIdAdapter.groupName.regex  = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)

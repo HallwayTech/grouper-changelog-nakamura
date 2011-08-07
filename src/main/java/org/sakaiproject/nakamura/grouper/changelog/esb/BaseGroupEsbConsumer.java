@@ -6,9 +6,6 @@ import java.net.URL;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
-import org.sakaiproject.nakamura.grouper.changelog.exceptions.UnsupportedGroupException;
-
-import com.google.common.collect.ImmutableSet;
 
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.SubjectFinder;
@@ -70,10 +67,6 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		username = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_USERNAME, true);
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, false);
-
-		adhocStem = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADHOC_STEM, true);
-		provisionedStem = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_STEM, true);
-		supportedStems = ImmutableSet.of(adhocStem, provisionedStem);
 	}
 
 	/**
