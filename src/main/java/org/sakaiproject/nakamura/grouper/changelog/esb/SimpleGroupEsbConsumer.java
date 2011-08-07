@@ -175,6 +175,14 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	}
 
 	private boolean isSupportedGroup(String grouperName) {
-		return groupIdAdapter.getStems().contains(grouperName);
+		// Only accept
+		boolean supported = true;
+		if (!groupIdAdapter.isSimpleGroup(grouperName)){
+			supported = false;
+		}
+		if (grouperName.startsWith(groupIdAdapter.getInstitutionalSimpleGroupsStem())){
+			supported = false;
+		}
+		return supported;
 	}
 }
