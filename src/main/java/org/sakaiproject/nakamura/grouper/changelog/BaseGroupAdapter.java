@@ -95,6 +95,31 @@ public abstract class BaseGroupAdapter {
 	}
 
 	/**
+	 * @return if this group exists in Sakai OAE.
+	 */
+	public boolean groupExists(String groupId){
+		boolean exists = false;
+		if (dryrun){
+			return false;
+		}
+		else {
+			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+			GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
+			try {
+				exists = (client.executeMethod(method) == HttpStatus.SC_OK);
+			}
+			catch (Exception e){
+				log.error(e.getMessage());
+				throw new GrouperException(e.getMessage());
+			}
+		}
+		if (log.isDebugEnabled()){
+			log.debug(groupId + " exists: " + exists);
+		}
+		return exists;
+	}
+
+	/**
 	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json key=value
 	 */
@@ -110,6 +135,7 @@ public abstract class BaseGroupAdapter {
 			log.info("Set " + groupId + " : "+ key + "=" + value);
 		}
 	}
+
 
 	protected void createPseudoGroup(String nakamuraGroupId, Group group) throws GroupModificationException {
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
@@ -167,31 +193,6 @@ public abstract class BaseGroupAdapter {
 			}
 			log.info("Created a user for " + userId);
 		}
-	}
-
-	/**
-	 * @return if this group exists in Sakai OAE.
-	 */
-	public boolean groupExists(String groupId){
-		boolean exists = false;
-		if (dryrun){
-			return false;
-		}
-		else {
-			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-			GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
-			try {
-				exists = (client.executeMethod(method) == HttpStatus.SC_OK);
-			}
-			catch (Exception e){
-				log.error(e.getMessage());
-				throw new GrouperException(e.getMessage());
-			}
-		}
-		if (log.isDebugEnabled()){
-			log.debug(groupId + " exists: " + exists);
-		}
-		return exists;
 	}
 
 	/**
