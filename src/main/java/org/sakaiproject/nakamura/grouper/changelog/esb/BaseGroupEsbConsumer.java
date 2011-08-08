@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.SubjectFinder;
@@ -13,11 +14,10 @@ import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 import edu.internet2.middleware.grouper.exception.SessionException;
-import edu.internet2.middleware.grouper.util.GrouperUtil;
 
 public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
-	private static Log log = GrouperUtil.getLog(BaseGroupEsbConsumer.class);
+	private static Log log = LogFactory.getLog(BaseGroupEsbConsumer.class);
 
 	protected URL url;
 	protected String username;
