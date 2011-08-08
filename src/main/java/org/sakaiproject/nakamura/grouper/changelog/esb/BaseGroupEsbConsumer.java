@@ -28,11 +28,6 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	protected String deleteRole;
 
-	// This job will try to process events for groups in these stems
-	protected Set<String> supportedStems;
-	protected String adhocStem;
-	protected String provisionedStem;
-
 	// Suffixes for the composite groups created for addIncludeExclude groups
 	protected Set<String> includeExcludeSuffixes;
 	// Sakai OAE pseudoGroup suffixes.
@@ -47,13 +42,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_CREATE_USERS = "create.users";
 	public static final String PROP_DRYRUN = "dryrun";
 
-	// Decides where we accept events from
-	public static final String PROP_ADHOC_STEM = "adhoc.stem";
-	public static final String PROP_PROVISIONED_STEM = "provisioned.stem";
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
-
-	public static final String PROP_SIMPLEGROUP_REGEX = "simplegroup.regex";
-	public static final String PROP_COURSEGROUP_REGEX = "coursegroup.regex";
 
 	protected void loadConfiguration(String consumerName){
 		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
