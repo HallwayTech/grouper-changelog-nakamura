@@ -94,7 +94,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 								if (!simpleGroupsInSakai.contains(parentGroupId) &&
 										!groupAdapter.groupExists(parentGroupId)){
 									log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
-									groupAdapter.createGroup(group);
+									groupAdapter.createGroup(group.getName(), group.getDescription());
 									simpleGroupsInSakai.add(parentGroupId);
 									log.info("DONE with the GROUP_ADD event for " + grouperName);
 								}

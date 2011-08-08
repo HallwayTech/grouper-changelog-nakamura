@@ -19,8 +19,6 @@ import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
 import com.google.common.collect.ImmutableMap;
 
-import edu.internet2.middleware.grouper.Group;
-
 /**
  * Provision courses in Sakai OAE over HTTP according to the Grouper changelog
  */
@@ -39,10 +37,10 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	 * @throws GroupModificationException
 	 */
 	@Override
-	public void createGroup(Group group) throws GroupModificationException {
+	public void createGroup(String groupName, String description) throws GroupModificationException {
 
-		String nakamuraGroupId = groupIdAdapter.getGroupId(group.getName());
-		log.debug(group.getName() + " converted to " + nakamuraGroupId + " for nakamura.");
+		String nakamuraGroupId = groupIdAdapter.getGroupId(groupName);
+		log.debug(groupName + " converted to " + nakamuraGroupId + " for nakamura.");
 
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = null;
@@ -61,7 +59,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 			// --------------------------------------------------------------------
 			// POST - create the lecturer, ta, and student.
 			try {
-				createPseudoGroup(psuedoGroupId, group);
+				createPseudoGroup(psuedoGroupId, groupName, description);
 				log.info("Created the pseudo group " + psuedoGroupId);
 			}
 			catch (GroupAlreadyExistsException gme){

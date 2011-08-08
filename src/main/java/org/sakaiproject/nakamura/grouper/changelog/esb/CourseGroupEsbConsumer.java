@@ -139,12 +139,13 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						// This will provision a group in Sakai OAE when a group is created in the institutional
 						// When the group is modified in Sakai OAE it will be written back to Grouper in the
 						// Sakai OAE provisioned stem.
-						if (group.getName().startsWith(groupIdAdapter.getInstitutionalCourseGroupsStem())){
-							group.setName(group.getName().replace(
+
+						if (grouperName.startsWith(groupIdAdapter.getInstitutionalCourseGroupsStem())){
+							grouperName = grouperName.replace(
 									groupIdAdapter.getInstitutionalCourseGroupsStem(),
-									groupIdAdapter.getProvisionedCourseGroupsStem()));
+									groupIdAdapter.getProvisionedCourseGroupsStem());
 						}
-						groupAdapter.createGroup(group);
+						groupAdapter.createGroup(grouperName, group.getDescription());
 						coursesInSakai.add(parentGroupId);
 					}
 

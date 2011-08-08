@@ -19,8 +19,6 @@ import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
 import com.google.common.collect.ImmutableMap;
 
-import edu.internet2.middleware.grouper.Group;
-
 /**
  * Synchronize Simple group information stored in Grouper by reading the
  * change log and provisioning OAE accordingly.
@@ -38,11 +36,11 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	 * POST to http://localhost:8080/system/userManager/group.create.json
 	 * @see org.sakaiproject.nakamura.user.servlet.CreateSakaiGroupServlet
 	 */
-	public void createGroup(Group group) throws GroupModificationException {
+	public void createGroup(String groupName, String description) throws GroupModificationException {
 
-		String nakamuraGroupId = groupIdAdapter.getGroupId(group.getName());
+		String nakamuraGroupId = groupIdAdapter.getGroupId(groupName);
 		if(log.isDebugEnabled()){
-			log.debug(group.getName() + " converted to " + nakamuraGroupId + " for nakamura.");
+			log.debug(groupName + " converted to " + nakamuraGroupId + " for nakamura.");
 		}
 
 		String creator = "admin";
@@ -57,7 +55,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 			// --------------------------------------------------------------------
 			// POST - create the members and managers
 			try {
-				createPseudoGroup(psuedoGroupId, group);
+				createPseudoGroup(psuedoGroupId, groupName, description);
 				log.info("Created the pseudo group " + psuedoGroupId);
 			}
 			catch (GroupAlreadyExistsException gme){
@@ -75,7 +73,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		method.setParameter("sakai:joinable", "yes");
 		method.setParameter("sakai:roles", "[{\"id\":\"member\",\"title\":\"Member\",\"allowManage\":false},{\"id\":\"manager\",\"title\":\"Manager\",\"allowManage\":true}]");
 		method.setParameter("sakai:template-id", "simplegroup");
-		method.setParameter("grouper:name", group.getName());
+		method.setParameter("grouper:name", groupName);
 
 		try {
 			NakamuraHttpUtils.http(client, method);

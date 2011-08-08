@@ -16,7 +16,6 @@ import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
-import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 
 /**
@@ -137,19 +136,20 @@ public abstract class BaseGroupAdapter {
 	}
 
 
-	protected void createPseudoGroup(String nakamuraGroupId, Group group) throws GroupModificationException {
+	protected void createPseudoGroup(String nakamuraGroupId, String groupName, String description) throws GroupModificationException {
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = new PostMethod(url + GROUP_CREATE_URI);
 		method.addParameter(":name", nakamuraGroupId);
 		method.addParameter(CHARSET_PARAM, UTF_8);
 		method.addParameter("sakai:group-id", nakamuraGroupId);
 		method.addParameter("sakai:excludeSearch", "true");
-		method.addParameter("sakai:group-description", group.getDescription());
+		method.addParameter("sakai:group-description", description);
 		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + groupIdAdapter.getPseudoGroupParent(nakamuraGroupId) + ")");
 		method.addParameter("sakai:pseudoGroup", "true");
 		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
 		method.setParameter("sakai:group-joinable", "yes");
-		method.addParameter("grouper:name", group.getParentStemName() + ":" + nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
+		method.addParameter("grouper:name", groupName.substring(0, groupName.lastIndexOf(":") + 1 ) 
+											+ nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
 		if (!dryrun){
             NakamuraHttpUtils.http(client, method);
 		}
