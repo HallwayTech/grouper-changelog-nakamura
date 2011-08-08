@@ -12,7 +12,6 @@ import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.MutableGroup;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraUtils;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -55,10 +54,12 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpCourseAdapter groupAdapter;
 
-	protected GroupIdAdapterImpl groupIdAdapter;
+	private GroupIdAdapterImpl groupIdAdapter;
 
 	// Courses already created in sakai by this object
-	protected Set<String> coursesInSakai;
+	private Set<String> coursesInSakai;
+
+	private boolean configurationLoaded = false;
 
 	public CourseGroupEsbConsumer() {
 		coursesInSakai = new HashSet<String>();
@@ -66,6 +67,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	protected void loadConfiguration(String consumerName) {
 		super.loadConfiguration(consumerName);
+
+		if (configurationLoaded){
+			return;
+		}
 
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
 		simpleAdapter.loadConfiguration(consumerName);
@@ -85,6 +90,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupAdapter.setCreateUsers(createUsers);
 		groupAdapter.setDryrun(dryrun);
 		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+
+		configurationLoaded = true;
 	}
 
 	/**
@@ -120,27 +127,25 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						log.error("Group added event received for a group that doesn't exist? " + grouperName);
 						continue;
 					}
-					if (NakamuraUtils.isCourseGroup(group)){
-						String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
-						String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+					String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
+					String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 
-						// Create the OAE Course objects when the first role group is created.
-						if (!coursesInSakai.contains(parentGroupId) &&
-								!groupAdapter.groupExists(parentGroupId)){
-							log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
+					// Create the OAE Course objects when the first role group is created.
+					if (!coursesInSakai.contains(parentGroupId) &&
+							!groupAdapter.groupExists(parentGroupId)){
+						log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
 
-							// Special handling for inst:sis courses.
-							// This will provision a group in Sakai OAE when a group is created in the institutional
-							// When the group is modified in Sakai OAE it will be written back to Grouper in the
-							// Sakai OAE provisioned stem.
-							if (group.getName().startsWith(groupIdAdapter.getInstitutionalCourseGroupsStem())){
-								group.setName(group.getName().replace(
-										groupIdAdapter.getInstitutionalCourseGroupsStem(),
-										groupIdAdapter.getProvisionedCourseGroupsStem()));
-							}
-							groupAdapter.createGroup(group);
-							coursesInSakai.add(parentGroupId);
+						// Special handling for inst:sis courses.
+						// This will provision a group in Sakai OAE when a group is created in the institutional
+						// When the group is modified in Sakai OAE it will be written back to Grouper in the
+						// Sakai OAE provisioned stem.
+						if (group.getName().startsWith(groupIdAdapter.getInstitutionalCourseGroupsStem())){
+							group.setName(group.getName().replace(
+									groupIdAdapter.getInstitutionalCourseGroupsStem(),
+									groupIdAdapter.getProvisionedCourseGroupsStem()));
 						}
+						groupAdapter.createGroup(group);
+						coursesInSakai.add(parentGroupId);
 					}
 
 					log.info("DONE GROUP_ADD : " + grouperName);
@@ -151,7 +156,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("START GROUP_DELETE : " + grouperName);
 
 					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
-					if (group == null || NakamuraUtils.isCourseGroup(grouperName)){
+					if (group == null || groupIdAdapter.isCourseGroup(grouperName)){
 						if (grouperName.endsWith(deleteRole + BaseGroupIdAdapter.DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
 							groupAdapter.deleteGroup(grouperName, grouperName);
 						}
@@ -170,7 +175,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 
 					if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-						if (NakamuraUtils.isCourseGroup(grouperName)){
+						if (groupIdAdapter.isCourseGroup(grouperName)){
 							groupAdapter.addMembership(groupId, grouperName, memberId);
 						}
 					}
@@ -186,7 +191,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 
 					if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-						if (NakamuraUtils.isCourseGroup(grouperName)){
+						if (groupIdAdapter.isCourseGroup(grouperName)){
 							groupAdapter.deleteMembership(groupId, grouperName, memberId);
 						}
 					}
@@ -229,8 +234,15 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
 			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 		}
+		if (groupName == null){
+			ignore = true;
+		}
 
 		if (groupName != null && groupName.endsWith(":all")){
+			ignore = true;
+		}
+
+		if (groupIdAdapter.isInstitutional(groupName) && allowInstitutional == false){
 			ignore = true;
 		}
 
@@ -238,5 +250,17 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			ignore = true;
 		}
 		return ignore;
+	}
+
+	public void setGroupIdAdapter(GroupIdAdapterImpl adapter){
+		this.groupIdAdapter = adapter;
+	}
+
+	public void setGroupAdapter(HttpCourseAdapter adapter){
+		this.groupAdapter = adapter;
+	}
+
+	public void setConfigurationLoaded(boolean loaded){
+		this.configurationLoaded = loaded;
 	}
 }
