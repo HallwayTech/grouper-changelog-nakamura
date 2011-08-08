@@ -104,7 +104,7 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 		return false;
 	}
 
-	protected boolean isInstitutional(String grouperName){
+	public boolean isInstitutional(String grouperName){
 		if (grouperName != null){
 			return grouperName.startsWith(institutionalSimpleGroupsStem) ||
 				grouperName.startsWith(institutionalCourseGroupsStem);

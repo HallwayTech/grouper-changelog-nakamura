@@ -25,7 +25,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	protected boolean dryrun;
 	protected boolean createUsers;
-
+	protected boolean allowInstitutional;
 	protected String deleteRole;
 
 	// Suffixes for the composite groups created for addIncludeExclude groups
@@ -41,6 +41,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_PASSWORD = "password";
 	public static final String PROP_CREATE_USERS = "create.users";
 	public static final String PROP_DRYRUN = "dryrun";
+	public static final String PROP_ALLOW_INSTITUTIONAL = "allow.institutional";
 
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 
@@ -56,6 +57,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		username = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_USERNAME, true);
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, false);
+		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, false);
 	}
 
 	/**
