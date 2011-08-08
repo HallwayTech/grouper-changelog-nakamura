@@ -63,7 +63,7 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 				}
 			}
 		}
-		else if (isProvisioned(grouperName)){
+		else if (isProvisioned(grouperName) || isInstitutional(grouperName)){
 			for (String pstem : provisonedStems){
 				if (grouperName.startsWith(pstem) && isCourseGroup(grouperName)){
 					groupId.append(templateGroupIdAdapter.getGroupId(grouperName.substring(pstem.length() + 1)));
@@ -76,6 +76,7 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 				}
 			}
 		}
+
 		String id = StringUtils.trimToNull(groupId.toString());
 		log.debug(grouperName + " => " + id);
 		return id;
