@@ -3,8 +3,10 @@ package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -42,9 +44,14 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_CREATE_USERS = "create.users";
 	public static final String PROP_DRYRUN = "dryrun";
 	public static final String PROP_ALLOW_INSTITUTIONAL = "allow.institutional";
+	private static final String PROP_PSEUDOGROUP_SUFFIXES = "psuedoGroup.suffixes";
 
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 
+	/**
+	 * Load settings from grouper-loader.properties
+	 * @param consumerName the name of this consumer job.
+	 */
 	protected void loadConfiguration(String consumerName){
 		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
 		try {
@@ -58,6 +65,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, false);
 		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, false);
+		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PSEUDOGROUP_SUFFIXES, true));
 	}
 
 	/**
@@ -89,5 +97,12 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			}
 		}
 		return false;
+	}
+
+	public void setPseudoGroupSuffixes(String psgConfig) {
+		pseudoGroupSuffixes = new HashSet<String>();
+		for(String suffix: StringUtils.split(psgConfig, ",")){
+			pseudoGroupSuffixes.add(suffix.trim());
+		}
 	}
 }

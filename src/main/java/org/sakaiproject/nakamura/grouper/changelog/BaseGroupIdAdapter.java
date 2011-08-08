@@ -31,7 +31,6 @@ public abstract class BaseGroupIdAdapter {
 	public void loadConfiguration(String consumerName) {
 		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
 		setRoleMap(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_ROLE_MAPPINGS, true));
-		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + "psuedoGroup.suffixes", true));
 
 		includeExcludeSuffixes = new HashSet<String>();
 		includeExcludeSuffixes.add(GrouperLoaderConfig.getPropertyString(PROP_SYSTEM_OF_RECORD_SUFFIX, DEFAULT_SYSTEM_OF_RECORD_SUFFIX));
@@ -58,13 +57,6 @@ public abstract class BaseGroupIdAdapter {
 
 	public void setPseudoGroupSuffixes(Set<String> pseudoGroupSuffixes) {
 		this.pseudoGroupSuffixes = pseudoGroupSuffixes;
-	}
-
-	public void setPseudoGroupSuffixes(String psgConfig) {
-		pseudoGroupSuffixes = new HashSet<String>();
-		for(String suffix: StringUtils.split(psgConfig, ",")){
-			pseudoGroupSuffixes.add(suffix.trim());
-		}
 	}
 
 	public void setIncludeExcludeSuffixes(Set<String> includeExcludeSuffixes) {
