@@ -9,7 +9,6 @@ import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.MutableGroup;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 
@@ -97,7 +96,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	/**
 	 * @see edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase#processChangeLogEntries(List, ChangeLogProcessorMetadata)
 	 */
-	@SuppressWarnings("unused")
 	@Override
 	public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
 			ChangeLogProcessorMetadata changeLogProcessorMetadata) {
@@ -122,7 +120,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("START GROUP_ADD : " + grouperName);
 
 					// Use a Mutable group so we can rewrite the name before we send it to OAE
-					Group group = new MutableGroup(GroupFinder.findByName(getGrouperSession(), grouperName, false));
+					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 					if (group == null) {
 						log.error("Group added event received for a group that doesn't exist? " + grouperName);
 						continue;
