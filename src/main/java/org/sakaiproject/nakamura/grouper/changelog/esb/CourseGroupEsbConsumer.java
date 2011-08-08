@@ -234,18 +234,22 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 		}
 		if (groupName == null){
+			log.debug("ignoring: Unable to get the group name from the entry.");
 			ignore = true;
 		}
 
 		if (groupName != null && groupName.endsWith(":all")){
+			log.debug("ignoring: all group.");
 			ignore = true;
 		}
 
 		if (groupIdAdapter.isInstitutional(groupName) && allowInstitutional == false){
+			log.debug("ignoreing: Not processing institutional data.");
 			ignore = true;
 		}
 
 		if (!groupIdAdapter.isCourseGroup(groupName)){
+			log.debug("ignoring: Not a course group.");
 			ignore = true;
 		}
 		return ignore;
