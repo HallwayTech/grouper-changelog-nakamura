@@ -214,6 +214,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		verify(groupAdapter).deleteGroup("some_course-student", grouperName);
 	}
+	/// ---- Add Membership
 
 	public void testAddMembershipSubjectNull() throws GroupModificationException{
 		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
@@ -279,5 +280,73 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
 		verify(groupAdapter).addMembership("some_course-student", subjectId);
+	}
+
+	/// ---- Delete Membership
+
+	public void testDeleteMembershipSubjectNull() throws GroupModificationException{
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		String subjectId = "unittest";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(grouperName);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId)).thenReturn(subjectId);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		mockStatic(SubjectFinder.class);
+		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(null);
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.setConfigurationLoaded(true);
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verifyNoMoreInteractions(groupAdapter);
+	}
+
+	public void testDeleteMembershipSubjectIncludeExcludeSubGroup() throws GroupModificationException{
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		String subjectId = "unittest123";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(grouperName);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId)).thenReturn(subjectId);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
+		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(true);
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		mockStatic(SubjectFinder.class);
+		Subject subject = mock(Subject.class);
+		when(subject.getTypeName()).thenReturn("person");
+		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.setConfigurationLoaded(true);
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verifyNoMoreInteractions(groupAdapter);
+	}
+
+	public void testDeleteMembershipSubjectNotNull() throws GroupModificationException{
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		String subjectId = "unittest123";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(grouperName);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId)).thenReturn(subjectId);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
+		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		mockStatic(SubjectFinder.class);
+		Subject subject = mock(Subject.class);
+		when(subject.getTypeName()).thenReturn("person");
+		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.setConfigurationLoaded(true);
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verify(groupAdapter).deleteMembership("some_course-student", subjectId);
 	}
 }
