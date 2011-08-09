@@ -1,13 +1,12 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.support.membermodification.MemberMatcher.method;
 import static org.powermock.api.support.membermodification.MemberModifier.suppress;
-
 import junit.framework.TestCase;
 
 import org.junit.runner.RunWith;
@@ -29,7 +28,6 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
-import edu.internet2.middleware.subject.Subject;
 
 
 @RunWith(PowerMockRunner.class)
@@ -213,140 +211,5 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
 		verify(groupAdapter).deleteGroup("some_course-student", grouperName);
-	}
-	/// ---- Add Membership
-
-	public void testAddMembershipSubjectNull() throws GroupModificationException{
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
-		String subjectId = "unittest";
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(grouperName);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId)).thenReturn(subjectId);
-		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
-		assertFalse(consumer.ignoreChangelogEntry(entry));
-
-		mockStatic(SubjectFinder.class);
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(null);
-
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-
-		verifyNoMoreInteractions(groupAdapter);
-	}
-
-	public void testAddMembershipSubjectIncludeExcludeSubGroup() throws GroupModificationException{
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
-		String subjectId = "unittest123";
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(grouperName);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId)).thenReturn(subjectId);
-		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
-		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(true);
-		assertFalse(consumer.ignoreChangelogEntry(entry));
-
-		mockStatic(SubjectFinder.class);
-		Subject subject = mock(Subject.class);
-		when(subject.getTypeName()).thenReturn("person");
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
-
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-
-		verifyNoMoreInteractions(groupAdapter);
-	}
-
-	public void testAddMembershipSubjectNotNull() throws GroupModificationException{
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
-		String subjectId = "unittest123";
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(grouperName);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId)).thenReturn(subjectId);
-		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
-		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
-		assertFalse(consumer.ignoreChangelogEntry(entry));
-
-		mockStatic(SubjectFinder.class);
-		Subject subject = mock(Subject.class);
-		when(subject.getTypeName()).thenReturn("person");
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
-
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-
-		verify(groupAdapter).addMembership("some_course-student", subjectId);
-	}
-
-	/// ---- Delete Membership
-
-	public void testDeleteMembershipSubjectNull() throws GroupModificationException{
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
-		String subjectId = "unittest";
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(grouperName);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId)).thenReturn(subjectId);
-		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
-		assertFalse(consumer.ignoreChangelogEntry(entry));
-
-		mockStatic(SubjectFinder.class);
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(null);
-
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-
-		verifyNoMoreInteractions(groupAdapter);
-	}
-
-	public void testDeleteMembershipSubjectIncludeExcludeSubGroup() throws GroupModificationException{
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
-		String subjectId = "unittest123";
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(grouperName);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId)).thenReturn(subjectId);
-		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
-		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(true);
-		assertFalse(consumer.ignoreChangelogEntry(entry));
-
-		mockStatic(SubjectFinder.class);
-		Subject subject = mock(Subject.class);
-		when(subject.getTypeName()).thenReturn("person");
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
-
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-
-		verifyNoMoreInteractions(groupAdapter);
-	}
-
-	public void testDeleteMembershipSubjectNotNull() throws GroupModificationException{
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
-		String subjectId = "unittest123";
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(grouperName);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId)).thenReturn(subjectId);
-		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
-		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
-		assertFalse(consumer.ignoreChangelogEntry(entry));
-
-		mockStatic(SubjectFinder.class);
-		Subject subject = mock(Subject.class);
-		when(subject.getTypeName()).thenReturn("person");
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
-
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-
-		verify(groupAdapter).deleteMembership("some_course-student", subjectId);
 	}
 }
