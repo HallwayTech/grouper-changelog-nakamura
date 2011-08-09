@@ -113,7 +113,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 						if (group == null || groupIdAdapter.isSimpleGroup(grouperName)){
 							if (grouperName.endsWith(deleteRole + BaseGroupIdAdapter.DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
-								groupAdapter.deleteGroup(grouperName, grouperName);
+								groupAdapter.deleteGroup(groupIdAdapter.getGroupId(grouperName), grouperName);
 							}
 						}
 						else {
@@ -123,33 +123,33 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
-					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupId);
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
+					String groupId = groupIdAdapter.getGroupId(grouperName);
 
 					if (isSupportedGroup(grouperName)) {
 						if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
 							log.info("Membership add, group: " + grouperName + " subjectId: " + memberId);
 
 							if (groupIdAdapter.isCourseGroup(grouperName)){
-								groupAdapter.addMembership(groupId, grouperName, memberId);
+								groupAdapter.addMembership(groupId, memberId);
 							}
 						}
 					}
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
-					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupId);
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
+					String groupId = groupIdAdapter.getGroupId(grouperName);
 
 					if (isSupportedGroup(grouperName)) {
 						if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
 							log.info("Membership delete, group: " + grouperName + " subjectId: " + memberId);
 							if (groupIdAdapter.isCourseGroup(grouperName)){
-								groupAdapter.deleteMembership(groupId, grouperName, memberId);
+								groupAdapter.deleteMembership(groupId, memberId);
 							}
 						}
 					}

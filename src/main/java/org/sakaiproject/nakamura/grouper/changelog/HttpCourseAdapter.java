@@ -533,10 +533,9 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	@Override
 	public void deleteGroup(String groupId, String groupName)
 			throws GroupModificationException {
-		String nakamuraGroupId = groupIdAdapter.getGroupId(groupName);
 
-		if (nakamuraGroupId.endsWith(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
-			String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+		if (groupId.endsWith(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
+			String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
 			String lecturerGroupId = parentGroupId + "-lecturer";
 			String taGroupId = parentGroupId + "-ta";
 			String studentGroupId = parentGroupId + "-student";
@@ -560,17 +559,5 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 			}
 		}
 
-	}
-
-	@Override
-	public void addMembership(String groupId, String groupName, String memberId)
-	throws GroupModificationException {
-		addMembership(groupIdAdapter.getGroupId(groupName), memberId);
-	}
-
-	@Override
-	public void deleteMembership(String groupId, String groupName, String memberId)
-	throws GroupModificationException {
-		deleteMembership(groupIdAdapter.getGroupId(groupName), memberId);
 	}
 }

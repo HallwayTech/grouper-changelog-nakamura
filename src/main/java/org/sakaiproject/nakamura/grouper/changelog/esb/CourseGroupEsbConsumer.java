@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
@@ -155,10 +154,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("START GROUP_DELETE : " + grouperName);
 
 					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
-					if (group == null || groupIdAdapter.isCourseGroup(grouperName)){
-						if (grouperName.endsWith(deleteRole + BaseGroupIdAdapter.DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
-							groupAdapter.deleteGroup(grouperName, grouperName);
-						}
+					if (group == null && grouperName.endsWith(deleteRole)){
+						groupAdapter.deleteGroup(groupIdAdapter.getGroupId(grouperName), grouperName);
 					}
 					else {
 						log.error("Received a delete event for a group that still exists!");
@@ -167,15 +164,15 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
-					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupId);
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
+					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 
 					if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
 						if (groupIdAdapter.isCourseGroup(grouperName)){
-							groupAdapter.addMembership(groupId, grouperName, memberId);
+							groupAdapter.addMembership(groupId, memberId);
 						}
 					}
 
@@ -183,15 +180,15 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
-					String groupId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupId);
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
+					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 
 					if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
 						if (groupIdAdapter.isCourseGroup(grouperName)){
-							groupAdapter.deleteMembership(groupId, grouperName, memberId);
+							groupAdapter.deleteMembership(groupId, memberId);
 						}
 					}
 

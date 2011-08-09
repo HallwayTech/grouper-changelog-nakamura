@@ -4,6 +4,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.powermock.api.support.membermodification.MemberMatcher.method;
 import static org.powermock.api.support.membermodification.MemberModifier.suppress;
 
@@ -166,5 +167,51 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
 		verify(groupAdapter).createGroup(rewrittenGrouperName, "description");
+	}
+
+	public void testDeleteGroupIsNotNull() throws GroupModificationException{
+		entry = mock(ChangeLogEntry.class);
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		Group group = mock(Group.class);
+		GrouperSession session = mock(GrouperSession.class);
+		mockStatic(GrouperSession.class);
+		mockStatic(GroupFinder.class);
+		when(GrouperSession.startRootSession()).thenReturn(session);
+		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(group);
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.setConfigurationLoaded(true);
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verifyNoMoreInteractions(groupAdapter);
+	}
+
+	public void testDeleteGroup() throws GroupModificationException{
+		entry = mock(ChangeLogEntry.class);
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
+
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		GrouperSession session = mock(GrouperSession.class);
+		mockStatic(GrouperSession.class);
+		mockStatic(GroupFinder.class);
+		when(GrouperSession.startRootSession()).thenReturn(session);
+		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(null);
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.setConfigurationLoaded(true);
+		consumer.setDeleteRole("students");
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verify(groupAdapter).deleteGroup("some_course-student", grouperName);
 	}
 }

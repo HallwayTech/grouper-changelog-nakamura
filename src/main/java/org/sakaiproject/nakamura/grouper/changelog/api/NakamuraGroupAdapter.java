@@ -25,20 +25,18 @@ public interface NakamuraGroupAdapter {
 	/**
 	 * Add a subject to a group.
 	 * @param groupId the id of the group in OAE
-	 * @param groupName the full name of the group (includes stem)
 	 * @param subjectId the id of the subject being added
 	 * @throws GroupModificationException
 	 */
-	public void addMembership(String groupId, String groupName, String subjectId) throws GroupModificationException;
+	public void addMembership(String groupId, String subjectId) throws GroupModificationException;
 
 	/**
 	 * Remove a subject from a group.
 	 * @param groupId the id of the group in OAE
-	 * @param groupName the full name of the group (includes stem)
 	 * @param subjectId the id of the subject being removed
 	 * @throws GroupModificationException
 	 */
-	public void deleteMembership(String groupId, String groupName, String subjectId) throws GroupModificationException;
+	public void deleteMembership(String groupId, String subjectId) throws GroupModificationException;
 
 	/**
 	 * Does the group exist in SakaiOAE?

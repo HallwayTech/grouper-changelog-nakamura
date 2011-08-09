@@ -108,4 +108,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public void setAllowInstitutional(boolean allow){
 		this.allowInstitutional = allow;
 	}
+
+	public void setDeleteRole(String role){
+		this.deleteRole = role;
+	}
 }
