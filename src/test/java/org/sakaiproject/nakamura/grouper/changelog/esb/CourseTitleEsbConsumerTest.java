@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.support.membermodification.MemberMatcher.method;
@@ -14,6 +15,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
+
+import com.google.common.collect.ImmutableList;
 
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
@@ -76,5 +80,21 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyChanged)).thenReturn("description");
 		assertFalse(consumer.ignoreChangelogEntry(entry));
+	}
+
+	public void testAddTitle() throws GroupModificationException{
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.STEM_UPDATE)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyChanged)).thenReturn("description");
+		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyNewValue)).thenReturn("newdescription");
+		when(groupIdAdapter.getGroupId(VALID_STEM + ":students")).thenReturn("some_course-student");
+		when(groupIdAdapter.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.setConfigurationLoaded(true);
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verify(groupAdapter).setProperty("some_course", CourseTitleEsbConsumer.COURSE_TITLE_PROPERTY, "newdescription");
 	}
 }
