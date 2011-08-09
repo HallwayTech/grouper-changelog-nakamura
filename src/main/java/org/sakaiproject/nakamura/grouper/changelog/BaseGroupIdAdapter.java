@@ -40,6 +40,20 @@ public abstract class BaseGroupIdAdapter {
 	}
 
 	/**
+	 * Is this a sub group of the addIncludeExclude group?
+	 * @param grouperName
+	 * @return
+	 */
+	public boolean isIncludeExcludeSubGroup(String grouperName){
+		for (String suffix: includeExcludeSuffixes){
+			if (grouperName.endsWith(suffix)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Return the authorizableId of the parent group for this group.
 	 * @param nakamuraGroupId
 	 * @return

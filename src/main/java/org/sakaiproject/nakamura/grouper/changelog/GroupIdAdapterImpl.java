@@ -10,7 +10,7 @@ import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
-public class GroupIdAdapterImpl implements GroupIdAdapter {
+public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAdapter {
 
 	private static Log log = LogFactory.getLog(GroupIdAdapterImpl.class);
 
@@ -135,6 +135,7 @@ public class GroupIdAdapterImpl implements GroupIdAdapter {
 	 * @param consumerName
 	 */
 	public void loadConfiguration(String consumerName){
+		super.loadConfiguration(consumerName);
 		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
 		setAdhocSimpleGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADHOC_SIMPLE_GROUPS_STEM, false));
 		setAdhocCourseGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADHOC_COURSE_GROUPS_STEM, false));

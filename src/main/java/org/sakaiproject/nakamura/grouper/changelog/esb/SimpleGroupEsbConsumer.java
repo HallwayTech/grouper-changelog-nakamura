@@ -132,7 +132,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 
 					if (isSupportedGroup(grouperName)) {
-						if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
+						if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
 							log.info("Membership add, group: " + grouperName + " subjectId: " + memberId);
 
 							if (groupIdAdapter.isCourseGroup(grouperName)){
@@ -149,7 +149,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 
 					if (isSupportedGroup(grouperName)) {
-						if (!isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
+						if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
 							log.info("Membership delete, group: " + grouperName + " subjectId: " + memberId);
 							if (groupIdAdapter.isCourseGroup(grouperName)){
 								groupAdapter.deleteMembership(groupId, memberId);

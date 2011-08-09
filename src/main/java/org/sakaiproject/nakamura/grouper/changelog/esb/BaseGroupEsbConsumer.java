@@ -93,20 +93,6 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		return grouperSession;
 	}
 
-	/**
-	 * Is this a sub group of the addIncludeExclude group?
-	 * @param grouperName
-	 * @return
-	 */
-	protected boolean isIncludeExcludeSubGroup(String grouperName){
-		for (String suffix: includeExcludeSuffixes){
-			if (grouperName.endsWith(suffix)){
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public void setPseudoGroupSuffixes(String psgConfig) {
 		pseudoGroupSuffixes = new HashSet<String>();
 		for(String suffix: StringUtils.split(psgConfig, ",")){
