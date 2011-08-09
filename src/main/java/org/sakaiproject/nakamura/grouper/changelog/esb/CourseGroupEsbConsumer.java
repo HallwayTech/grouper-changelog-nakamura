@@ -137,7 +137,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 									groupIdAdapter.getInstitutionalCourseGroupsStem(),
 									groupIdAdapter.getProvisionedCourseGroupsStem());
 						}
-						groupAdapter.createGroup(grouperName, group.getDescription());
+						groupAdapter.createGroup(grouperName, group.getParentStem().getDescription());
 						coursesInSakai.add(parentGroupId);
 					}
 

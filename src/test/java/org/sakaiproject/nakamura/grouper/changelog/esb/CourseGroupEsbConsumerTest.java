@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
@@ -118,7 +119,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
 		Group group = mock(Group.class);
-		when(group.getDescription()).thenReturn("description");
+		Stem stem = mock(Stem.class);
+		when(group.getParentStem()).thenReturn(stem);
+		when(stem.getDescription()).thenReturn("parent description");
 		GrouperSession session = mock(GrouperSession.class);
 		mockStatic(GrouperSession.class);
 		mockStatic(GroupFinder.class);
@@ -134,7 +137,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).createGroup(grouperName, "description");
+		verify(groupAdapter).createGroup(grouperName, "parent description");
 	}
 
 	public void testAddGroupInstitutional() throws GroupModificationException{
@@ -151,7 +154,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
 		Group group = mock(Group.class);
-		when(group.getDescription()).thenReturn("description");
+		Stem stem = mock(Stem.class);
+		when(group.getParentStem()).thenReturn(stem);
+		when(stem.getDescription()).thenReturn("parent description");
 		GrouperSession session = mock(GrouperSession.class);
 		mockStatic(GrouperSession.class);
 		mockStatic(GroupFinder.class);
@@ -166,7 +171,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).createGroup(rewrittenGrouperName, "description");
+		verify(groupAdapter).createGroup(rewrittenGrouperName, "parent description");
 	}
 
 	public void testDeleteGroupIsNotNull() throws GroupModificationException{
