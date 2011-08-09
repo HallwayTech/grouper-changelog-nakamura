@@ -175,4 +175,65 @@ public class GroupIdAdapterImplTestCase extends TestCase {
 		assertEquals("simpler0_grouper0-members",
 				adapter.getGroupId(INST_SIMPLEGROUPS_STEM + ":simpler0:grouper0:members_excludes"));
 	}
+
+	public void testIsProvisioned(){
+		assertFalse(adapter.isProvisioned(null));
+		assertTrue(adapter.isProvisioned(PROV_COURSEGROUPS_STEM + ":some:group:role"));
+		assertTrue(adapter.isProvisioned(PROV_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertFalse(adapter.isProvisioned(INST_COURSEGROUPS_STEM + ":some:group:role"));
+		assertFalse(adapter.isProvisioned(INST_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertFalse(adapter.isProvisioned(ADHOC_COURSEGROUPS_STEM + ":some:group:role"));
+		assertFalse(adapter.isProvisioned(ADHOC_SIMPLEGROUPS_STEM + ":some:group:role"));
+	}
+
+
+	public void testIsAdhoc(){
+		assertFalse(adapter.isAdhoc(null));
+		assertTrue(adapter.isAdhoc(ADHOC_COURSEGROUPS_STEM + ":some:group:role"));
+		assertTrue(adapter.isAdhoc(ADHOC_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertFalse(adapter.isAdhoc(INST_COURSEGROUPS_STEM + ":some:group:role"));
+		assertFalse(adapter.isAdhoc(INST_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertFalse(adapter.isAdhoc(PROV_COURSEGROUPS_STEM + ":some:group:role"));
+		assertFalse(adapter.isAdhoc(PROV_SIMPLEGROUPS_STEM + ":some:group:role"));
+	}
+
+	public void testIsInstitutional(){
+		assertFalse(adapter.isInstitutional(null));
+		assertTrue(adapter.isInstitutional(INST_COURSEGROUPS_STEM + ":some:group:role"));
+		assertTrue(adapter.isInstitutional(INST_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertFalse(adapter.isInstitutional(PROV_COURSEGROUPS_STEM + ":some:group:role"));
+		assertFalse(adapter.isInstitutional(PROV_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertFalse(adapter.isInstitutional(ADHOC_COURSEGROUPS_STEM + ":some:group:role"));
+		assertFalse(adapter.isInstitutional(ADHOC_SIMPLEGROUPS_STEM + ":some:group:role"));
+	}
+
+	public void testIsCourseGroup(){
+		assertFalse(adapter.isCourseGroup(null));
+		assertTrue(adapter.isCourseGroup(INST_COURSEGROUPS_STEM + ":some:group:role"));
+		assertFalse(adapter.isCourseGroup(INST_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertTrue(adapter.isCourseGroup(PROV_COURSEGROUPS_STEM + ":some:group:role"));
+		assertFalse(adapter.isCourseGroup(PROV_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertTrue(adapter.isCourseGroup(ADHOC_COURSEGROUPS_STEM + ":some:group:role"));
+		assertFalse(adapter.isCourseGroup(ADHOC_SIMPLEGROUPS_STEM + ":some:group:role"));
+	}
+
+	public void testIsSimpleGroup(){
+		assertFalse(adapter.isSimpleGroup(null));
+		assertFalse(adapter.isSimpleGroup(INST_COURSEGROUPS_STEM + ":some:group:role"));
+		assertTrue(adapter.isSimpleGroup(INST_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertFalse(adapter.isSimpleGroup(PROV_COURSEGROUPS_STEM + ":some:group:role"));
+		assertTrue(adapter.isSimpleGroup(PROV_SIMPLEGROUPS_STEM + ":some:group:role"));
+
+		assertFalse(adapter.isSimpleGroup(ADHOC_COURSEGROUPS_STEM + ":some:group:role"));
+		assertTrue(adapter.isSimpleGroup(ADHOC_SIMPLEGROUPS_STEM + ":some:group:role"));
+	}
 }
