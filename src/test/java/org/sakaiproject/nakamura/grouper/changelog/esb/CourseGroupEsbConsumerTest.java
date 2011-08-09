@@ -23,15 +23,17 @@ import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.Stem;
+import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
+import edu.internet2.middleware.subject.Subject;
 
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(value = {GrouperUtil.class, GroupFinder.class, GrouperSession.class })
+@PrepareForTest(value = { GrouperUtil.class, GroupFinder.class, GrouperSession.class, SubjectFinder.class })
 public class CourseGroupEsbConsumerTest extends TestCase {
 
 	private CourseGroupEsbConsumer consumer;
@@ -50,11 +52,13 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.setGroupAdapter(groupAdapter);
 		consumer.setGroupIdAdapter(groupIdAdapter);
 		consumer.setConfigurationLoaded(true);
+		consumer.setPseudoGroupSuffixes("student, manager, member, ta, lecturer");
 		suppress(method(GrouperUtil.class, "getLog"));
+
+		entry = mock(ChangeLogEntry.class);
 	}
 
 	public void testIgnoreInvalidEntryType() throws Exception{
-		entry = mock(ChangeLogEntry.class);
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(false);
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(false);
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_UPDATE)).thenReturn(false);
@@ -64,14 +68,12 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testIgnoreAll(){
-		entry = mock(ChangeLogEntry.class);
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn("edu:apps:sakaiaoe:courses:some:course:all");
 		assertTrue(consumer.ignoreChangelogEntry(entry));
 	}
 
 	public void testIgnoreNotACourseGroup(){
-		entry = mock(ChangeLogEntry.class);
 		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
@@ -80,7 +82,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testDontIgnore(){
-		entry = mock(ChangeLogEntry.class);
 		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
@@ -89,7 +90,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testDontAllowProvisionedByDefault(){
-		entry = mock(ChangeLogEntry.class);
 		String grouperName = "inst:sis:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
@@ -100,7 +100,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 	public void testAllowProvisioned(){
 		consumer.setAllowInstitutional(true);
-		entry = mock(ChangeLogEntry.class);
 		String grouperName = "inst:sis:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
@@ -110,7 +109,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testAddGroup() throws GroupModificationException{
-		entry = mock(ChangeLogEntry.class);
 		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
@@ -142,7 +140,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 	public void testAddGroupInstitutional() throws GroupModificationException{
 		consumer.setAllowInstitutional(true);
-		entry = mock(ChangeLogEntry.class);
 		String grouperName = "inst:sis:courses:some:course:students";
 		String rewrittenGrouperName = "edu:apps:sakaiaoe:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
@@ -175,7 +172,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testDeleteGroupIsNotNull() throws GroupModificationException{
-		entry = mock(ChangeLogEntry.class);
 		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
@@ -197,7 +193,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testDeleteGroup() throws GroupModificationException{
-		entry = mock(ChangeLogEntry.class);
 		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
@@ -218,5 +213,71 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
 		verify(groupAdapter).deleteGroup("some_course-student", grouperName);
+	}
+
+	public void testAddMembershipSubjectNull() throws GroupModificationException{
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		String subjectId = "unittest";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(grouperName);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId)).thenReturn(subjectId);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		mockStatic(SubjectFinder.class);
+		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(null);
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.setConfigurationLoaded(true);
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verifyNoMoreInteractions(groupAdapter);
+	}
+
+	public void testAddMembershipSubjectIncludeExcludeSubGroup() throws GroupModificationException{
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		String subjectId = "unittest123";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(grouperName);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId)).thenReturn(subjectId);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
+		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(true);
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		mockStatic(SubjectFinder.class);
+		Subject subject = mock(Subject.class);
+		when(subject.getTypeName()).thenReturn("person");
+		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.setConfigurationLoaded(true);
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verifyNoMoreInteractions(groupAdapter);
+	}
+
+	public void testAddMembershipSubjectNotNull() throws GroupModificationException{
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		String subjectId = "unittest123";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(grouperName);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId)).thenReturn(subjectId);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
+		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		mockStatic(SubjectFinder.class);
+		Subject subject = mock(Subject.class);
+		when(subject.getTypeName()).thenReturn("person");
+		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.setConfigurationLoaded(true);
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verify(groupAdapter).addMembership("some_course-student", subjectId);
 	}
 }
