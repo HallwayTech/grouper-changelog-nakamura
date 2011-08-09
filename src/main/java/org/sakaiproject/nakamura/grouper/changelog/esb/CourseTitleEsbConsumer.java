@@ -25,7 +25,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	private static Log log = LogFactory.getLog(CourseTitleEsbConsumer.class);
 
 	// Regex to determine if this is a section stem
-	Pattern sectionStemPattern;
+	private Pattern sectionStemPattern;
 
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpCourseAdapter groupAdapter;
@@ -137,5 +137,17 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		}
 
 		return ignore;
+	}
+
+	public void setSectionStemPattern(Pattern sectionStemPattern) {
+		this.sectionStemPattern = sectionStemPattern;
+	}
+
+	public void setGroupAdapter(HttpCourseAdapter groupAdapter) {
+		this.groupAdapter = groupAdapter;
+	}
+
+	public void setGroupIdAdapter(GroupIdAdapterImpl groupIdAdapter) {
+		this.groupIdAdapter = groupIdAdapter;
 	}
 }
