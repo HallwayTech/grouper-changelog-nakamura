@@ -11,7 +11,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import edu.internet2.middleware.grouper.GrouperSession;
-import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase;
 import edu.internet2.middleware.grouper.exception.GrouperException;
@@ -75,7 +74,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	protected GrouperSession getGrouperSession(){
 		if ( grouperSession == null) {
 			try {
-				grouperSession = GrouperSession.start(SubjectFinder.findRootSubject(), false);
+				grouperSession = GrouperSession.startRootSession();
 				log.debug("started session: " + this.grouperSession);
 			}
 			catch (SessionException se) {
