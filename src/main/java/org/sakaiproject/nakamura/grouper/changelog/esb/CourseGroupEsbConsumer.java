@@ -65,11 +65,11 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	}
 
 	protected void loadConfiguration(String consumerName) {
-		super.loadConfiguration(consumerName);
-
 		if (configurationLoaded){
 			return;
 		}
+
+		super.loadConfiguration(consumerName);
 
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
 		simpleAdapter.loadConfiguration(consumerName);
@@ -244,7 +244,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		}
 
 		if (groupIdAdapter.isInstitutional(groupName) && allowInstitutional == false){
-			log.debug("ignoreing: Not processing institutional data.");
+			log.debug("ignoring: Not processing institutional data.");
 			ignore = true;
 		}
 
