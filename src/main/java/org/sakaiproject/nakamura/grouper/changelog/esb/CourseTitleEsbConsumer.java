@@ -39,6 +39,9 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	public static final String COURSE_TITLE_PROPERTY = "sakai:group-title";
 
 	protected void loadConfiguration(String consumerName) {
+		if (configurationLoaded){
+			return;
+		}
 		super.loadConfiguration(consumerName);
 
 		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
