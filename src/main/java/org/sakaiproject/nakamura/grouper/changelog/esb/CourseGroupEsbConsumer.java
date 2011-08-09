@@ -57,8 +57,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// Courses already created in sakai by this object
 	private Set<String> coursesInSakai;
 
-	private boolean configurationLoaded = false;
-
 	public CourseGroupEsbConsumer() {
 		coursesInSakai = new HashSet<String>();
 	}
@@ -67,7 +65,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		if (configurationLoaded){
 			return;
 		}
-
 		super.loadConfiguration(consumerName);
 
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
@@ -88,8 +85,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupAdapter.setCreateUsers(createUsers);
 		groupAdapter.setDryrun(dryrun);
 		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
-
-		configurationLoaded = true;
 	}
 
 	/**
@@ -258,9 +253,5 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	public void setGroupAdapter(HttpCourseAdapter adapter){
 		this.groupAdapter = adapter;
-	}
-
-	public void setConfigurationLoaded(boolean loaded){
-		this.configurationLoaded = loaded;
 	}
 }

@@ -1,4 +1,5 @@
 
+
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
@@ -29,6 +30,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	protected boolean allowInstitutional;
 	protected String deleteRole;
 
+	protected boolean configurationLoaded = false;
+
 	// Suffixes for the composite groups created for addIncludeExclude groups
 	protected Set<String> includeExcludeSuffixes;
 	// Sakai OAE pseudoGroup suffixes.
@@ -52,6 +55,11 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	 * @param consumerName the name of this consumer job.
 	 */
 	protected void loadConfiguration(String consumerName){
+
+		if (configurationLoaded){
+			return;
+		}
+
 		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
 		try {
 			url = new URL(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_URL, true));
@@ -65,6 +73,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, false);
 		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, false);
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PSEUDOGROUP_SUFFIXES, true));
+		configurationLoaded = true;
 	}
 
 	/**
@@ -111,5 +120,9 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	public void setDeleteRole(String role){
 		this.deleteRole = role;
+	}
+
+	public void setConfigurationLoaded(boolean loaded){
+		this.configurationLoaded = loaded;
 	}
 }

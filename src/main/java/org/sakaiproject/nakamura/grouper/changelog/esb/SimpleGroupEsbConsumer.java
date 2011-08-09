@@ -38,6 +38,9 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	public static final String MEMBER_SUFFIX = "member";
 
 	protected void loadConfiguration(String consumerName) {
+		if (configurationLoaded){
+			return;
+		}
 		super.loadConfiguration(consumerName);
 
 		simpleGroupsInSakai = new HashSet<String>();
