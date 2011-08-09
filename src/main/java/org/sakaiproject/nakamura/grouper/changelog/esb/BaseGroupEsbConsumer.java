@@ -105,4 +105,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			pseudoGroupSuffixes.add(suffix.trim());
 		}
 	}
+
+	public void setAllowInstitutional(boolean allow){
+		this.allowInstitutional = allow;
+	}
 }

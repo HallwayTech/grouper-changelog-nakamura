@@ -76,4 +76,25 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 	}
+
+	public void testDontAllowProvisionedByDefault(){
+		entry = mock(ChangeLogEntry.class);
+		String grouperName = "inst:sis:courses:some:course:students";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(true);
+		assertTrue(consumer.ignoreChangelogEntry(entry));
+	}
+
+	public void testAllowProvisioned(){
+		consumer.setAllowInstitutional(true);
+		entry = mock(ChangeLogEntry.class);
+		String grouperName = "inst:sis:courses:some:course:students";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(true);
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+	}
 }
