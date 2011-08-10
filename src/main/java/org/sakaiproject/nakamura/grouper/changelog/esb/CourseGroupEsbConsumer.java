@@ -209,39 +209,39 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
-		String groupName = null;
+		String grouperName = null;
 		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)){
-			groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
+			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
 		}
 		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-			groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
+			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
 		}
 		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_UPDATE)) {
-			groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.name);
+			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.name);
 		}
 		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
-			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
+			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 		}
 		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
-			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
+			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 		}
-		if (groupName == null){
-			log.debug("ignoring: Unable to get the group name from the entry.");
+		if (grouperName == null){
+			log.debug("ignoring: Unable to get the group name from the entry. " + entry.toStringDeep());
 			ignore = true;
 		}
 
-		if (groupName != null && groupName.endsWith(":all")){
-			log.debug("ignoring: all group.");
+		if (grouperName != null && grouperName.endsWith(":all")){
+			log.debug("ignoring: all group: " + grouperName);
 			ignore = true;
 		}
 
-		if (groupIdAdapter.isInstitutional(groupName) && allowInstitutional == false){
-			log.debug("ignoring: Not processing institutional data.");
+		if (groupIdAdapter.isInstitutional(grouperName) && allowInstitutional == false){
+			log.debug("ignoring: Not processing institutional data : " + grouperName);
 			ignore = true;
 		}
 
-		if (!groupIdAdapter.isCourseGroup(groupName)){
-			log.debug("ignoring: Not a course group.");
+		if (!groupIdAdapter.isCourseGroup(grouperName)){
+			log.debug("ignoring: Not a course group : " + grouperName);
 			ignore = true;
 		}
 		return ignore;
