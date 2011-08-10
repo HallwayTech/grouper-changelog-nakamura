@@ -11,7 +11,7 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 
 	private Set<String> pseudoGroupSuffixes = ImmutableSet.of("student", "ta", "lecturer", "manager", "members");
 	private Set<String> includeExcludeSuffixes = ImmutableSet.of("_includes", "_excludes", "_systemOfRecord", "_systemOfRecordAndIncludes");
-	private String roleMappings = "TAs:ta, lecturers:lecturer, students:student, managers:manager";
+	private String roleMappings = "TAs:ta, lecturers:lecturer, instructors:lecturer, students:student, managers:manager";
 
 	TemplateGroupIdAdapter adaptor;
 
@@ -61,5 +61,8 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 				adaptor.getGroupId("GRAD:FA11:MATH-GA:1410:1:001:ta_systemOfRecordAndIncludes"));
 		assertEquals("course_MATH-GA_1410_1_001_FA11-lecturer",
 				adaptor.getGroupId("GRAD:FA11:MATH-GA:1410:1:001:lecturer_excludes"));
+
+		assertEquals("course_ELEC1-DC_1109_S_003_FA11-lecturer",
+				adaptor.getGroupId("GRAD:FA11:ELEC1-DC:1109:S:003:instructors"));
 	}
 }

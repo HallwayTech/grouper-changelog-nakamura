@@ -7,6 +7,7 @@ import org.apache.commons.jexl2.Expression;
 import org.apache.commons.jexl2.JexlContext;
 import org.apache.commons.jexl2.JexlEngine;
 import org.apache.commons.jexl2.MapContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
@@ -58,26 +59,27 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 		}
 
 		String nakamuraGroupId = applyTemplate(grouperName);
+		String originalExtension = grouperName.substring(grouperName.lastIndexOf(':') + 1);
 
-		// If the groupername ends in _SUFFIX_systemOfRecord we change that to -SUFFIX
+		// If the groupername ends in one of the include/exclude groups we remove that suffix.
 		for (String ieSuffix: includeExcludeSuffixes) {
 			if (nakamuraGroupId.endsWith(ieSuffix)){
-				nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.length() - ieSuffix.length());
+				nakamuraGroupId = StringUtils.removeEnd(nakamuraGroupId, ieSuffix);
+				originalExtension = StringUtils.removeEnd(originalExtension, ieSuffix);
 				break;
 			}
 		}
 
-		// If the groupername ends in _SUFFIX we change that to -SUFFIX
-		for (String psSuffix: pseudoGroupSuffixes){
-			String nakamuraSuffix = roleMap.get(psSuffix);
-			if (nakamuraSuffix == null){
-				nakamuraSuffix = psSuffix;
-			}
-			if (nakamuraGroupId.endsWith("_" + psSuffix)){
-				nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_")) + "-" + nakamuraSuffix;
-				break;
-			}
+		// Re-write the extension via the role map
+		String role = originalExtension;
+		if (roleMap.containsKey(role)){
+			role = roleMap.get(role);
 		}
+		if (pseudoGroupSuffixes.contains(role)){
+			nakamuraGroupId = StringUtils.removeEnd(nakamuraGroupId, "_" + originalExtension);
+			nakamuraGroupId += "-" + role;
+		}
+
 		log.debug(grouperName + " => " + nakamuraGroupId);
 		return nakamuraGroupId;
 	}
