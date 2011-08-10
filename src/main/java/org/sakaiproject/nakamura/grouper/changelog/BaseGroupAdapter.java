@@ -137,6 +137,7 @@ public abstract class BaseGroupAdapter {
 
 
 	protected void createPseudoGroup(String nakamuraGroupId, String groupName, String description) throws GroupModificationException {
+		String role = nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf('-') + 1);
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = new PostMethod(url + GROUP_CREATE_URI);
 		method.addParameter(":name", nakamuraGroupId);
@@ -144,7 +145,7 @@ public abstract class BaseGroupAdapter {
 		method.addParameter("sakai:group-id", nakamuraGroupId);
 		method.addParameter("sakai:excludeSearch", "true");
 		method.addParameter("sakai:group-description", description);
-		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + groupIdAdapter.getPseudoGroupParent(nakamuraGroupId) + ")");
+		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + role + ")");
 		method.addParameter("sakai:pseudoGroup", "true");
 		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
 		method.setParameter("sakai:group-joinable", "yes");

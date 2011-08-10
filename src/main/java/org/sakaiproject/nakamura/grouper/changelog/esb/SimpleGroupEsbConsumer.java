@@ -1,4 +1,3 @@
-
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.util.HashSet;
