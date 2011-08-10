@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
 import com.google.common.collect.ImmutableList;
@@ -28,21 +28,18 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
 
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(value = { GrouperUtil.class, GroupFinder.class, GrouperSession.class, SubjectFinder.class })
-public class MembershipCourseGroupEsbConsumerTest extends TestCase {
+public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 
-	private CourseGroupEsbConsumer consumer;
-	private HttpCourseAdapter groupAdapter;
+	private SimpleGroupEsbConsumer consumer;
+	private HttpSimpleGroupAdapter groupAdapter;
 	private GroupIdAdapterImpl groupIdAdapter;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry addEntry;
 	private ChangeLogEntry deleteEntry;
 	
-	
-	
-	private String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+	private String grouperName = "edu:apps:sakaiaoe:simplegroups:some:course:students";
 	private String subjectId = "unittest123";
 
 	public void setUp(){
@@ -50,20 +47,20 @@ public class MembershipCourseGroupEsbConsumerTest extends TestCase {
 		suppress(method(GrouperUtil.class, "getLog"));
 		mockStatic(SubjectFinder.class);
 
-		groupAdapter = mock(HttpCourseAdapter.class);
+		groupAdapter = mock(HttpSimpleGroupAdapter.class);
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 		
-		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
 
-		consumer = new CourseGroupEsbConsumer();
+		consumer = new SimpleGroupEsbConsumer();
 		consumer.setGroupAdapter(groupAdapter);
 		consumer.setGroupIdAdapter(groupIdAdapter);
 		consumer.setConfigurationLoaded(true);
-		consumer.setPseudoGroupSuffixes("student, manager, member, ta, lecturer");
+		consumer.setPseudoGroupSuffixes("manager, member");
 
 		addEntry = mock(ChangeLogEntry.class);
 		when(addEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
