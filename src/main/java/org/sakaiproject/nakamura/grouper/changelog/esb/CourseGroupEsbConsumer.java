@@ -166,9 +166,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 
 					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-						if (groupIdAdapter.isCourseGroup(grouperName)){
-							groupAdapter.addMembership(groupId, memberId);
-						}
+						groupAdapter.addMembership(groupId, memberId);
 					}
 
 					log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
@@ -182,9 +180,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 
 					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-						if (groupIdAdapter.isCourseGroup(grouperName)){
-							groupAdapter.deleteMembership(groupId, memberId);
-						}
+						groupAdapter.deleteMembership(groupId, memberId);
 					}
 
 					log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
