@@ -46,7 +46,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_CREATE_USERS = "create.users";
 	public static final String PROP_DRYRUN = "dryrun";
 	public static final String PROP_ALLOW_INSTITUTIONAL = "allow.institutional";
-	private static final String PROP_PSEUDOGROUP_SUFFIXES = "psuedoGroup.suffixes";
+	public static final String PROP_PSEUDOGROUP_SUFFIXES = "psuedoGroup.suffixes";
 
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 
