@@ -80,7 +80,7 @@ public class NakamuraHttpUtils {
 		boolean isJSONRequest = ! method.getPath().toString().endsWith(".html");
 
 		if (log.isDebugEnabled()){
-			log.debug(method.getName() + " " + method.getPath() + "params:");
+			log.debug(method.getName() + " " + method.getPath() + " params:");
 			for (NameValuePair nvp : method.getParameters()){
 				log.debug(nvp.getName() + " = " + nvp.getValue());
 			}

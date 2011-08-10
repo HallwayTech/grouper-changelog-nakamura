@@ -29,7 +29,6 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(value = { GrouperUtil.class, GroupFinder.class, GrouperSession.class, SubjectFinder.class })
 public class CourseGroupEsbConsumerTest extends TestCase {
