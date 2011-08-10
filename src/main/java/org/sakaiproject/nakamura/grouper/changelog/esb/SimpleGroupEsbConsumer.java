@@ -7,7 +7,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupAdapter;
 
@@ -37,13 +36,15 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	public static final String MANAGER_SUFFIX = "manager";
 	public static final String MEMBER_SUFFIX = "member";
 
+	public SimpleGroupEsbConsumer(){
+		simpleGroupsInSakai = new HashSet<String>();
+	}
+
 	protected void loadConfiguration(String consumerName) {
 		if (configurationLoaded){
 			return;
 		}
 		super.loadConfiguration(consumerName);
-
-		simpleGroupsInSakai = new HashSet<String>();
 
 		groupIdAdapter = new GroupIdAdapterImpl();
 
@@ -79,6 +80,9 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("Processing changelog entry=" + currentId);
 				}
 
+				if (ignoreChangelogEntry(changeLogEntry)){
+					continue;
+				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
@@ -86,42 +90,45 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					if (log.isDebugEnabled()){
 						log.debug(ChangeLogTypeBuiltin.GROUP_ADD + ": name=" + grouperName);
 					}
-					if (isSupportedGroup(grouperName)) {
-						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
+					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 
-						if (group != null) {
-							if (groupIdAdapter.isSimpleGroup(group.getName())){
-								String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
-								String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
-								// Create the OAE Course objects when the first role group is created.
-								if (!simpleGroupsInSakai.contains(parentGroupId) &&
-										!groupAdapter.groupExists(parentGroupId)){
-									log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
-									groupAdapter.createGroup(group.getName(), group.getDescription());
-									simpleGroupsInSakai.add(parentGroupId);
-									log.info("DONE with the GROUP_ADD event for " + grouperName);
-								}
+					if (group != null) {
+						String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
+						String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+						// Create the OAE Course objects when the first role group is created.
+						if (!simpleGroupsInSakai.contains(parentGroupId) &&
+								!groupAdapter.groupExists(parentGroupId)){
+
+							log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
+
+							if (grouperName.startsWith(groupIdAdapter.getInstitutionalCourseGroupsStem())){
+								grouperName = grouperName.replace(
+										groupIdAdapter.getInstitutionalCourseGroupsStem(),
+										groupIdAdapter.getProvisionedCourseGroupsStem());
 							}
-						}
-						else {
-							log.error("Group added event received for a null or non-simple group " + grouperName);
+
+							groupAdapter.createGroup(grouperName, group.getParentStem().getDescription());
+							simpleGroupsInSakai.add(parentGroupId);
+							log.info("DONE with the GROUP_ADD event for " + grouperName);
 						}
 					}
+					else {
+						log.error("Group added event received for a null or non-simple group " + grouperName);
+					}
+
 				}
 
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
 					log.info(ChangeLogTypeBuiltin.GROUP_DELETE + ": name=" + grouperName);
-					if (isSupportedGroup(grouperName)) {
-						Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
-						if (group == null || groupIdAdapter.isSimpleGroup(grouperName)){
-							if (grouperName.endsWith(deleteRole + BaseGroupIdAdapter.DEFAULT_SYSTEM_OF_RECORD_SUFFIX)){
-								groupAdapter.deleteGroup(groupIdAdapter.getGroupId(grouperName), grouperName);
-							}
+					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
+					if (group == null){
+						if (grouperName.endsWith(deleteRole)){
+							groupAdapter.deleteGroup(groupIdAdapter.getGroupId(grouperName), grouperName);
 						}
-						else {
-							log.error("Received a delete event for a group that still exists!");
-						}
+					}
+					else {
+						log.error("Received a delete event for a group that still exists!");
 					}
 				}
 
@@ -131,13 +138,10 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 
-					if (isSupportedGroup(grouperName)) {
-						if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-							log.info("Membership add, group: " + grouperName + " subjectId: " + memberId);
-
-							if (groupIdAdapter.isCourseGroup(grouperName)){
-								groupAdapter.addMembership(groupId, memberId);
-							}
+					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
+						log.info("Membership add, group: " + grouperName + " subjectId: " + memberId);
+						if (groupIdAdapter.isCourseGroup(grouperName)){
+							groupAdapter.addMembership(groupId, memberId);
 						}
 					}
 				}
@@ -148,12 +152,10 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					Subject member = SubjectFinder.findByIdentifier(memberId, false);
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 
-					if (isSupportedGroup(grouperName)) {
-						if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-							log.info("Membership delete, group: " + grouperName + " subjectId: " + memberId);
-							if (groupIdAdapter.isCourseGroup(grouperName)){
-								groupAdapter.deleteMembership(groupId, memberId);
-							}
+					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
+						log.info("Membership delete, group: " + grouperName + " subjectId: " + memberId);
+						if (groupIdAdapter.isCourseGroup(grouperName)){
+							groupAdapter.deleteMembership(groupId, memberId);
 						}
 					}
 				}
@@ -176,15 +178,52 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		return currentId;
 	}
 
-	private boolean isSupportedGroup(String grouperName) {
-		// Only accept
-		boolean supported = true;
-		if (!groupIdAdapter.isSimpleGroup(grouperName)){
-			supported = false;
+	public boolean ignoreChangelogEntry(ChangeLogEntry entry){
+		boolean ignore = false;
+		String groupName = null;
+		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)){
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
 		}
-		if (grouperName.startsWith(groupIdAdapter.getInstitutionalSimpleGroupsStem())){
-			supported = false;
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
 		}
-		return supported;
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_UPDATE)) {
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.name);
+		}
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
+		}
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
+			groupName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
+		}
+
+		if (groupName == null){
+			log.debug("ignoring: Unable to get the group name from the entry.");
+			ignore = true;
+		}
+
+		if (groupName != null && groupName.endsWith(":all")){
+			log.debug("ignoring: all group.");
+			ignore = true;
+		}
+
+		if (groupIdAdapter.isInstitutional(groupName) && allowInstitutional == false){
+			log.debug("ignoring: Not processing institutional data.");
+			ignore = true;
+		}
+
+		if (!groupIdAdapter.isSimpleGroup(groupName)){
+			log.debug("ignoring: Not a simple group.");
+			ignore = true;
+		}
+		return ignore;
+	}
+
+	public void setGroupAdapter(HttpSimpleGroupAdapter groupAdapter) {
+		this.groupAdapter = groupAdapter;
+	}
+
+	public void setGroupIdAdapter(GroupIdAdapterImpl groupIdAdapter) {
+		this.groupIdAdapter = groupIdAdapter;
 	}
 }
