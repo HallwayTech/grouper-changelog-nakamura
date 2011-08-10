@@ -517,7 +517,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    String structure = "{\"syllabus\":{\"_title\":\"Syllabus\",\"_order\":0,\"_view\":\"[\\\"everyone\\\",\\\"-student\\\",\\\"-ta\\\"]\",\"_edit\":\"[\\\"-lecturer\\\"]\",\"_pid\":\"#{SYLLABUS_DOC_HASH}\"},\"contactus\":{\"_title\":\"Contact us\",\"_order\":1,\"_view\":\"[\\\"-student\\\"]\",\"_edit\":\"[\\\"-lecturer\\\",\\\"-ta\\\"]\",\"_pid\":\"#{CONTACTUS_DOC_HASH}\"},\"organizationnotes\":{\"_title\":\"Organization Notes\",\"_order\":3,\"_view\":\"[\\\"-ta\\\"]\",\"_edit\":\"[\\\"-lecturer\\\"]\",\"_pid\":\"#{ORGNOTES_DOC_HASH}\"},\"studentwiki\":{\"_title\":\"Student Wiki\",\"_order\":4,\"_view\":\"[]\",\"_edit\":\"[\\\"-lecturer\\\",\\\"-ta\\\",\\\"-student\\\"]\",\"_pid\":\"#{STUDENTWIKI_DOC_HASH}\"}}";
 	    structure = structure.replaceAll("#\\{SYLLABUS_DOC_HASH\\}", syllabusDocHash);
 	    structure = structure.replaceAll("#\\{CONTACTUS_DOC_HASH\\}", contactUsDocHash);
-	    structure = structure.replaceAll("#\\{SYLLABUS_DOC_HASH\\}", syllabusDocHash);
+	    structure = structure.replaceAll("#\\{ORGNOTES_DOC_HASH\\}", orgNotesDocHash);
 	    structure = structure.replaceAll("#\\{STUDENTWIKI_DOC_HASH\\}", studentWikiDocHash);
 	    content.put("structure0", structure);
 	    method.setParameter(":content", content.toString());
