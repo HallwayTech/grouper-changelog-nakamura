@@ -73,7 +73,8 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		method.setParameter("sakai:joinable", "yes");
 		method.setParameter("sakai:roles", "[{\"id\":\"member\",\"title\":\"Member\",\"allowManage\":false},{\"id\":\"manager\",\"title\":\"Manager\",\"allowManage\":true}]");
 		method.setParameter("sakai:template-id", "simplegroup");
-		method.setParameter("grouper:name", groupName);
+		method.setParameter(GROUPER_NAME_PROP, groupName);
+		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
 
 		try {
 			NakamuraHttpUtils.http(client, method);

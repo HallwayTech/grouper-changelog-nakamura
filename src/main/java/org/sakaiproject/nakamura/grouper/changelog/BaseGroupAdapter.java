@@ -41,6 +41,11 @@ public abstract class BaseGroupAdapter {
 	// Creates new files
 	protected static final String CREATE_FILE_URI   = "/system/pool/createfile";
 
+	// Properties stored on authorizables in Sakai OAE
+	public static final String GROUPER_NAME_PROP = "grouper:name";
+	public static final String GROUPER_PROVISIONED_PROP = "grouper:provisioned";
+	public static final String TRUE_VAL = "true";
+
 	// Connection info for the OAE server
 	protected URL url;
 	protected String username;
@@ -149,8 +154,9 @@ public abstract class BaseGroupAdapter {
 		method.addParameter("sakai:pseudoGroup", "true");
 		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
 		method.setParameter("sakai:group-joinable", "yes");
-		method.addParameter("grouper:name", groupName.substring(0, groupName.lastIndexOf(":") + 1 ) 
+		method.addParameter(GROUPER_NAME_PROP, groupName.substring(0, groupName.lastIndexOf(":") + 1 ) 
 											+ nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
+		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
 		if (!dryrun){
             NakamuraHttpUtils.http(client, method);
 		}
