@@ -5,6 +5,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.support.membermodification.MemberMatcher.method;
 import static org.powermock.api.support.membermodification.MemberModifier.suppress;
 
+import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -15,7 +16,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
@@ -57,14 +57,12 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 		consumer.setGroupIdAdapter(groupIdAdapter);
 		consumer.setConfigurationLoaded(true);
 
-		@SuppressWarnings("unchecked")
 		List<String> enabledStems = Arrays.asList(ENABLED_STEMS);
 		consumer.setEnabledStems(enabledStems);
 		
 	}
 
 	public void testSortedByLength(){
-		@SuppressWarnings("unchecked")
 		List<String> toSort = Arrays.asList(ENABLED_STEMS);
 		consumer.sortByLengthDesc(toSort);
 		assertEquals(ENABLED_STEMS.length, toSort.size());
