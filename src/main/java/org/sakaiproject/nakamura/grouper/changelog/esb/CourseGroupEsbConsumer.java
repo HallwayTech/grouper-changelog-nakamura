@@ -10,6 +10,7 @@ import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -50,12 +51,12 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	private static Log log = LogFactory.getLog(CourseGroupEsbConsumer.class);
 
 	// The interface to the SakaiOAE/nakamura server.
-	private HttpCourseAdapter groupAdapter;
+	protected HttpCourseAdapter groupAdapter;
 
-	private GroupIdAdapterImpl groupIdAdapter;
+	protected GroupIdAdapterImpl groupIdAdapter;
 
 	// Courses already created in sakai by this object
-	private Set<String> coursesInSakai;
+	protected Set<String> coursesInSakai;
 
 	public CourseGroupEsbConsumer() {
 		coursesInSakai = new HashSet<String>();
@@ -205,22 +206,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
-		String grouperName = null;
-		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)){
-			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
-		}
-		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
-		}
-		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_UPDATE)) {
-			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_UPDATE.name);
-		}
-		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
-			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
-		}
-		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
-			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
-		}
+		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
 		if (grouperName == null){
 			log.debug("ignoring: Unable to get the group name from the entry. " + entry.toStringDeep());
 			ignore = true;
