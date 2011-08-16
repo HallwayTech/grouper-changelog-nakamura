@@ -215,20 +215,19 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			log.debug("ignoring: " + entryId + " Unable to get the group name from the entry. ");
 			ignore = true;
 		}
-
-		if (grouperName != null && grouperName.endsWith(":all")){
-			log.debug("ignoring:  " + entryId + " all group: " + grouperName);
-			ignore = true;
-		}
-
-		if (groupIdAdapter.isInstitutional(grouperName) && allowInstitutional == false){
-			log.debug("ignoring " + entryId + " : Not processing institutional data : " + grouperName);
-			ignore = true;
-		}
-
-		if (!groupIdAdapter.isCourseGroup(grouperName)){
-			log.debug("ignoring " + entryId + " : Not a course group : " + grouperName);
-			ignore = true;
+		else {
+			if (grouperName.endsWith(":all")){
+				log.debug("ignoring:  " + entryId + " all group: " + grouperName);
+				ignore = true;
+			}
+			if (groupIdAdapter.isInstitutional(grouperName) && allowInstitutional == false){
+				log.debug("ignoring " + entryId + " : Not processing institutional data : " + grouperName);
+				ignore = true;
+			}
+			if (!groupIdAdapter.isCourseGroup(grouperName)){
+				log.debug("ignoring " + entryId + " : Not a course group : " + grouperName);
+				ignore = true;
+			}
 		}
 		return ignore;
 	}
