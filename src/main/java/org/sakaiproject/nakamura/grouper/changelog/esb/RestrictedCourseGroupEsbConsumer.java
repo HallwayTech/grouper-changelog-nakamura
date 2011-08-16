@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
@@ -120,6 +121,8 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 		for(String e : enabled){
 			enabledStems.add(Pattern.compile(e));
 		}
+		log.info("Loaded restrictions for Sakai OAE : " +
+				StringUtils.join(enabledStems.toArray(), ","));
 	}
 
 	/**
