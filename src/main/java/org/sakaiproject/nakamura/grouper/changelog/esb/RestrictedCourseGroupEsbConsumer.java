@@ -82,7 +82,7 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 		if (ignore == false){;
 			String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
 			if(!isEnabled(grouperName)){
-				log.debug("Ignoring because no match in the restrictions table : " + grouperName);
+				log.debug(entry.getId() + " Ignoring because no match in the restrictions table : " + grouperName);
 				ignore = true;
 			}
 		}

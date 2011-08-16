@@ -206,24 +206,25 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
+		String entryId = entry.getId();
 		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
 		if (grouperName == null){
-			log.debug("ignoring: Unable to get the group name from the entry. " + entry.toStringDeep());
+			log.debug("ignoring: " + entryId + " Unable to get the group name from the entry. " + entry.toStringDeep());
 			ignore = true;
 		}
 
 		if (grouperName != null && grouperName.endsWith(":all")){
-			log.debug("ignoring: all group: " + grouperName);
+			log.debug("ignoring:  " + entryId + " all group: " + grouperName);
 			ignore = true;
 		}
 
 		if (groupIdAdapter.isInstitutional(grouperName) && allowInstitutional == false){
-			log.debug("ignoring: Not processing institutional data : " + grouperName);
+			log.debug("ignoring " + entryId + " : Not processing institutional data : " + grouperName);
 			ignore = true;
 		}
 
 		if (!groupIdAdapter.isCourseGroup(grouperName)){
-			log.debug("ignoring: Not a course group : " + grouperName);
+			log.debug("ignoring " + entryId + " : Not a course group : " + grouperName);
 			ignore = true;
 		}
 		return ignore;
