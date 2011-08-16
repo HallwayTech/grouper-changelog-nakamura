@@ -21,14 +21,30 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	private static Log log = LogFactory.getLog(BaseGroupEsbConsumer.class);
 
+	public static final String PROP_URL = "url";
 	protected URL url;
+
+	public static final String PROP_USERNAME = "username";
 	protected String username;
+
+	public static final String PROP_PASSWORD = "password";
 	protected String password;
 
-	protected boolean dryrun;
-	protected boolean createUsers;
-	protected boolean allowInstitutional;
-	protected String deleteRole;
+	public static final String PROP_DRYRUN = "dryrun";
+	public static final boolean DEFAULT_DRYRUN = false;
+	protected boolean dryrun = DEFAULT_DRYRUN;
+
+	public static final String PROP_CREATE_USERS = "create.users";
+	public static final boolean DEFAULT_CREATE_USERS = false;
+	protected boolean createUsers = DEFAULT_CREATE_USERS;
+
+	public static final String PROP_ALLOW_INSTITUTIONAL = "allow.institutional";
+	public static final boolean DEFAULT_ALLOW_INSTITUTIONAL = false;
+	protected boolean allowInstitutional = DEFAULT_ALLOW_INSTITUTIONAL;
+
+	public static final String PROP_PSEUDOGROUP_SUFFIXES = "psuedoGroup.suffixes";
+	public static final String DEFAULT_DELETE_ROLE = "student";
+	protected String deleteRole = DEFAULT_DELETE_ROLE;
 
 	protected boolean configurationLoaded = false;
 
@@ -39,14 +55,6 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	// Authenticated session for the Grouper API
 	protected GrouperSession grouperSession;
-
-	public static final String PROP_URL =      "url";
-	public static final String PROP_USERNAME = "username";
-	public static final String PROP_PASSWORD = "password";
-	public static final String PROP_CREATE_USERS = "create.users";
-	public static final String PROP_DRYRUN = "dryrun";
-	public static final String PROP_ALLOW_INSTITUTIONAL = "allow.institutional";
-	public static final String PROP_PSEUDOGROUP_SUFFIXES = "psuedoGroup.suffixes";
 
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 
@@ -70,8 +78,10 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		}
 		username = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_USERNAME, true);
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
-		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, false);
-		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, false);
+		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, DEFAULT_DRYRUN);
+
+		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, DEFAULT_ALLOW_INSTITUTIONAL);
+		createUsers = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_CREATE_USERS, DEFAULT_CREATE_USERS);
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PSEUDOGROUP_SUFFIXES, true));
 		configurationLoaded = true;
 	}
