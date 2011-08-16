@@ -126,7 +126,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					// Create the OAE Course objects when the first role group is created.
 					if (!coursesInSakai.contains(parentGroupId) &&
 							!groupAdapter.groupExists(parentGroupId)){
-						log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
+						log.debug("CREATE " + parentGroupId + " as parent of " + nakamuraGroupId);
 
 						// Special handling for inst:sis courses.
 						// This will provision a group in Sakai OAE when a group is created in the institutional
