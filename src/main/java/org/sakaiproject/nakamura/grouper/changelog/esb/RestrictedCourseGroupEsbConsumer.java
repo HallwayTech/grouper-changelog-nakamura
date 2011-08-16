@@ -14,6 +14,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
+import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.app.loader.db.GrouperLoaderDb;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
@@ -59,7 +60,8 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 	 */
 	private void loadRestrictionTable() throws SQLException{
 		String atlasEnabledQuery = "SELECT RESTRICTION FROM COURSE_RESTRICTIONS WHERE ATLAS = 1";
-		Connection conn = new GrouperLoaderDb().connection();
+		GrouperLoaderDb gldb = GrouperLoaderConfig.retrieveDbProfile("warehouse");
+		Connection conn = gldb.connection();
 		PreparedStatement stmt = conn.prepareStatement(atlasEnabledQuery);
 		ResultSet results = stmt.executeQuery();
 		List<String> enabledStems = new ArrayList<String>();
