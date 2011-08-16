@@ -96,9 +96,11 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 	 */
 	private boolean isEnabled(String grouperName){
 		boolean isEnabled = false;
-		for(Pattern stemPattern: enabledStems){
-			if(stemPattern.matcher(grouperName).matches()){
-				isEnabled = true;
+		if (grouperName != null){
+			for(Pattern stemPattern: enabledStems){
+				if(stemPattern.matcher(grouperName).matches()){
+					isEnabled = true;
+				}
 			}
 		}
 		return isEnabled;
