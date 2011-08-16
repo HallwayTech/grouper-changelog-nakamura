@@ -169,6 +169,9 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
 						groupAdapter.addMembership(groupId, memberId);
 					}
+					else {
+						log.debug("Ignoring this entry : invalid subject for membeshipr add : " + member);
+					}
 
 					log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 				}
@@ -182,6 +185,9 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
 						groupAdapter.deleteMembership(groupId, memberId);
+					}
+					else {
+						log.debug("Ignoring this entry : invalid subject for membership delete : " + member);
 					}
 
 					log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
