@@ -208,8 +208,11 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		boolean ignore = false;
 		Long entryId = entry.getSequenceNumber();
 		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
+		if (log.isTraceEnabled()){
+			log.trace(entry.toStringDeep());
+		}
 		if (grouperName == null){
-			log.debug("ignoring: " + entryId + " Unable to get the group name from the entry. " + entry.toStringDeep());
+			log.debug("ignoring: " + entryId + " Unable to get the group name from the entry. ");
 			ignore = true;
 		}
 
