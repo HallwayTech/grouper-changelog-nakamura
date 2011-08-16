@@ -75,9 +75,7 @@ public abstract class BaseGroupAdapter {
         if (!dryrun){
             NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
         }
-	    if (log.isInfoEnabled()){
-	        log.info("Added subjectId=" + memberId + " to group=" + nakamuraGroupId);
-	    }
+	    log.info("Added subjectId=" + memberId + " to group=" + nakamuraGroupId);
 	}
 
 	/**
@@ -93,9 +91,7 @@ public abstract class BaseGroupAdapter {
         if (!dryrun){
             NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
         }
-	    if (log.isInfoEnabled()){
-	        log.info("Added deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
-	    }
+	    log.info("Deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
 	}
 
 	/**
@@ -135,9 +131,7 @@ public abstract class BaseGroupAdapter {
 		if (!dryrun){
             NakamuraHttpUtils.http(client, method);
 		}
-		if (log.isInfoEnabled()){
-			log.info("Set " + groupId + " : "+ key + "=" + value);
-		}
+		log.info("Set " + groupId + " : "+ key + "=" + value);
 	}
 
 
