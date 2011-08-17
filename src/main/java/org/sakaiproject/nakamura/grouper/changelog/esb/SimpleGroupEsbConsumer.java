@@ -181,20 +181,20 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 			log.debug("ignoring: Unable to get the group name from the entry : " + entry.toStringDeep());
 			ignore = true;
 		}
+		else {
+			if(grouperName.endsWith(":all")){
+				log.debug("ignoring: all group: " + grouperName);
+				ignore = true;
+			}
+			if (allowInstitutional == false && groupIdAdapter.isInstitutional(grouperName)){
+				log.debug("ignoring: Not processing institutional data : " + grouperName);
+				ignore = true;
+			}
 
-		if (grouperName != null && grouperName.endsWith(":all")){
-			log.debug("ignoring: all group: " + grouperName);
-			ignore = true;
-		}
-
-		if (groupIdAdapter.isInstitutional(grouperName) && allowInstitutional == false){
-			log.debug("ignoring: Not processing institutional data : " + grouperName);
-			ignore = true;
-		}
-
-		if (!groupIdAdapter.isSimpleGroup(grouperName)){
-			log.debug("ignoring: Not a simple group : " + grouperName);
-			ignore = true;
+			if (!groupIdAdapter.isSimpleGroup(grouperName)){
+				log.debug("ignoring: Not a simple group : " + grouperName);
+				ignore = true;
+			}
 		}
 		return ignore;
 	}
