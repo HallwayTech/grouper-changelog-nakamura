@@ -11,6 +11,7 @@ import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
+import edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
@@ -20,7 +21,7 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
  * Update course titles in Sakai OAE when the description is updated on a stem.
  * The stem will be the last stem in the path to the role groups for that course.
  */
-public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
+public class CourseTitleEsbConsumer extends ChangeLogConsumerBase {
 
 	private static Log log = LogFactory.getLog(CourseTitleEsbConsumer.class);
 
@@ -33,6 +34,8 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	// Convert grouper names to nakamura group ids
 	protected GroupIdAdapterImpl groupIdAdapter;
 
+	private boolean configurationLoaded = false;
+
 	// Configuration
 	public static final String PROP_SECTION_STEM_REGEX = "section.stem.regex";
 
@@ -42,7 +45,6 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		if (configurationLoaded){
 			return;
 		}
-		super.loadConfiguration(consumerName);
 
 		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
 		sectionStemPattern = Pattern.compile(
@@ -79,7 +81,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		try {
 			for (ChangeLogEntry entry : changeLogEntryList) {
 				currentId = entry.getSequenceNumber();
-				log.debug("Processing changelog entry=" + currentId);
+				log.info("Processing changelog entry=" + currentId);
 
 				if (ignoreChangelogEntry(entry)){
 					continue;
@@ -154,5 +156,9 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 
 	public void setGroupIdAdapter(GroupIdAdapterImpl groupIdAdapter) {
 		this.groupIdAdapter = groupIdAdapter;
+	}
+
+	public void setConfigurationLoaded(boolean configLoaded){
+		this.configurationLoaded = configLoaded;
 	}
 }
