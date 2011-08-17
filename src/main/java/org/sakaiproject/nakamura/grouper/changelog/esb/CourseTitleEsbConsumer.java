@@ -59,7 +59,6 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		groupIdAdapter.loadConfiguration(consumerName);
 		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
 		groupIdAdapter.setTemplateGroupIdAdapter(tmplAdapter);
-
 	}
 
 	/**

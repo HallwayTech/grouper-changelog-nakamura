@@ -106,17 +106,17 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		long currentId = -1;
 		// try catch so we can track that we made some progress
 		try {
-			for (ChangeLogEntry changeLogEntry : changeLogEntryList) {
-				currentId = changeLogEntry.getSequenceNumber();
+			for (ChangeLogEntry entry : changeLogEntryList) {
+				currentId = entry.getSequenceNumber();
 				log.debug("Processing changelog entry=" + currentId);
 
-				if (ignoreChangelogEntry(changeLogEntry)){
+				if (ignoreChangelogEntry(entry)){
 					log.info("ignoring");
 					continue;
 				}
 
-				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
-					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
+				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
+					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
 					log.info("START GROUP_ADD : " + grouperName);
 
 					// Use a Mutable group so we can rewrite the name before we send it to OAE
@@ -150,8 +150,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("DONE GROUP_ADD : " + grouperName);
 				}
 
-				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
+				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
+					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
 					log.info("START GROUP_DELETE : " + grouperName);
 
 					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
@@ -164,9 +164,9 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("DONE GROUP_DELETE : " + grouperName);
 				}
 
-				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
-					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
-					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
+				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
+					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
+					String memberId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
@@ -184,9 +184,9 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 				}
 
-				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
-					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
-					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
+				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
+					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
+					String memberId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
