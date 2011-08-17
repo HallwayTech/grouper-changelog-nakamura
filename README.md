@@ -126,6 +126,12 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     # Set to true to test.
     changeLog.consumer.courseGroups.nakamura.dryrun = false
     
+    # Required for the RestrictedCourseGroupEsbConsumer
+    # SQL query for a list of db LIKE expressions
+    # changeLog.consumer.courseGroups.restriction.query = SELECT RESTRICTION FROM COURSE_RESTRICTIONS WHERE SAKAIOAE = 1
+    # Optional if you want to change the database connection profile
+    # changeLog.consumer.courseGroups.db.profile = warehouse
+
     #########################################################################################################################
     #########################################################################################################################
 
@@ -159,7 +165,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     # Set to true to test.
     changeLog.consumer.courseTitles.nakamura.dryrun = false
 
-    
+
 Run the Grouper Loader
 
     cd ${GROUPER_HOME}

@@ -23,13 +23,35 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 /**
  * Provision and sync Course Groups in Sakai OAE with Grouper.
  * Restrict the group events that will be sent to Sakai OAE with a DB table.
+ *
+ * This class is pretty specific to NYU's implementation. They have a table
+ * called COURSE_RESTRICTIONS(RESTRICTION, APP1, APP2, ...)
+ *
+ * Each row has a RESTRICTION which is a LIKE expression to match grouper names
+ * and a boolean flag to indicate if APPX is enabled for that stem
+ *
+ * RESTRICTION,          SIS, SAKAIOAE, UNKNOWN_APPX
+ * inst:sis:courses%,     1, 1, 0
+ * app:sakaioae:courses%, 0, 1, 0
+ *
+ * We query this table where SAKAIOAE=1 and then sort the expressions in REVERSE
+ * order of their length. In that way we match more specific restrictions before
+ * more general expressions.
  */
 public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
+
+	private static final String PROP_RESTRICTION_QUERY = "restriction.query";
+	private static final String PROP_DB_PROFILE = "db.profile";
+
+	private static final String DEFAULT_DB_PROFILE = "warehouse";
 
 	private static Log log = LogFactory.getLog(RestrictedCourseGroupEsbConsumer.class);
 
 	// The regexes to match to the grouperName
 	private List<Pattern> enabledStems;
+
+	private String restrictionQuery;
+	private String dbProfile;
 
 	/**
 	 * Load up the configuration necessary to act on {@link ChangeLogEntry} objects.
@@ -40,6 +62,8 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 		}
 		super.loadConfiguration(consumerName);
 		try {
+			restrictionQuery = GrouperLoaderConfig.getPropertyString(PROP_RESTRICTION_QUERY, true);
+			dbProfile = GrouperLoaderConfig.getPropertyString(PROP_DB_PROFILE, DEFAULT_DB_PROFILE);
 			loadRestrictionTable();
 		}
 		catch (SQLException sqle){
@@ -60,14 +84,14 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 	 * @throws SQLException
 	 */
 	private void loadRestrictionTable() throws SQLException{
-		String atlasEnabledQuery = "SELECT RESTRICTION FROM COURSE_RESTRICTIONS WHERE ATLAS = 1";
-		GrouperLoaderDb gldb = GrouperLoaderConfig.retrieveDbProfile("warehouse");
+		String atlasEnabledQuery = restrictionQuery;
+		GrouperLoaderDb gldb = GrouperLoaderConfig.retrieveDbProfile(dbProfile);
 		Connection conn = gldb.connection();
 		PreparedStatement stmt = conn.prepareStatement(atlasEnabledQuery);
 		ResultSet results = stmt.executeQuery();
 		List<String> enabledStems = new ArrayList<String>();
 		while (results.next()){
-			enabledStems.add(results.getString("RESTRICTION").replaceAll("%", "\\.\\*"));
+			enabledStems.add(results.getString(0).replaceAll("%", "\\.\\*"));
 		}
 		if (!enabledStems.isEmpty()){
 			log.debug("Loaded the enabled stems from the restriction table.");
