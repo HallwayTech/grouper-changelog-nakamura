@@ -107,6 +107,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				log.debug("Processing changelog entry=" + currentId);
 
 				if (ignoreChangelogEntry(changeLogEntry)){
+					log.info("ignoring");
 					continue;
 				}
 
@@ -166,11 +167,14 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 
-					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
+					if (member != null
+							&& "person".equals(member.getTypeName())
+							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){ 
+
 						groupAdapter.addMembership(groupId, memberId);
 					}
 					else {
-						log.debug("Ignoring this entry : invalid subject for membeshipr add : " + member);
+						log.info("Ignoring this entry : invalid subject for membership add : " + member);
 					}
 
 					log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
@@ -183,11 +187,13 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 
-					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
+					if (member != null
+							&& "person".equals(member.getTypeName())
+							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
 						groupAdapter.deleteMembership(groupId, memberId);
 					}
 					else {
-						log.debug("Ignoring this entry : invalid subject for membership delete : " + member);
+						log.info("Ignoring this entry : invalid subject for membership delete : " + member);
 					}
 
 					log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
@@ -226,7 +232,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				log.debug("ignoring:  " + entryId + " all group: " + grouperName);
 				ignore = true;
 			}
-			if (groupIdAdapter.isInstitutional(grouperName) && allowInstitutional == false){
+			if (allowInstitutional == false && groupIdAdapter.isInstitutional(grouperName)){
 				log.debug("ignoring " + entryId + " : Not processing institutional data : " + grouperName);
 				ignore = true;
 			}
