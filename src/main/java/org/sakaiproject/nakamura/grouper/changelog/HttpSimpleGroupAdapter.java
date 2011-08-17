@@ -33,7 +33,7 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	private Log log = LogFactory.getLog(HttpSimpleGroupAdapter.class);
 
 	/**
-	 * POST to http://localhost:8080/system/userManager/group.create.json
+	 * Create the groups and supporting objects to make a Simple Group in the Sakai OAE UX. 
 	 * @see org.sakaiproject.nakamura.user.servlet.CreateSakaiGroupServlet
 	 */
 	public void createGroup(String groupName, String description) throws GroupModificationException {
