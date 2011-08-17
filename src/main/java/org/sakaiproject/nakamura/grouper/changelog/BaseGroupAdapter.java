@@ -3,6 +3,7 @@ package org.sakaiproject.nakamura.grouper.changelog;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -53,11 +54,21 @@ public abstract class BaseGroupAdapter {
 
 	protected boolean createUsers = false;
 
+	// Sakai OAE psudeoGroup siffixes
 	protected Set<String> pseudoGroupSuffixes;
 
+	// Mock out calls to Sakai
 	protected boolean dryrun = false;
 
+	// Convert grouper names to Sakai OAE groupIds
 	protected GroupIdAdapter groupIdAdapter;
+
+	// Avoid multiple user exists?/create HTTP calls
+	protected Set<String> createdUsersCache;
+
+	public BaseGroupAdapter(){
+		createdUsersCache = new HashSet<String>();
+	}
 
 	/**
 	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
@@ -164,7 +175,7 @@ public abstract class BaseGroupAdapter {
 	 */
 	protected void createOAEUser(String userId) throws GroupModificationException {
 
-		if (dryrun){
+		if (dryrun || createdUsersCache.contains(userId)){
 			return;
 		}
 
@@ -192,6 +203,7 @@ public abstract class BaseGroupAdapter {
 			if (!dryrun){
                 NakamuraHttpUtils.http(client, method);
 			}
+			createdUsersCache.add(userId);
 			log.info("Created a user for " + userId);
 		}
 	}
