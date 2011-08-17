@@ -6,6 +6,21 @@ The Grouper loader can have multiple changelog consumer jobs configured to run a
 defined by a quartz scheduler. The Grouper loader keeps track of the last changelog entry
 that each consumer successfully processed.
 
+This package included 4 Grouper changelog consumers.
+
+### org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
+Provisions and updates "Simple Groups" in Sakai OAE
+
+### org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
+Provisions and updates "Course Groups" in Sakai OAE
+
+### org.sakaiproject.nakamura.grouper.changelog.esb.RestrictedCourseGroupEsbConsumer
+Functionally equivalent to the CourseGroupEsbConsumer. It Restricts group actions to those with names that match a list stored in a database table.
+If you want to use the RestrictedCourseGroupEsbConsumer just replace the CourseGroupEsbConsumer class configuration for the with RestrictedCourseGroupEsbConsumer.
+
+### org.sakaiproject.nakamura.grouper.changelog.esb.CourseTitleEsbConsumer
+Respond to stem updates by storing the description attribute on the sakai:group-title property.
+
 ## Build Prerequisites
 * git
 * java 1.6
@@ -28,7 +43,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     # Sakai OAE
     ######################################
 
-    # Regular expressions to determins what kind of group we're dealing with.
+    # Regular expressions to determine what kind of group we're dealing with.
     nakamura.simplegroups.regex = .*simplegroups.*
     nakamura.coursegroups.regex = .*:groups:.*
     nakamura.contactgroups.regex = edu:apps:sakaioae:users:.*
@@ -73,6 +88,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     #########################################################################################################################
 
     changeLog.consumer.courseGroups.quartzCron = 0 0 * * * ?
+    # changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.RestrictedCourseGroupEsbConsumer
     changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
 
     # You may have to change this stem. 
@@ -80,12 +96,14 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseGroups.elfilter = (event.name          =~ '^edu\\:apps\\:sakaioae\\:provisioned\\:courses.*$' \
                                                  || event.groupName =~ '^edu\\:apps\\:sakaioae\\:provisioned\\:courses.*$'\
                                                  || event.name      =~ '^edu\\:apps\\:sakaioae\\:adhoc\\:courses.*$' \
-                                                 || event.groupName =~ '^edu\\:apps\\:sakaioae\\:adhoc\\:courses.*$' ) \
+                                                 || event.groupName =~ '^edu\\:apps\\:sakaioae\\:adhoc\\:courses.*$' \
+                                                 || event.name      =~ '^inst\\:sis\\:courses.*$' \
+                                                 || event.groupName =~ '^inst\\:sis\\:courses.*$' ) \
                                                && \
                                                (event.eventType eq 'GROUP_DELETE' \
-												 || event.eventType eq 'GROUP_ADD' \
+                                                 || event.eventType eq 'GROUP_ADD' \
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' \
-												 || event.eventType eq 'MEMBERSHIP_ADD')
+                                                 || event.eventType eq 'MEMBERSHIP_ADD')
 
     changeLog.consumer.courseGroups.deleteRole = student
 
