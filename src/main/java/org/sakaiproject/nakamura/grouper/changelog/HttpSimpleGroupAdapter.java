@@ -56,7 +56,6 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 			// POST - create the members and managers
 			try {
 				createPseudoGroup(psuedoGroupId, groupName, description);
-				log.info("Created the pseudo group " + psuedoGroupId);
 			}
 			catch (GroupAlreadyExistsException gme){
 				log.debug(psuedoGroupId + " already exists. No worries.");

@@ -60,7 +60,6 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 			// POST - create the lecturer, ta, and student.
 			try {
 				createPseudoGroup(psuedoGroupId, groupName, description);
-				log.info("Created the pseudo group " + psuedoGroupId);
 			}
 			catch (GroupAlreadyExistsException gme){
 				log.debug(psuedoGroupId + " already exists. No worries.");
