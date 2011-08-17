@@ -95,11 +95,15 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
 			ChangeLogProcessorMetadata changeLogProcessorMetadata) {
 
-		long currentId = -1;
-
 		String consumerName = changeLogProcessorMetadata.getConsumerName();
 		loadConfiguration(consumerName);
 
+		int entryCount = changeLogEntryList.size();
+		log.info("Received a batch of " + entryCount + " entries : " +
+				changeLogEntryList.get(0).getSequenceNumber() + " - " +
+				changeLogEntryList.get(entryCount - 1).getSequenceNumber());
+
+		long currentId = -1;
 		// try catch so we can track that we made some progress
 		try {
 			for (ChangeLogEntry changeLogEntry : changeLogEntryList) {
@@ -198,7 +202,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 					log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 				}
-				// we successfully processed this record
+
+				log.info("Finished the batch of " + entryCount + " entries : " +
+						changeLogEntryList.get(0).getSequenceNumber() + " - " +
+						changeLogEntryList.get(entryCount - 1).getSequenceNumber());
 			}
 		}
 		// Stop processing changelog entries.

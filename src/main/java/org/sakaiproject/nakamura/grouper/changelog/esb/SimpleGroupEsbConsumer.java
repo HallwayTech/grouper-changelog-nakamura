@@ -68,6 +68,11 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		String consumerName = changeLogProcessorMetadata.getConsumerName();
 		loadConfiguration(consumerName);
 
+		int entryCount = changeLogEntryList.size();
+		log.info("Received a batch of " + entryCount + " entries : " +
+				changeLogEntryList.get(0).getSequenceNumber() + " - " +
+				changeLogEntryList.get(entryCount - 1).getSequenceNumber());
+
 		long currentId = -1;
 
 		try {
@@ -155,7 +160,10 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 						groupAdapter.deleteMembership(groupId, memberId);
 					}
 				}
-				// we successfully processed this record
+
+				log.info("Finished the batch of " + entryCount + " entries : " +
+						changeLogEntryList.get(0).getSequenceNumber() + " - " +
+						changeLogEntryList.get(entryCount - 1).getSequenceNumber());
 			}
 		}
 		catch (Exception e) {
