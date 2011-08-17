@@ -34,34 +34,46 @@ import edu.internet2.middleware.subject.Subject;
  * Sakai OAE has a course named course0.
  *
  * Grouper would have the following:
- * 1. course0:students
- * 2. course0:students_includes
- * 3. course0:students_excludes
- * 4. course0:students_systemOfRecord
- * 5. course0:students_systemOfRecordAndIncludes
+ * 1. $COURSE:$ROLE
+ * 2. $COURSE:$ROLE_includes
+ * 3. $COURSE:$ROLE_excludes
+ * 4. $COURSE:$ROLE_systemOfRecord
+ * 5. $COURSE:$ROLE_systemOfRecordAndIncludes
  *
  * Group 1 would have the effective membership: ((4 + 5) + 2) - 3.
  *
- * This class should act on flattened membership events for the first group.
- * They're called flattened since course0:students would be a composite group
- * and its membership depends on the state of the component groups (and subgroups).
+ * This class should act on flattened membership events on $COURSE:$ROLE.
+ * Since $COURSE:$ROLE is a composite group its membership depends on the
+ * state of the component groups (and subgroups).
  */
 public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	private static Log log = LogFactory.getLog(CourseGroupEsbConsumer.class);
 
-	// The interface to the SakaiOAE/nakamura server.
+	// The interface to the Sakai OAE server.
 	protected HttpCourseAdapter groupAdapter;
 
+	// Translates grouper names to Sakai OAE course group ids.
 	protected GroupIdAdapterImpl groupIdAdapter;
 
-	// Courses already created in sakai by this object
+	// Courses already created in sakai by this object.
 	protected Set<String> coursesInSakai;
 
 	public CourseGroupEsbConsumer() {
 		coursesInSakai = new HashSet<String>();
 	}
 
+	/**
+	 * Read the configuration from $GROUPER_HOME/conf/grouper-loader.properties.
+	 *
+	 * Set up the group and ID adapters.
+	 *
+	 * These calls are isolated here in an attempt to keep the component testable.
+	 * In order to read the config files you should use the GrouperLoaderConfig
+	 * static methods. Static methods were hard to mock until PowerMockito came along.
+	 *
+	 * This method should only read the config options once.
+	 */
 	protected void loadConfiguration(String consumerName) {
 		if (configurationLoaded){
 			return;
@@ -88,9 +100,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 	}
 
-	/**
-	 * @see edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase#processChangeLogEntries(List, ChangeLogProcessorMetadata)
-	 */
 	@Override
 	public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
 			ChangeLogProcessorMetadata changeLogProcessorMetadata) {
@@ -173,7 +182,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 					if (member != null
 							&& "person".equals(member.getTypeName())
-							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){ 
+							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
 
 						groupAdapter.addMembership(groupId, memberId);
 					}
@@ -211,7 +220,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		// Stop processing changelog entries.
 		catch (Exception e) {
 			changeLogProcessorMetadata.registerProblem(e, "Error processing record", currentId);
-			// we made it to this -1
+			// we made it to this - 1
 			return currentId - 1;
 		}
 
@@ -223,6 +232,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		return currentId;
 	}
 
+	/**
+	 * @param entry a change log entry
+	 * @return whether or not to ignore this entry
+	 */
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
 		Long entryId = entry.getSequenceNumber();
@@ -251,10 +264,12 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		return ignore;
 	}
 
+	// Used by unit tests
 	public void setGroupIdAdapter(GroupIdAdapterImpl adapter){
 		this.groupIdAdapter = adapter;
 	}
 
+	// Used by unit tests
 	public void setGroupAdapter(HttpCourseAdapter adapter){
 		this.groupAdapter = adapter;
 	}

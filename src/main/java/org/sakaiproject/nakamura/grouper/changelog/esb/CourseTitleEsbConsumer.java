@@ -61,9 +61,6 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		groupIdAdapter.setTemplateGroupIdAdapter(tmplAdapter);
 	}
 
-	/**
-	 * @see edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase#processChangeLogEntries(List, ChangeLogProcessorMetadata)
-	 */
 	@Override
 	public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
 			ChangeLogProcessorMetadata changeLogProcessorMetadata) {
@@ -119,8 +116,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	}
 
 	/**
-	 * Should the consumer ignore this entry?
-	 * @param entry
+	 * @param entry a change log entry
 	 * @return whether or not to ignore this entry
 	 */
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){

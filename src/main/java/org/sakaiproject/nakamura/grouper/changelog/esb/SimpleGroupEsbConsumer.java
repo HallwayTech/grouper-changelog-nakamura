@@ -29,6 +29,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// The interface to the SakaiOAE/nakamura server.
 	private HttpSimpleGroupAdapter groupAdapter;
 
+	// Translates grouper names to Sakai OAE course group ids.
 	private GroupIdAdapterImpl groupIdAdapter;
 
 	private Set<String> simpleGroupsInSakai;
@@ -40,6 +41,17 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		simpleGroupsInSakai = new HashSet<String>();
 	}
 
+	/**
+	 * Read the configuration from $GROUPER_HOME/conf/grouper-loader.properties.
+	 *
+	 * Set up the group and ID adapters.
+	 *
+	 * These calls are isolated here in an attempt to keep the component testable.
+	 * In order to read the config files you should use the GrouperLoaderConfig
+	 * static methods. Static methods were hard to mock until PowerMockito came along.
+	 *
+	 * This method should only read the config options once.
+	 */
 	protected void loadConfiguration(String consumerName) {
 		if (configurationLoaded){
 			return;
@@ -58,9 +70,6 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 	}
 
-	/**
-	 * @see edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase#processChangeLogEntries(List, ChangeLogProcessorMetadata)
-	 */
 	@Override
 	public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
 			ChangeLogProcessorMetadata changeLogProcessorMetadata) {
@@ -182,6 +191,10 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		return currentId;
 	}
 
+	/**
+	 * @param entry a change log entry
+	 * @return whether or not to ignore this entry
+	 */
 	public boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
 		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
@@ -207,10 +220,12 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		return ignore;
 	}
 
+	// Used by unit tests
 	public void setGroupAdapter(HttpSimpleGroupAdapter groupAdapter) {
 		this.groupAdapter = groupAdapter;
 	}
 
+	// Used by unit tests
 	public void setGroupIdAdapter(GroupIdAdapterImpl groupIdAdapter) {
 		this.groupIdAdapter = groupIdAdapter;
 	}
