@@ -120,11 +120,11 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseGroups.institutional.simplegroups.stem = inst:sis:groups
     changeLog.consumer.courseGroups.institutional.coursegroups.stem = inst:sis:simplegroups
 
-    changeLog.consumer.courseGroups.nakamura.url = http://localhost:8080
-    changeLog.consumer.courseGroups.nakamura.username = grouper-admin
-    changeLog.consumer.courseGroups.nakamura.password = grouper
+    changeLog.consumer.courseGroups.url = http://localhost:8080
+    changeLog.consumer.courseGroups.username = grouper-admin
+    changeLog.consumer.courseGroups.password = grouper
     # Set to true to test.
-    changeLog.consumer.courseGroups.nakamura.dryrun = false
+    changeLog.consumer.courseGroups.dryrun = false
     
     # Required for the RestrictedCourseGroupEsbConsumer
     # SQL query for a list of db LIKE expressions
@@ -159,11 +159,11 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseTitles.institutional.simplegroups.stem = inst:sis:groups
     changeLog.consumer.courseTitles.institutional.coursegroups.stem = inst:sis:simplegroups
 
-    changeLog.consumer.courseTitles.nakamura.url = http://localhost:8080
-    changeLog.consumer.courseTitles.nakamura.username = grouper-admin
-    changeLog.consumer.courseTitles.nakamura.password = grouper
+    changeLog.consumer.courseTitles.url = http://localhost:8080
+    changeLog.consumer.courseTitles.username = grouper-admin
+    changeLog.consumer.courseTitles.password = grouper
     # Set to true to test.
-    changeLog.consumer.courseTitles.nakamura.dryrun = false
+    changeLog.consumer.courseTitles.dryrun = false
 
 
 Run the Grouper Loader
