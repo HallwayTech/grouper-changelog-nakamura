@@ -55,11 +55,13 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		String taGroupId = parentGroupId + "-ta";
 		String studentGroupId = parentGroupId + "-student";
 
+		boolean allGroupsExisted = true;
 		for (String psuedoGroupId: new String[]{ lecturerGroupId, taGroupId, studentGroupId }){
 			// --------------------------------------------------------------------
 			// POST - create the lecturer, ta, and student.
 			try {
 				createPseudoGroup(psuedoGroupId, groupName, description);
+				allGroupsExisted = false;
 			}
 			catch (GroupAlreadyExistsException gme){
 				log.debug(psuedoGroupId + " already exists. No worries.");
@@ -84,12 +86,18 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		try {
 			if (!dryrun){
 				NakamuraHttpUtils.http(client, method);
+				allGroupsExisted = false;
+				log.info("Created the parent group " + parentGroupId);
 			}
 		}
 		catch (GroupAlreadyExistsException gme){
 			log.debug(parentGroupId + " already exists. No worries.");
 		}
-		log.info("Created the parent group " + parentGroupId);
+
+		if (allGroupsExisted){
+			log.info("All of the groups for the " + parentGroupId + " course existed already. The course is considered created.");
+			return;
+		}
 
 		// --------------------------------------------------------------------
 		// POST 5 - updating the group managers

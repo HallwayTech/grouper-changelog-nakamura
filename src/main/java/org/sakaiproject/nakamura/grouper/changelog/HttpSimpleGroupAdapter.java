@@ -51,11 +51,14 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 		String managerGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
 		String memberGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
+
+		boolean allGroupsExisted = true;
 		for (String psuedoGroupId: new String[]{ managerGroupId, memberGroupId }){
 			// --------------------------------------------------------------------
 			// POST - create the members and managers
 			try {
 				createPseudoGroup(psuedoGroupId, groupName, description);
+				allGroupsExisted = false;
 			}
 			catch (GroupAlreadyExistsException gme){
 				log.debug(psuedoGroupId + " already exists. No worries.");
@@ -77,11 +80,17 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 
 		try {
 			NakamuraHttpUtils.http(client, method);
+			allGroupsExisted = false;
+			log.info("Created the parent group " + parentGroupId);
 		}
 		catch (GroupAlreadyExistsException gme){
 			log.debug(parentGroupId + " already exists. No worries.");
 		}
-		log.info("Created the parent group " + parentGroupId);
+
+		if (allGroupsExisted){
+			log.info("All of the groups for the " + parentGroupId + " course existed already. The course is considered created.");
+			return;
+		}
 
 		// --------------------------------------------------------------------
 		// POST 5 - updating the group managers
