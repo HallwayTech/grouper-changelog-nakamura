@@ -162,7 +162,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
-					Subject member = SubjectFinder.findByIdentifier(memberId, false);
+					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 
@@ -179,7 +179,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				if (changeLogEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
 					String grouperName = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 					String memberId = changeLogEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
-					Subject member = SubjectFinder.findByIdentifier(memberId, false);
+					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
 					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 
