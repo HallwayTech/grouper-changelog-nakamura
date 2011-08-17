@@ -106,7 +106,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 		Subject subject = mock(Subject.class);
 		when(subject.getTypeName()).thenReturn("person");
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
+		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 
 		verify(groupAdapter).addMembership("some_course-student", subjectId);
@@ -142,7 +142,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 		Subject subject = mock(Subject.class);
 		when(subject.getTypeName()).thenReturn("person");
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
+		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
