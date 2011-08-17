@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
 import edu.internet2.middleware.grouper.Group;
@@ -58,7 +59,9 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		}
 		super.loadConfiguration(consumerName);
 
+		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
 		groupIdAdapter = new GroupIdAdapterImpl();
+		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
 
 		groupAdapter = new HttpSimpleGroupAdapter();
 		groupAdapter.setUrl(url);
