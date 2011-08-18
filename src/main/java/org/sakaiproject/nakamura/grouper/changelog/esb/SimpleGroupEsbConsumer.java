@@ -60,7 +60,9 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		super.loadConfiguration(consumerName);
 
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
+		simpleAdapter.loadConfiguration(consumerName);
 		groupIdAdapter = new GroupIdAdapterImpl();
+		groupIdAdapter.loadConfiguration(consumerName);
 		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
 
 		groupAdapter = new HttpSimpleGroupAdapter();
