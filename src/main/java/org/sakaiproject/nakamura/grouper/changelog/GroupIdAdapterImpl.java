@@ -143,6 +143,13 @@ public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAda
 		setProvisionedCourseGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PROVISIONED_COURSE_GROUPS_STEM, false));
 		setInstitutionalSimpleGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_INST_SIMPLE_GROUPS_STEM, false));
 		setInstitutionalCourseGroupsStem(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_INST_COURSE_GROUPS_STEM, false));
+		log.info("Loaded the configuration");
+		log.info(cfgPrefix + PROP_ADHOC_SIMPLE_GROUPS_STEM + " : " + adhocSimpleGroupsStem);
+		log.info(cfgPrefix + PROP_ADHOC_COURSE_GROUPS_STEM + " : " + adhocCourseGroupsStem);
+		log.info(cfgPrefix + PROP_PROVISIONED_SIMPLE_GROUPS_STEM + " : " + provisionedSimpleGroupsStem);
+		log.info(cfgPrefix + PROP_PROVISIONED_COURSE_GROUPS_STEM + " : " + provisionedCourseGroupsStem);
+		log.info(cfgPrefix + PROP_INST_SIMPLE_GROUPS_STEM + " : " + institutionalSimpleGroupsStem);
+		log.info(cfgPrefix + PROP_INST_COURSE_GROUPS_STEM + " : " + institutionalCourseGroupsStem);
 	}
 
 	public Set<String> getStems(){
@@ -188,9 +195,9 @@ public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAda
 		stems.remove(this.institutionalSimpleGroupsStem);
 		provisonedStems.remove(this.institutionalSimpleGroupsStem);
 		this.institutionalSimpleGroupsStem = institutionalSimpleGroupsStem;
+
 		stems.add(this.institutionalSimpleGroupsStem);
 		provisonedStems.add(this.institutionalSimpleGroupsStem);
-
 	}
 
 	public void setInstitutionalCourseGroupsStem(
