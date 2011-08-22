@@ -39,7 +39,7 @@ public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAda
 	public static final String PROP_INST_SIMPLE_GROUPS_STEM = "institutional.simplegroups.stem";
 	public static final String PROP_INST_COURSE_GROUPS_STEM = "institutional.coursegroups.stem";
 
-	public static final String PROP_NAKID_ROLE_MAPPINGS = "TemplateGroupIdAdapter.role.map";
+	public static final String PROP_NAKID_ROLE_MAPPINGS = "role.map";
 
 	public GroupIdAdapterImpl(){
 		stems = new HashSet<String>();
