@@ -17,7 +17,9 @@ import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
+import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.exception.GrouperException;
+import edu.internet2.middleware.subject.Subject;
 
 /**
  * Shared functionality for the GroupAdapter classes goes in here.
@@ -175,36 +177,59 @@ public abstract class BaseGroupAdapter {
 	 */
 	protected void createOAEUser(String userId) throws GroupModificationException {
 
+		boolean created = false;
 		if (dryrun || createdUsersCache.contains(userId)){
-			return;
+			created = true;
 		}
 
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-		int returnCode = 0;
-		try {
-			returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
-		}
-		catch (IOException ioe){
-			log.error("Could not communicate with OAE to create a user.");
-			return;
-		}
 
-		if (returnCode == HttpStatus.SC_OK){
-			log.info(userId + " already exists.");
-			return;
-		}
-
-		if (returnCode == HttpStatus.SC_NOT_FOUND){
-			String randomPassword = UUID.randomUUID().toString();
-			PostMethod method = new PostMethod(url.toString() + USER_CREATE_URI);
-			method.addParameter(":name", userId);
-			method.addParameter("pwd", randomPassword);
-			method.addParameter("pwdConfirm", randomPassword);
-			if (!dryrun){
-                NakamuraHttpUtils.http(client, method);
+		if (created == false){
+			try {
+				int returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
+				if (returnCode == HttpStatus.SC_OK){
+					log.info(userId + " already exists.");
+					created = true;
+				}
 			}
-			createdUsersCache.add(userId);
-			log.info("Created a user for " + userId);
+			catch (IOException ioe){
+				log.error("Could not communicate with OAE to check if a user exists.");
+				return;
+			}
+		}
+
+		if (created == false){
+			try {
+				Subject subject = SubjectFinder.findByIdOrIdentifier(userId, true);
+				String randomPassword = UUID.randomUUID().toString();
+				PostMethod method = new PostMethod(url.toString() + USER_CREATE_URI);
+
+				String firstName = subject.getAttributeValue("firstName");
+				String lastName = subject.getAttributeValue("lastName");
+				String email = userId + "@nyu.edu";
+				String profileTemplate = "\"{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"%%FIRSTNAME%%\"},\"lastName\":{\"value\":\"%%LASTNAME%%\"},\"email\":{\"value\":\"%%EMAIL%%\"}},\"access\":\"everybody\"},\"email\":\"%%EMAIL%%\"}\" -F \"timezone=America/New_York\" -F \"locale=en_US\"";
+				profileTemplate.replaceAll("%%FIRSTNAME%%", firstName);
+				profileTemplate.replaceAll("%%LASTNAME%%", lastName);
+				profileTemplate.replaceAll("%%EMAIL%%", email);
+
+				method.addParameter(":name", userId);
+				method.addParameter("pwd", randomPassword);
+				method.addParameter("pwdConfirm", randomPassword);
+				method.addParameter("firstName", firstName);
+				method.addParameter("lastName", subject.getAttributeValue("lastName"));
+				method.addParameter("email", email);
+
+				if (!dryrun){
+					NakamuraHttpUtils.http(client, method);
+				}
+				createdUsersCache.add(userId);
+				log.info("Created a user for " + userId);
+				created = true;
+			}
+			catch (Exception e){
+				log.error("Unable to create the user in Sakai OAE", e);
+				throw new GroupModificationException(e.getMessage());
+			}
 		}
 	}
 
