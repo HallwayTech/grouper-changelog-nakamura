@@ -92,7 +92,7 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 		ResultSet results = stmt.executeQuery();
 		List<String> enabledStems = new ArrayList<String>();
 		while (results.next()){
-			enabledStems.add(results.getString(0).replaceAll("%", "\\.\\*"));
+			enabledStems.add(results.getString(1).replaceAll("%", "\\.\\*"));
 		}
 		if (!enabledStems.isEmpty()){
 			log.debug("Loaded the enabled stems from the restriction table.");
