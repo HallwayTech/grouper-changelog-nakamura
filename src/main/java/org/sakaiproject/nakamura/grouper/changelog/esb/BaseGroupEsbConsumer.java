@@ -38,6 +38,15 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final boolean DEFAULT_CREATE_USERS = false;
 	protected boolean createUsers = DEFAULT_CREATE_USERS;
 
+	public static final String PROP_LDAP_ATTRIBUTE_FIRST_NAME = "firstName.attribute";
+	protected String firstNameAttribute;
+
+	public static final String PROP_LDAP_ATTRIBUTE_LAST_NAME = "lastName.attribute";
+	protected String lastNameAttribute;
+
+	public static final String PROP_LDAP_ATTRIBUTE_EMAIL = "email.attribute";
+	protected String emailAttribute;
+
 	public static final String PROP_ALLOW_INSTITUTIONAL = "allow.institutional";
 	public static final boolean DEFAULT_ALLOW_INSTITUTIONAL = false;
 	protected boolean allowInstitutional = DEFAULT_ALLOW_INSTITUTIONAL;
@@ -82,6 +91,10 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, DEFAULT_ALLOW_INSTITUTIONAL);
 		createUsers = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_CREATE_USERS, DEFAULT_CREATE_USERS);
+		firstNameAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_LAST_NAME, false);
+		lastNameAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_FIRST_NAME, false);
+		emailAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_EMAIL, false);
+
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PSEUDOGROUP_SUFFIXES, true));
 		configurationLoaded = true;
 	}

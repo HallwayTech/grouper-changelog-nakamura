@@ -66,9 +66,20 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' \
 												 || event.eventType eq 'MEMBERSHIP_ADD')
 
-    # Required for org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
+    # Map group group names to sakai psuedo group roles
+    changeLog.consumer.simpleGroup.role.map                = TAs:ta, lecturers:lecturer, students:student, managers:manager
+    # Identify sakai psuedo groups by their suffixes.
+    changeLog.consumer.simpleGroup.psuedoGroup.suffixes    = member, manager, student, lecturer, ta
     changeLog.consumer.simpleGroup.deleteRole = member
     changeLog.consumer.simpleGroup.psuedoGroup.suffixes = member, manager
+
+    # User provisioning
+    changeLog.consumer.courseGroups.create.users = true
+    # Expose these attributes to the subject resolver in sources.xml
+    # They can come from LDAP or any subject resolver that returns extra attributes
+    changeLog.consumer.simpleGroup.firstName.attribute = givenName
+    changeLog.consumer.simpleGroup.lastName.attribute = sn
+    changeLog.consumer.simpleGroup.email.attribute = email
 
     changeLog.consumer.simpleGroups.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
     changeLog.consumer.simpleGroups.adhoc.coursegroups.stem = edu:apps:sakaioae:adhoc:groups
@@ -107,12 +118,28 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
 
     changeLog.consumer.courseGroups.deleteRole = student
 
+    # Creating Sakai group names from grouper names.
+    # We use a regulr expression to capture the stem and group names in a grouper name
+    # Then use the captured pieces to compose a sakai groupId
+    #
     # Regex indices                                                                                                    0       1       2       3       4       5       6
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupName.regex  = edu:apps:sakaioae:provisioned:courses:([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)
+    # Template to make a Sakai groupId
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
+    # Map group group names to sakai psuedo group roles
     changeLog.consumer.courseGroups.role.map                                = TAs:ta, lecturers:lecturer, students:student, managers:manager
+    # Identify sakai psuedo groups by their suffixes.
     changeLog.consumer.courseGroups.psuedoGroup.suffixes                    = member, manager, student, lecturer, ta
 
+    # User provisioning
+    changeLog.consumer.courseGroups.create.users = true
+    # Expose these attributes to the subject resolver in sources.xml
+    # They can come from LDAP or any subject resolver that returns extra attributes
+    changeLog.consumer.courseGroups.firstName.attribute = givenName
+    changeLog.consumer.courseGroups.lastName.attribute = sn
+    changeLog.consumer.courseGroups.email.attribute = email
+
+    # Where the groups are in grouper
     changeLog.consumer.courseGroups.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
     changeLog.consumer.courseGroups.adhoc.coursegroups.stem = edu:apps:sakaioae:adhoc:groups
     changeLog.consumer.courseGroups.provisioned.simplegroups.stem = edu:apps:sakaioae:provisioned:simplegroups
