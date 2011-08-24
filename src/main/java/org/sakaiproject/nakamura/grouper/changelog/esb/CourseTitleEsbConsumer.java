@@ -125,7 +125,7 @@ public class CourseTitleEsbConsumer extends ChangeLogConsumerBase {
 		boolean ignore = false;
 
 		if(!entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.STEM_UPDATE)){
-			log.debug("Entry was not a stem update.");
+			log.info("Entry was not a stem update.");
 			return true;
 		}
 
@@ -133,7 +133,7 @@ public class CourseTitleEsbConsumer extends ChangeLogConsumerBase {
 
 		// The regex exnsures we only process stems at the section level
 		if (!sectionStemPattern.matcher(stemName).matches()){
-			log.debug("Updated stem did not match the " + PROP_SECTION_STEM_REGEX + " : " + stemName);
+			log.info("Updated stem did not match the " + PROP_SECTION_STEM_REGEX + " : " + stemName);
 			ignore = true;
 		}
 

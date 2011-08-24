@@ -120,7 +120,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				log.info("Processing changelog entry=" + currentId);
 
 				if (ignoreChangelogEntry(entry)){
-					log.info("ignoring");
 					continue;
 				}
 
@@ -244,20 +243,20 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			log.trace(entry.toStringDeep());
 		}
 		if (grouperName == null){
-			log.debug("ignoring: " + entryId + " Unable to get the group name from the entry. ");
+			log.info("ignoring: " + entryId + " Unable to get the group name from the entry. ");
 			ignore = true;
 		}
 		else {
 			if (grouperName.endsWith(":all")){
-				log.debug("ignoring:  " + entryId + " all group: " + grouperName);
+				log.info("ignoring:  " + entryId + " all group: " + grouperName);
 				ignore = true;
 			}
 			if (allowInstitutional == false && groupIdAdapter.isInstitutional(grouperName)){
-				log.debug("ignoring " + entryId + " : Not processing institutional data : " + grouperName);
+				log.info("ignoring " + entryId + " : Not processing institutional data : " + grouperName);
 				ignore = true;
 			}
 			if (!groupIdAdapter.isCourseGroup(grouperName)){
-				log.debug("ignoring " + entryId + " : Not a course group : " + grouperName);
+				log.info("ignoring " + entryId + " : Not a course group : " + grouperName);
 				ignore = true;
 			}
 		}

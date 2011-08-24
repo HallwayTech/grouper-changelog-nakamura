@@ -50,6 +50,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	// Suffixes for the composite groups created for addIncludeExclude groups
 	protected Set<String> includeExcludeSuffixes;
+
 	// Sakai OAE pseudoGroup suffixes.
 	protected Set<String> pseudoGroupSuffixes;
 
@@ -77,7 +78,9 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			throw new RuntimeException(msg);
 		}
 		username = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_USERNAME, true);
+		log.debug("Sakai OAE username " + username);
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
+		log.debug("Sakai OAE password " + password);
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, DEFAULT_DRYRUN);
 
 		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, DEFAULT_ALLOW_INSTITUTIONAL);
