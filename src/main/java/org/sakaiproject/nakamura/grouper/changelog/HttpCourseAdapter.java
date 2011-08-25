@@ -543,6 +543,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 			throws GroupModificationException {
 
 		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
+		log.info("Deleting course group " + parentGroupId);
 		String lecturerGroupId = parentGroupId + "-lecturer";
 		String taGroupId = parentGroupId + "-ta";
 		String studentGroupId = parentGroupId + "-student";
@@ -562,7 +563,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 					throw e;
 				}
 			}
-			log.info("Deleted " + deleteId + " for " + groupName);
+			log.info("Deleted " + deleteId);
 		}
 
 
