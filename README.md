@@ -69,19 +69,19 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.simpleGroup.pseudoGroup.suffixes = member, manager
 
     # User provisioning
-    changeLog.consumer.courseGroups.create.users = true
+    changeLog.consumer.simpleGroup.create.users = true
     # Expose these attributes to the subject resolver in sources.xml
     # They can come from LDAP or any subject resolver that returns extra attributes
     changeLog.consumer.simpleGroup.firstname.attribute = givenName
     changeLog.consumer.simpleGroup.lastname.attribute = sn
     changeLog.consumer.simpleGroup.email.attribute = email
 
-    changeLog.consumer.simpleGroups.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
-    changeLog.consumer.simpleGroups.adhoc.coursegroups.stem = edu:apps:sakaioae:adhoc:groups
-    changeLog.consumer.simpleGroups.provisioned.simplegroups.stem = edu:apps:sakaioae:provisioned:simplegroups
-    changeLog.consumer.simpleGroups.provisioned.coursegroups.stem = edu:apps:sakaioae:provisioned:groups
-    changeLog.consumer.simpleGroups.institutional.simplegroups.stem = inst:sis:groups
-    changeLog.consumer.simpleGroups.institutional.coursegroups.stem = inst:sis:simplegroups
+    changeLog.consumer.simpleGroup.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
+    changeLog.consumer.simpleGroup.adhoc.coursegroups.stem = edu:apps:sakaioae:adhoc:groups
+    changeLog.consumer.simpleGroup.provisioned.simplegroups.stem = edu:apps:sakaioae:provisioned:simplegroups
+    changeLog.consumer.simpleGroup.provisioned.coursegroups.stem = edu:apps:sakaioae:provisioned:groups
+    changeLog.consumer.simpleGroup.institutional.simplegroups.stem = inst:sis:groups
+    changeLog.consumer.simpleGroup.institutional.coursegroups.stem = inst:sis:simplegroups
 
     changeLog.consumer.simpleGroup.url = http://localhost:8080
     changeLog.consumer.simpleGroup.username = grouper-admin
