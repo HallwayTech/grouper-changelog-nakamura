@@ -174,7 +174,7 @@ public abstract class BaseGroupAdapter {
 		if (!dryrun){
             NakamuraHttpUtils.http(client, method);
 		}
-		log.info("Created psuedoGroup in OAE for " + nakamuraGroupId);
+		log.info("Created pseudoGroup in OAE for " + nakamuraGroupId);
 	}
 
 	/**
