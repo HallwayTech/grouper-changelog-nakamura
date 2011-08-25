@@ -84,7 +84,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			return;
 		}
 
-		String cfgPrefix = CONFIG_PREFIX + consumerName + ".";
+		String cfgPrefix = CONFIG_PREFIX + "." + consumerName + ".";
 		try {
 			url = new URL(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_URL, true));
 		} catch (MalformedURLException e) {
