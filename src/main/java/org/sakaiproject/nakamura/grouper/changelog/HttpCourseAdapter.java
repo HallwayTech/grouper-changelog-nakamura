@@ -54,6 +54,8 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		String taGroupId = parentGroupId + "-ta";
 		String studentGroupId = parentGroupId + "-student";
 
+		String[] parentAndPsuedoGroupIds = new String[] { parentGroupId, lecturerGroupId, taGroupId, studentGroupId };
+
 		boolean allGroupsExisted = true;
 		for (String pseudoGroupId: new String[]{ lecturerGroupId, taGroupId, studentGroupId }){
 			// --------------------------------------------------------------------
@@ -189,15 +191,33 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 
 		// --------------------------------------------------------------------
 		// POST 7 - updating group visibility, joinability and permissions
+		batchPosts.clear();
+		JSONArray everyoneAnonymous = new JSONArray();
+		everyoneAnonymous.add("everyone");
+		everyoneAnonymous.add("anonymous");
+		for (String gId : parentAndPsuedoGroupIds){
+			JSONObject request = new JSONObject();
+			JSONObject params = new JSONObject();
+			params.put(":viewer", parentGroupId);
+			params.put(":viewer@Delete", everyoneAnonymous);
+			params.put("sakai:group-visible","members-only");
+			params.put("sakai:group-joinable","no");
+			params.put(CHARSET_PARAM, UTF_8);
 
-		method = new PostMethod(url + GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
-		method.setParameter("rep:group-viewers@Delete", "");
-		method.setParameter("sakai:group-visible", "public");
-		method.setParameter("sakai:group-joinable", "yes");
-		method.setParameter(CHARSET_PARAM, UTF_8);
-		if (!dryrun){
-			NakamuraHttpUtils.http(client, method);
+			request.put("url", GROUP_PATH_PREFIX + "/" + gId + ".update.json");
+			request.put("method", "POST");
+			request.put("parameters", params);
+			request.put(CHARSET_PARAM, UTF_8);
+			batchPosts.add(request);
 		}
+
+		method = new PostMethod(url + BATCH_URI);
+	    json = JSONArray.fromObject(batchPosts);
+	    method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
+	    method.setParameter(CHARSET_PARAM, UTF_8);
+	    if (!dryrun){
+            NakamuraHttpUtils.http(client, method);
+	    }
 		log.debug("Updated the visibilty and joinability.");
 
 		// --------------------------------------------------------------------
