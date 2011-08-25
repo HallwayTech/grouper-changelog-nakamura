@@ -213,9 +213,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		verify(groupAdapter).deleteGroup(groupId, grouperName);
 	}
 
-	public void testddAdminAsLecturer() throws GroupModificationException{
+	public void testAddAdminAsLecturer() throws GroupModificationException{
 		String grouperName = "edu:apps:sakaiaoe:courses:some:course:lecturers";
-		String groupId = "some_course-lecturer";
+		String groupId = "some_course-student";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
