@@ -241,6 +241,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
 		verify(groupAdapter).createGroup(grouperName, "parent description");
-		verify(groupAdapter).addMembership(groupId, "admin");
+		verify(groupAdapter).addMembership("some_course-lecturer", "admin");
 	}
 }
