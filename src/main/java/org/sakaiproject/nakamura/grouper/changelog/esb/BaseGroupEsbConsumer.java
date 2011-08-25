@@ -92,20 +92,28 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			log.error(msg);
 			throw new RuntimeException(msg);
 		}
+		log.info("Sakai OAE url = " + url);
 		username = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_USERNAME, true);
-		log.debug("Sakai OAE username " + username);
+		log.info("Sakai OAE username = " + username);
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
-		log.debug("Sakai OAE password " + password);
+		log.info("Sakai OAE password = XXXXXXXXX");
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, DEFAULT_DRYRUN);
+		log.info("dryrun = " + dryrun);
 		deleteRole = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DELETE_ROLE, DEFAULT_DELETE_ROLE);
+		log.info("deleteRole = " + deleteRole);
 
 		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, DEFAULT_ALLOW_INSTITUTIONAL);
+		log.info("allowInstitutional = " + allowInstitutional);
 		createUsers = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_CREATE_USERS, DEFAULT_CREATE_USERS);
+		log.info("createUsers = " + createUsers);
 		firstNameAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_FIRST_NAME, false);
+		log.info("firstNameAttribute = " + firstNameAttribute);
 		lastNameAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_LAST_NAME, false);
+		log.info("lastNameAttribute = " + lastNameAttribute);
 		emailAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_EMAIL, false);
-
+		log.info("emailAttribute = " + emailAttribute);
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PSEUDOGROUP_SUFFIXES, true));
+		log.info("pseudoGroupSuffixes = " + StringUtils.join(pseudoGroupSuffixes.iterator(), ","));
 		configurationLoaded = true;
 	}
 

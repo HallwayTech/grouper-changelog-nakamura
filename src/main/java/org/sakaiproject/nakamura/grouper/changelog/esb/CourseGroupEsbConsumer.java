@@ -89,6 +89,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 		String cfgPrefix = CONFIG_PREFIX + "." + consumerName + ".";
 		addAdminAsLecturer = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ADD_ADMIN_LECTURER, false);
+		log.info("addAdminAsLecturer = " + addAdminAsLecturer);
 
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
 		simpleAdapter.loadConfiguration(consumerName);

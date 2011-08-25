@@ -64,7 +64,9 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 		try {
 			String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
 			restrictionQuery = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_RESTRICTION_QUERY, true);
+			log.info("restrictionQuery = " + restrictionQuery);
 			dbProfile = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DB_PROFILE, DEFAULT_DB_PROFILE);
+			log.info("dbProfile = " + dbProfile);
 			loadRestrictionTable();
 		}
 		catch (SQLException sqle){
@@ -147,7 +149,7 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 			enabledStems.add(Pattern.compile(e));
 		}
 		log.info("Loaded restrictions for Sakai OAE : " +
-				StringUtils.join(enabledStems.toArray(), ","));
+				StringUtils.join(enabledStems.iterator(), ","));
 	}
 
 	/**
