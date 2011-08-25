@@ -62,7 +62,7 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 		}
 		super.loadConfiguration(consumerName);
 		try {
-			String cfgPrefix = "changeLog.consumer." + consumerName + ".";
+			String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + consumerName + ".";
 			restrictionQuery = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_RESTRICTION_QUERY, true);
 			dbProfile = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DB_PROFILE, DEFAULT_DB_PROFILE);
 			loadRestrictionTable();

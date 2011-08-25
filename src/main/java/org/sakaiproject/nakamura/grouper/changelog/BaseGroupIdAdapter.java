@@ -30,7 +30,7 @@ public abstract class BaseGroupIdAdapter {
 	public static final String DEFAULT_EXCLUDES_SUFFIX = "_excludes";
 
 	public void loadConfiguration(String consumerName) {
-		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
+		String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
 		setRoleMap(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_ROLE_MAPPINGS, true));
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + BaseGroupEsbConsumer.PROP_PSEUDOGROUP_SUFFIXES, true));
 

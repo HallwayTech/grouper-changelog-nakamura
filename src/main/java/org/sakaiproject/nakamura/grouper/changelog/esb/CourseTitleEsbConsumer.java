@@ -46,7 +46,7 @@ public class CourseTitleEsbConsumer extends ChangeLogConsumerBase {
 			return;
 		}
 
-		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
+		String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
 		sectionStemPattern = Pattern.compile(
 				GrouperLoaderConfig.getPropertyString(
 						cfgPrefix + PROP_SECTION_STEM_REGEX, true));

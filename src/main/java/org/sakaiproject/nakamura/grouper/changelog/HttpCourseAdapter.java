@@ -12,7 +12,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
@@ -20,7 +19,7 @@ import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Provision courses in Sakai OAE over HTTP according to the Grouper changelog
+ * Provision Course Groups in Sakai OAE over HTTP according to the Grouper changelog.
  */
 public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroupAdapter {
 
