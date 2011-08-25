@@ -54,6 +54,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	protected boolean allowInstitutional = DEFAULT_ALLOW_INSTITUTIONAL;
 
 	public static final String PROP_PSEUDOGROUP_SUFFIXES = "pseudoGroup.suffixes";
+
+	public static final String PROP_DELETE_ROLE = "delete.role";
 	public static final String DEFAULT_DELETE_ROLE = "student";
 	protected String deleteRole = DEFAULT_DELETE_ROLE;
 
@@ -90,6 +92,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		username = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_USERNAME, true);
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, DEFAULT_DRYRUN);
+		deleteRole = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DELETE_ROLE, DEFAULT_DELETE_ROLE);
 
 		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, DEFAULT_ALLOW_INSTITUTIONAL);
 		createUsers = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_CREATE_USERS, DEFAULT_CREATE_USERS);

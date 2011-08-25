@@ -65,7 +65,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.simpleGroup.role.map                = TAs:ta, lecturers:lecturer, students:student, managers:manager
     # Identify sakai psuedo groups by their suffixes.
     changeLog.consumer.simpleGroup.pseudoGroup.suffixes    = member, manager, student, lecturer, ta
-    changeLog.consumer.simpleGroup.deleteRole = member
+    changeLog.consumer.simpleGroup.delete.role = member
     changeLog.consumer.simpleGroup.pseudoGroup.suffixes = member, manager
 
     # User provisioning
@@ -111,7 +111,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' \
                                                  || event.eventType eq 'MEMBERSHIP_ADD')
 
-    changeLog.consumer.courseGroups.deleteRole = student
+    changeLog.consumer.courseGroups.delete.role = student
 
     # Creating Sakai group names from grouper names.
     # We use a regulr expression to capture the stem and group names in a grouper name
