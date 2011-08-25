@@ -53,15 +53,15 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 		String memberGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
 
 		boolean allGroupsExisted = true;
-		for (String psuedoGroupId: new String[]{ managerGroupId, memberGroupId }){
+		for (String pseudoGroupId: new String[]{ managerGroupId, memberGroupId }){
 			// --------------------------------------------------------------------
 			// POST - create the members and managers
 			try {
-				createPseudoGroup(psuedoGroupId, groupName, description);
+				createPseudoGroup(pseudoGroupId, groupName, description);
 				allGroupsExisted = false;
 			}
 			catch (GroupAlreadyExistsException gme){
-				log.debug(psuedoGroupId + " already exists. No worries.");
+				log.debug(pseudoGroupId + " already exists. No worries.");
 			}
 		}
 
@@ -442,10 +442,10 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 
 		if (groupId.endsWith(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
 			String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
-			String memberPsuedoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
-			String managerPsuedoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
+			String memberPseudoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
+			String managerPseudoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
 
-			for (String deleteId: new String[] { memberPsuedoGroupId, managerPsuedoGroupId, parentGroupId }){
+			for (String deleteId: new String[] { memberPseudoGroupId, managerPseudoGroupId, parentGroupId }){
 				HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 				PostMethod method = new PostMethod(url.toString() + getDeleteURI(deleteId));
 				method.addParameter(":operation", "delete");

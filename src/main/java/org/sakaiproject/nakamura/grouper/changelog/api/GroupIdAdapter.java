@@ -14,7 +14,7 @@ public interface GroupIdAdapter {
 
 	/**
 	 * Given a nakamura group id, return the parent of this group.
-	 * If the group is not a psuedo group the groupId will be returned.
+	 * If the group is not a pseudo group the groupId will be returned.
 	 * @param groupId
 	 * @return
 	 */

@@ -73,6 +73,10 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupAdapter.setGroupIdAdapter(groupIdAdapter);
 		groupAdapter.setDryrun(dryrun);
 		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+
+		groupAdapter.setFirstNameAttribute(firstNameAttribute);
+		groupAdapter.setLastNameAttribute(lastNameAttribute);
+		groupAdapter.setEmailAttribute(emailAttribute);
 	}
 
 	@Override

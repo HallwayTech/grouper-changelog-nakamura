@@ -1,5 +1,3 @@
-
-
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
@@ -17,10 +15,14 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 import edu.internet2.middleware.grouper.exception.SessionException;
 
+/**
+ * Common data and methods for the other EsbConsumers.
+ */
 public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	private static Log log = LogFactory.getLog(BaseGroupEsbConsumer.class);
 
+	// See the README.md for details about the configuration.
 	public static final String PROP_URL = "url";
 	protected URL url;
 
@@ -38,11 +40,22 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final boolean DEFAULT_CREATE_USERS = false;
 	protected boolean createUsers = DEFAULT_CREATE_USERS;
 
+	public static final String PROP_LDAP_ATTRIBUTE_FIRST_NAME = "firstname.attribute";
+	protected String firstNameAttribute;
+
+	public static final String PROP_LDAP_ATTRIBUTE_LAST_NAME = "lastname.attribute";
+	protected String lastNameAttribute;
+
+	public static final String PROP_LDAP_ATTRIBUTE_EMAIL = "email.attribute";
+	protected String emailAttribute;
+
 	public static final String PROP_ALLOW_INSTITUTIONAL = "allow.institutional";
 	public static final boolean DEFAULT_ALLOW_INSTITUTIONAL = false;
 	protected boolean allowInstitutional = DEFAULT_ALLOW_INSTITUTIONAL;
 
-	public static final String PROP_PSEUDOGROUP_SUFFIXES = "psuedoGroup.suffixes";
+	public static final String PROP_PSEUDOGROUP_SUFFIXES = "pseudoGroup.suffixes";
+
+	public static final String PROP_DELETE_ROLE = "delete.role";
 	public static final String DEFAULT_DELETE_ROLE = "student";
 	protected String deleteRole = DEFAULT_DELETE_ROLE;
 
@@ -82,9 +95,14 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		password = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PASSWORD, true);
 		log.debug("Sakai OAE password " + password);
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, DEFAULT_DRYRUN);
+		deleteRole = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DELETE_ROLE, DEFAULT_DELETE_ROLE);
 
 		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, DEFAULT_ALLOW_INSTITUTIONAL);
 		createUsers = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_CREATE_USERS, DEFAULT_CREATE_USERS);
+		firstNameAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_FIRST_NAME, false);
+		lastNameAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_LAST_NAME, false);
+		emailAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_EMAIL, false);
+
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PSEUDOGROUP_SUFFIXES, true));
 		configurationLoaded = true;
 	}

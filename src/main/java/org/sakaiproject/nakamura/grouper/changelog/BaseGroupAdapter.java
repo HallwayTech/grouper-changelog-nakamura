@@ -17,7 +17,11 @@ import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
+import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.exception.GrouperException;
+import edu.internet2.middleware.subject.Subject;
+import edu.internet2.middleware.subject.SubjectNotFoundException;
+import edu.internet2.middleware.subject.SubjectNotUniqueException;
 
 /**
  * Shared functionality for the GroupAdapter classes goes in here.
@@ -54,6 +58,14 @@ public abstract class BaseGroupAdapter {
 
 	protected boolean createUsers = false;
 
+	// Avoid multiple user exists and user create HTTP calls
+	protected Set<String> createdUsersCache;
+
+	// Subject attributes for creating users
+	protected String firstNameAttribute;
+	protected String lastNameAttribute;
+	protected String emailAttribute;
+
 	// Sakai OAE psudeoGroup siffixes
 	protected Set<String> pseudoGroupSuffixes;
 
@@ -62,9 +74,6 @@ public abstract class BaseGroupAdapter {
 
 	// Convert grouper names to Sakai OAE groupIds
 	protected GroupIdAdapter groupIdAdapter;
-
-	// Avoid multiple user exists?/create HTTP calls
-	protected Set<String> createdUsersCache;
 
 	public BaseGroupAdapter(){
 		createdUsersCache = new HashSet<String>();
@@ -159,13 +168,13 @@ public abstract class BaseGroupAdapter {
 		method.addParameter("sakai:pseudoGroup", "true");
 		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
 		method.setParameter("sakai:group-joinable", "yes");
-		method.addParameter(GROUPER_NAME_PROP, groupName.substring(0, groupName.lastIndexOf(":") + 1 ) 
+		method.addParameter(GROUPER_NAME_PROP, groupName.substring(0, groupName.lastIndexOf(":") + 1 )
 											+ nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
 		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
 		if (!dryrun){
             NakamuraHttpUtils.http(client, method);
 		}
-		log.info("Created psuedoGroup in OAE for " + nakamuraGroupId);
+		log.info("Created pseudoGroup in OAE for " + nakamuraGroupId);
 	}
 
 	/**
@@ -175,36 +184,71 @@ public abstract class BaseGroupAdapter {
 	 */
 	protected void createOAEUser(String userId) throws GroupModificationException {
 
+		boolean created = false;
 		if (dryrun || createdUsersCache.contains(userId)){
-			return;
+			created = true;
 		}
 
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-		int returnCode = 0;
-		try {
-			returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
-		}
-		catch (IOException ioe){
-			log.error("Could not communicate with OAE to create a user.");
-			return;
-		}
 
-		if (returnCode == HttpStatus.SC_OK){
-			log.info(userId + " already exists.");
-			return;
-		}
-
-		if (returnCode == HttpStatus.SC_NOT_FOUND){
-			String randomPassword = UUID.randomUUID().toString();
-			PostMethod method = new PostMethod(url.toString() + USER_CREATE_URI);
-			method.addParameter(":name", userId);
-			method.addParameter("pwd", randomPassword);
-			method.addParameter("pwdConfirm", randomPassword);
-			if (!dryrun){
-                NakamuraHttpUtils.http(client, method);
+		if (created == false){
+			try {
+				int returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
+				if (returnCode == HttpStatus.SC_OK){
+					log.info(userId + " already exists.");
+					created = true;
+				}
 			}
-			createdUsersCache.add(userId);
-			log.info("Created a user for " + userId);
+			catch (IOException ioe){
+				log.error("Could not communicate with OAE to check if a user exists.");
+				return;
+			}
+		}
+
+		if (created == false){
+			try {
+				Subject subject = SubjectFinder.findByIdOrIdentifier(userId, true);
+				String randomPassword = UUID.randomUUID().toString();
+				PostMethod method = new PostMethod(url.toString() + USER_CREATE_URI);
+
+				String firstName = subject.getAttributeValue(firstNameAttribute);
+				String lastName = subject.getAttributeValue(lastNameAttribute);
+				if (firstName == null){
+					firstName = "Firstname";
+				}
+
+				if (lastName == null){
+					lastName = "Lastname";
+				}
+				String email = subject.getAttributeValue(emailAttribute);
+				if (email == null){
+					email = userId + "@nyu.edu";
+				}
+				String profileTemplate = "\"{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"FIRSTNAME\"},\"lastName\":{\"value\":\"LASTNAME\"},\"email\":{\"value\":\"EMAIL\"}},\"access\":\"everybody\"},\"email\":\"EMAIL\"}\" -F \"timezone=America/New_York\" -F \"locale=en_US\"";
+				profileTemplate.replaceAll("FIRSTNAME", firstName);
+				profileTemplate.replaceAll("LASTNAME", lastName);
+				profileTemplate.replaceAll("EMAIL", email);
+
+				method.addParameter(":name", userId);
+				method.addParameter("pwd", randomPassword);
+				method.addParameter("pwdConfirm", randomPassword);
+				method.addParameter("firstName", firstName);
+				method.addParameter("lastName", lastName);
+				method.addParameter("email", email);
+
+				NakamuraHttpUtils.http(client, method);
+				createdUsersCache.add(userId);
+				log.info("Created a user for " + userId);
+				created = true;
+			}
+			catch (SubjectNotFoundException snfe){
+				log.error("Unable to create the user in Sakai OAE", snfe);
+				throw new GroupModificationException(snfe.getMessage());
+			}
+			catch (SubjectNotUniqueException snue){
+				log.error("Unable to create the user in Sakai OAE", snue);
+				throw new GroupModificationException(snue.getMessage());
+			}
 		}
 	}
 
@@ -248,6 +292,18 @@ public abstract class BaseGroupAdapter {
 
 	public void setCreateUsers(boolean createUsers) {
 		this.createUsers = createUsers;
+	}
+
+	public void setFirstNameAttribute(String firstNameAttribute) {
+		this.firstNameAttribute = firstNameAttribute;
+	}
+
+	public void setLastNameAttribute(String lastNameAttribute) {
+		this.lastNameAttribute = lastNameAttribute;
+	}
+
+	public void setEmailAttribute(String emailAttribute) {
+		this.emailAttribute = emailAttribute;
 	}
 
 	public void setDryrun(boolean dryrun) {
