@@ -179,13 +179,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
 					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
 					log.info("START GROUP_DELETE : " + grouperName);
-
-					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
-					if (group == null && grouperName.endsWith(deleteRole)){
+					if (grouperName.endsWith(deleteRole)){
 						groupAdapter.deleteGroup(groupIdAdapter.getGroupId(grouperName), grouperName);
-					}
-					else {
-						log.error("Received a delete event for a group that still exists!");
 					}
 					log.info("DONE GROUP_DELETE : " + grouperName);
 				}

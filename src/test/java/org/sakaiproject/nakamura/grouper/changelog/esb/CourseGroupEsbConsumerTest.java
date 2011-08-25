@@ -1,7 +1,6 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -50,6 +49,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.setGroupIdAdapter(groupIdAdapter);
 		consumer.setConfigurationLoaded(true);
 		consumer.setPseudoGroupSuffixes("student, manager, member, ta, lecturer");
+		consumer.setDeleteRole("students");
 		suppress(method(GrouperUtil.class, "getLog"));
 
 		entry = mock(ChangeLogEntry.class);
@@ -170,9 +170,12 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 	public void testDeleteGroupIsNotNull() throws GroupModificationException{
 		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		String groupId = "some_course-student";
+
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
 		Group group = mock(Group.class);
@@ -186,15 +189,16 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verifyNoMoreInteractions(groupAdapter);
+		verify(groupAdapter).deleteGroup(groupId, grouperName);
 	}
 
 	public void testDeleteGroup() throws GroupModificationException{
 		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		String groupId = "some_course-student";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
@@ -204,12 +208,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(GrouperSession.startRootSession()).thenReturn(session);
 		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(null);
 
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
-		consumer.setDeleteRole("students");
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).deleteGroup("some_course-student", grouperName);
+		verify(groupAdapter).deleteGroup(groupId, grouperName);
 	}
 
 	public void testddAdminAsLecturer() throws GroupModificationException{
@@ -236,8 +237,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupAdapter.groupExists("some_course")).thenReturn(false);
 		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.configurationLoaded = true;
 		consumer.addAdminAsLecturer = true;
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
