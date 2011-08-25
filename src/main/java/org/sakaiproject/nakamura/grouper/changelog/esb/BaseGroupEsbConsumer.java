@@ -58,7 +58,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_PSEUDOGROUP_SUFFIXES = "pseudoGroup.suffixes";
 
 	public static final String PROP_DELETE_ROLE = "delete.role";
-	public static final String DEFAULT_DELETE_ROLE = "student";
+	public static final String DEFAULT_DELETE_ROLE = "students";
 	protected String deleteRole = DEFAULT_DELETE_ROLE;
 
 	protected boolean configurationLoaded = false;
