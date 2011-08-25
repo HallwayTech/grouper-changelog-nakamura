@@ -195,7 +195,7 @@ public abstract class BaseGroupAdapter {
 			try {
 				int returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
 				if (returnCode == HttpStatus.SC_OK){
-					log.info(userId + " already exists.");
+					log.debug(userId + " already exists.");
 					created = true;
 				}
 			}
@@ -238,7 +238,7 @@ public abstract class BaseGroupAdapter {
 
 				NakamuraHttpUtils.http(client, method);
 				createdUsersCache.add(userId);
-				log.info("Created a user for " + userId);
+				log.info("Created a user in Sakai OAE for " + userId);
 				created = true;
 			}
 			catch (SubjectNotFoundException snfe){
