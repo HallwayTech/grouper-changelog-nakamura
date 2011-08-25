@@ -440,28 +440,26 @@ public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements Nakamura
 	 */
 	public void deleteGroup(String groupId, String groupName) throws GroupModificationException {
 
-		if (groupId.endsWith(SimpleGroupEsbConsumer.MEMBER_SUFFIX)){
-			String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
-			String memberPseudoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
-			String managerPseudoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
+		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
+		String memberPseudoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
+		String managerPseudoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
 
-			for (String deleteId: new String[] { memberPseudoGroupId, managerPseudoGroupId, parentGroupId }){
-				HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-				PostMethod method = new PostMethod(url.toString() + getDeleteURI(deleteId));
-				method.addParameter(":operation", "delete");
-				method.addParameter("go", "1");
-				try {
-					if (!dryrun){
-						NakamuraHttpUtils.http(client, method);
-					}
+		for (String deleteId: new String[] { memberPseudoGroupId, managerPseudoGroupId, parentGroupId }){
+			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+			PostMethod method = new PostMethod(url.toString() + getDeleteURI(deleteId));
+			method.addParameter(":operation", "delete");
+			method.addParameter("go", "1");
+			try {
+				if (!dryrun){
+					NakamuraHttpUtils.http(client, method);
 				}
-				catch (GroupModificationException e) {
-					if (e.code != HttpStatus.SC_NOT_FOUND){
-						throw e;
-					}
-				}
-				log.info("Deleted " + deleteId + " for " + groupName);
 			}
+			catch (GroupModificationException e) {
+				if (e.code != HttpStatus.SC_NOT_FOUND){
+					throw e;
+				}
+			}
+			log.info("Deleted " + deleteId + " for " + groupName);
 		}
 	}
 }
