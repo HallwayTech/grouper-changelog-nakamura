@@ -22,6 +22,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	private static Log log = LogFactory.getLog(BaseGroupEsbConsumer.class);
 
+	public static final String CONFIG_PREFIX = "changeLog.consumer.";
+
 	// See the README.md for details about the configuration.
 	public static final String PROP_URL = "url";
 	protected URL url;
@@ -82,7 +84,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			return;
 		}
 
-		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
+		String cfgPrefix = CONFIG_PREFIX + consumerName + ".";
 		try {
 			url = new URL(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_URL, true));
 		} catch (MalformedURLException e) {

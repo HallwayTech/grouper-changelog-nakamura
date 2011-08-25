@@ -211,4 +211,37 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		verify(groupAdapter).deleteGroup("some_course-student", grouperName);
 	}
+
+	public void testddAdminAsLecturer() throws GroupModificationException{
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:lecturers";
+		String groupId = "some_course-lecturer";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		Group group = mock(Group.class);
+		Stem stem = mock(Stem.class);
+		when(group.getParentStem()).thenReturn(stem);
+		when(stem.getDescription()).thenReturn("parent description");
+		GrouperSession session = mock(GrouperSession.class);
+		mockStatic(GrouperSession.class);
+		mockStatic(GroupFinder.class);
+		when(GrouperSession.startRootSession()).thenReturn(session);
+		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(group);
+
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
+		when(groupIdAdapter.getPseudoGroupParent(groupId)).thenReturn("some_course");
+		when(groupAdapter.groupExists("some_course")).thenReturn(false);
+		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
+
+		// Prevent GrouperLoaderConfig from staticing the test up
+		consumer.configurationLoaded = true;
+		consumer.addAdminAsLecturer = true;
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verify(groupAdapter).createGroup(grouperName, "parent description");
+		verify(groupAdapter).addMembership(groupId, "admin");
+	}
 }

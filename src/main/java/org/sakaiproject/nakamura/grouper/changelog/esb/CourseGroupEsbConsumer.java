@@ -1,9 +1,10 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
@@ -12,9 +13,12 @@ import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
+import com.google.common.collect.MapMaker;
+
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.SubjectFinder;
+import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
@@ -57,10 +61,13 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	protected GroupIdAdapterImpl groupIdAdapter;
 
 	// Courses already created in sakai by this object.
-	protected Set<String> coursesInSakai;
+	protected Map<String,Boolean> coursesInSakai;
+
+	public static final String PROP_ADD_ADMIN_LECTURER = "add.admin.as.lecturer";
+	protected boolean addAdminAsLecturer = false;
 
 	public CourseGroupEsbConsumer() {
-		coursesInSakai = new HashSet<String>();
+		coursesInSakai = new MapMaker().expireAfterWrite(5, TimeUnit.MINUTES).makeMap();
 	}
 
 	/**
@@ -79,6 +86,9 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			return;
 		}
 		super.loadConfiguration(consumerName);
+
+		String cfgPrefix = CONFIG_PREFIX + "." + consumerName + ".";
+		addAdminAsLecturer = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ADD_ADMIN_LECTURER, false);
 
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
 		simpleAdapter.loadConfiguration(consumerName);
@@ -141,7 +151,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 
 					// Create the OAE Course objects when the first role group is created.
-					if (!coursesInSakai.contains(parentGroupId) &&
+					if (!coursesInSakai.containsKey(parentGroupId) &&
 							!groupAdapter.groupExists(parentGroupId)){
 						log.debug("CREATE " + parentGroupId + " as parent of " + nakamuraGroupId);
 
@@ -156,7 +166,11 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 									groupIdAdapter.getProvisionedCourseGroupsStem());
 						}
 						groupAdapter.createGroup(grouperName, group.getParentStem().getDescription());
-						coursesInSakai.add(parentGroupId);
+
+						if (addAdminAsLecturer && StringUtils.substringAfterLast(nakamuraGroupId, "-").equals("lecturer")){
+							groupAdapter.addMembership(nakamuraGroupId, "admin");
+						}
+						coursesInSakai.put(parentGroupId, Boolean.TRUE);
 					}
 
 					log.info("DONE GROUP_ADD : " + grouperName);
