@@ -11,7 +11,6 @@ import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
-import edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
@@ -21,7 +20,7 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
  * Update course titles in Sakai OAE when the description is updated on a stem.
  * The stem will be the last stem in the path to the role groups for that course.
  */
-public class CourseTitleEsbConsumer extends ChangeLogConsumerBase {
+public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 
 	private static Log log = LogFactory.getLog(CourseTitleEsbConsumer.class);
 
@@ -45,6 +44,7 @@ public class CourseTitleEsbConsumer extends ChangeLogConsumerBase {
 		if (configurationLoaded){
 			return;
 		}
+		super.loadConfiguration(consumerName);
 
 		String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
 		sectionStemPattern = Pattern.compile(
@@ -61,6 +61,15 @@ public class CourseTitleEsbConsumer extends ChangeLogConsumerBase {
 		groupIdAdapter.loadConfiguration(consumerName);
 		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
 		groupIdAdapter.setTemplateGroupIdAdapter(tmplAdapter);
+
+		groupAdapter = new HttpCourseAdapter();
+		groupAdapter.setUrl(url);
+		groupAdapter.setUsername(username);
+		groupAdapter.setPassword(password);
+		groupAdapter.setGroupIdAdapter(groupIdAdapter);
+		groupAdapter.setCreateUsers(createUsers);
+		groupAdapter.setDryrun(dryrun);
+		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 	}
 
 	@Override
