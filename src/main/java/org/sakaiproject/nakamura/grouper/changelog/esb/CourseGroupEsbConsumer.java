@@ -167,7 +167,11 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 									groupIdAdapter.getInstitutionalCourseGroupsStem(),
 									groupIdAdapter.getProvisionedCourseGroupsStem());
 						}
-						groupAdapter.createGroup(grouperName, group.getParentStem().getDescription());
+						String description = group.getParentStem().getDescription();
+						if (description == null){
+							description = parentGroupId;
+						}
+						groupAdapter.createGroup(grouperName, description);
 
 						if (StringUtils.trimToNull(addAdminAs) != null){
 							groupAdapter.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);

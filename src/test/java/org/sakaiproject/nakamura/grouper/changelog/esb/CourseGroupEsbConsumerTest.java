@@ -133,6 +133,38 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		verify(groupAdapter).createGroup(grouperName, "parent description");
 	}
 
+	public void testAddGroupDefaultTitle() throws GroupModificationException{
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+		String groupId = "some_course-student";
+		String parentId = "some_course";
+
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+
+		Group group = mock(Group.class);
+		Stem stem = mock(Stem.class);
+		when(group.getParentStem()).thenReturn(stem);
+		when(stem.getDescription()).thenReturn(null);
+
+		GrouperSession session = mock(GrouperSession.class);
+		mockStatic(GrouperSession.class);
+		mockStatic(GroupFinder.class);
+		when(GrouperSession.startRootSession()).thenReturn(session);
+		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(group);
+
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
+		when(groupIdAdapter.getPseudoGroupParent(groupId)).thenReturn(parentId);
+		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
+
+		when(groupAdapter.groupExists(parentId)).thenReturn(false);
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+
+		verify(groupAdapter).createGroup(grouperName, parentId);
+	}
+
 	public void testAddGroupInstitutional() throws GroupModificationException{
 		consumer.setAllowInstitutional(true);
 		String grouperName = "inst:sis:courses:some:course:students";
