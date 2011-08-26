@@ -128,8 +128,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupAdapter.groupExists("some_course")).thenReturn(false);
 		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
 		verify(groupAdapter).createGroup(grouperName, "parent description");
@@ -161,8 +159,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
 		when(groupAdapter.groupExists("some_course")).thenReturn(false);
 
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
 		verify(groupAdapter).createGroup(rewrittenGrouperName, "parent description");
@@ -185,8 +181,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(GrouperSession.startRootSession()).thenReturn(session);
 		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(group);
 
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
 		verify(groupAdapter).deleteGroup(groupId, grouperName);
@@ -237,7 +231,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupAdapter.groupExists("some_course")).thenReturn(false);
 		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
-		consumer.addAdminAsLecturer = true;
+		consumer.addAdminAs = "lecturer";
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
 		verify(groupAdapter).createGroup(grouperName, "parent description");

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
@@ -62,8 +63,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// Courses already created in sakai by this object.
 	protected Map<String,Boolean> coursesInSakai;
 
-	public static final String PROP_ADD_ADMIN_LECTURER = "add.admin.as.lecturer";
-	protected boolean addAdminAsLecturer = false;
+	public static final String PROP_ADD_ADMIN_AS = "add.admin.as";
+	protected String addAdminAs = "";
+
+	private static final String ADMIN_USERNAME = "admin";
 
 	public CourseGroupEsbConsumer() {
 		coursesInSakai = new MapMaker().expireAfterWrite(5, TimeUnit.MINUTES).makeMap();
@@ -87,8 +90,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		super.loadConfiguration(consumerName);
 
 		String cfgPrefix = CONFIG_PREFIX + "." + consumerName + ".";
-		addAdminAsLecturer = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ADD_ADMIN_LECTURER, false);
-		log.info("addAdminAsLecturer = " + addAdminAsLecturer);
+		addAdminAs = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADD_ADMIN_AS, "");
+		log.info("addAdminAsLecturer = " + addAdminAs);
 
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
 		simpleAdapter.loadConfiguration(consumerName);
@@ -166,8 +169,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						}
 						groupAdapter.createGroup(grouperName, group.getParentStem().getDescription());
 
-						if (addAdminAsLecturer){
-							groupAdapter.addMembership(parentGroupId + "-lecturer", "admin");
+						if (StringUtils.trimToNull(addAdminAs) != null){
+							groupAdapter.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
 						}
 						coursesInSakai.put(parentGroupId, Boolean.TRUE);
 					}

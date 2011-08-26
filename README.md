@@ -114,7 +114,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     # When this group is deleted we delete the sakai course shell.
     changeLog.consumer.courseGroups.delete.role = student
     # Add the sakai admin account as a lecturer
-    changeLog.consumer.courseGroups.add.admin.as.lecturer = false
+    changeLog.consumer.courseGroups.add.admin.as = ta
 
     # Creating Sakai group names from grouper names.
     # We use a regulr expression to capture the stem and group names in a grouper name
