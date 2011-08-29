@@ -1,8 +1,6 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,14 +31,8 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// Translates grouper names to Sakai OAE course group ids.
 	private GroupIdAdapterImpl groupIdAdapter;
 
-	private Set<String> simpleGroupsInSakai;
-
 	public static final String MANAGER_SUFFIX = "manager";
 	public static final String MEMBER_SUFFIX = "member";
-
-	public SimpleGroupEsbConsumer(){
-		simpleGroupsInSakai = new HashSet<String>();
-	}
 
 	/**
 	 * Read the configuration from $GROUPER_HOME/conf/grouper-loader.properties.
@@ -120,8 +112,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 					if (group != null) {
 						// Create the OAE Course objects when the first role group is created.
-						if (!simpleGroupsInSakai.contains(parentGroupId) &&
-								!groupAdapter.groupExists(parentGroupId)){
+						if (!groupAdapter.groupExists(parentGroupId)){
 
 							log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
 
@@ -132,7 +123,6 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 							}
 
 							groupAdapter.createGroup(grouperName, group.getParentStem().getDescription());
-							simpleGroupsInSakai.add(parentGroupId);
 							log.info("DONE with the GROUP_ADD event for " + grouperName);
 						}
 					}

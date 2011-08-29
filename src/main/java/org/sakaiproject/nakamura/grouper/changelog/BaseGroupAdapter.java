@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -16,6 +18,8 @@ import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
+
+import com.google.common.collect.MapMaker;
 
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.exception.GrouperException;
@@ -61,6 +65,8 @@ public abstract class BaseGroupAdapter {
 	// Avoid multiple user exists and user create HTTP calls
 	protected Set<String> createdUsersCache;
 
+	protected Map<String,Boolean> existsInSakai;
+
 	// Subject attributes for creating users
 	protected String firstNameAttribute;
 	protected String lastNameAttribute;
@@ -77,6 +83,7 @@ public abstract class BaseGroupAdapter {
 
 	public BaseGroupAdapter(){
 		createdUsersCache = new HashSet<String>();
+		existsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
 	}
 
 	/**
@@ -122,11 +129,14 @@ public abstract class BaseGroupAdapter {
 		if (dryrun){
 			return false;
 		}
-		else {
+
+		if (!existsInSakai.containsKey(groupId)){
 			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 			GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
 			try {
-				exists = (client.executeMethod(method) == HttpStatus.SC_OK);
+				if (client.executeMethod(method) == HttpStatus.SC_OK){
+					existsInSakai.put(groupId, Boolean.TRUE);
+				}
 			}
 			catch (Exception e){
 				log.error(e.getMessage());
@@ -136,7 +146,7 @@ public abstract class BaseGroupAdapter {
 		if (log.isDebugEnabled()){
 			log.debug(groupId + " exists: " + exists);
 		}
-		return exists;
+		return existsInSakai.containsKey(groupId);
 	}
 
 	/**

@@ -1,8 +1,6 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -12,8 +10,6 @@ import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
-
-import com.google.common.collect.MapMaker;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -60,17 +56,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	// Translates grouper names to Sakai OAE course group ids.
 	protected GroupIdAdapterImpl groupIdAdapter;
 
-	// Courses already created in sakai by this object.
-	protected Map<String,Boolean> coursesInSakai;
-
 	public static final String PROP_ADD_ADMIN_AS = "add.admin.as";
 	protected String addAdminAs = "";
 
 	private static final String ADMIN_USERNAME = "admin";
-
-	public CourseGroupEsbConsumer() {
-		coursesInSakai = new MapMaker().expireAfterWrite(5, TimeUnit.MINUTES).makeMap();
-	}
 
 	/**
 	 * Read the configuration from $GROUPER_HOME/conf/grouper-loader.properties.
@@ -155,8 +144,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 
 					// Create the OAE Course objects when the first role group is created.
-					if (!coursesInSakai.containsKey(parentGroupId) &&
-							!groupAdapter.groupExists(parentGroupId)){
+					if (!groupAdapter.groupExists(parentGroupId)){
 						log.info("CREATE " + parentGroupId + " as parent of " + nakamuraGroupId);
 
 						// Special handling for inst:sis courses.
@@ -178,7 +166,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						if (StringUtils.trimToNull(addAdminAs) != null){
 							groupAdapter.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
 						}
-						coursesInSakai.put(parentGroupId, Boolean.TRUE);
 					}
 
 					log.info("DONE GROUP_ADD : " + grouperName);
