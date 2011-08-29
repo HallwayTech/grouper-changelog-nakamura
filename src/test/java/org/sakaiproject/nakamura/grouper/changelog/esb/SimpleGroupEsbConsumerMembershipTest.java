@@ -38,9 +38,10 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry addEntry;
 	private ChangeLogEntry deleteEntry;
-	
-	private String grouperName = "edu:apps:sakaiaoe:simplegroups:some:course:students";
-	private String subjectId = "unittest123";
+
+	private static final String grouperName = "edu:apps:sakaiaoe:simplegroups:some:course:students";
+	private static final String groupId = "some_course-student";
+	private static final String subjectId = "unittest123";
 
 	public void setUp(){
 		// Static stuff
@@ -51,10 +52,10 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
-		
+
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 
 		consumer = new SimpleGroupEsbConsumer();
 		consumer.setGroupAdapter(groupAdapter);
@@ -66,7 +67,7 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		when(addEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(grouperName);
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId)).thenReturn(subjectId);
-		
+
 		deleteEntry = mock(ChangeLogEntry.class);
 		when(deleteEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(true);
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(grouperName);
@@ -101,15 +102,16 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 	}
 
 	public void testAddMembershipSubjectNotNull() throws GroupModificationException{
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
 		Subject subject = mock(Subject.class);
 		when(subject.getTypeName()).thenReturn("person");
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
+		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 
-		verify(groupAdapter).addMembership("some_course-student", subjectId);
+		verify(groupAdapter).addMembership(groupId, subjectId);
 	}
 
 	/// ---- Delete Membership
@@ -128,7 +130,7 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 
 		Subject subject = mock(Subject.class);
 		when(subject.getTypeName()).thenReturn("person");
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
+		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
@@ -138,15 +140,16 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 
 	public void testDeleteMembershipSubjectNotNull() throws GroupModificationException{
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(deleteEntry));
 
 		Subject subject = mock(Subject.class);
 		when(subject.getTypeName()).thenReturn("person");
-		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
+		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
 
-		verify(groupAdapter).deleteMembership("some_course-student", subjectId);
+		verify(groupAdapter).deleteMembership(groupId, subjectId);
 	}
 }

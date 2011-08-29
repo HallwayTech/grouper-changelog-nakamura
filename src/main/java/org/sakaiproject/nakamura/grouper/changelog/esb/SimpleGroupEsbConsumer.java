@@ -107,8 +107,11 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					continue;
 				}
 
+				String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
+				String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
+				String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
-					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
 
 					if (log.isDebugEnabled()){
 						log.debug(ChangeLogTypeBuiltin.GROUP_ADD + ": name=" + grouperName);
@@ -116,8 +119,6 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 
 					if (group != null) {
-						String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
-						String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 						// Create the OAE Course objects when the first role group is created.
 						if (!simpleGroupsInSakai.contains(parentGroupId) &&
 								!groupAdapter.groupExists(parentGroupId)){
@@ -142,12 +143,14 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
 					log.info(ChangeLogTypeBuiltin.GROUP_DELETE + ": name=" + grouperName);
 					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
-					if (group == null){
-						if (grouperName.endsWith(deleteRole)){
+					if (group == null && grouperName.endsWith(deleteRole)){
+						if (groupAdapter.groupExists(nakamuraGroupId)){
 							groupAdapter.deleteGroup(groupIdAdapter.getGroupId(grouperName), grouperName);
+						}
+						else {
+							log.error(nakamuraGroupId  + " Does not exist. Not deleting.");
 						}
 					}
 					else {
@@ -156,27 +159,47 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
-					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 					String memberId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
-					Subject member = SubjectFinder.findByIdentifier(memberId, false);
-					String groupId = groupIdAdapter.getGroupId(grouperName);
+					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
+					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 
-					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-						log.info("Membership add, group: " + grouperName + " subjectId: " + memberId);
-						groupAdapter.addMembership(groupId, memberId);
+					if (member != null && "person".equals(member.getTypeName())
+							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
+
+						if (groupAdapter.groupExists(nakamuraGroupId)) {
+							groupAdapter.addMembership(nakamuraGroupId, memberId);
+						}
+						else {
+							log.info(nakamuraGroupId + " does not exist. Cannot add membership");
+						}
 					}
+					else {
+						log.info("Ignoring this entry : invalid subject for membership add : " + member);
+					}
+
+					log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 				}
 
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
-					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 					String memberId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
-					Subject member = SubjectFinder.findByIdentifier(memberId, false);
-					String groupId = groupIdAdapter.getGroupId(grouperName);
+					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
+					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 
-					if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName) && member != null && "person".equals(member.getTypeName()) ){
-						log.info("Membership delete, group: " + grouperName + " subjectId: " + memberId);
-						groupAdapter.deleteMembership(groupId, memberId);
+					if (member != null
+							&& "person".equals(member.getTypeName())
+							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
+						if (groupAdapter.groupExists(nakamuraGroupId)) {
+							groupAdapter.deleteMembership(nakamuraGroupId, memberId);
+						}
+						else {
+							log.info(nakamuraGroupId + " does not exist. Cannot remove membership");
+						}
 					}
+					else {
+						log.info("Ignoring this entry : invalid subject for membership delete : " + member);
+					}
+
+					log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 				}
 
 				log.info("Finished the batch of " + entryCount + " entries : " +

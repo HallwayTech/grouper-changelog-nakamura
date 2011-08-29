@@ -100,7 +100,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 				log.info("Start STEM_UPDATE : " + stemName);
 				String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupIdAdapter.getGroupId(stemName + ":students"));
 
-				if (parentGroupId != null){
+				if (parentGroupId != null && groupAdapter.groupExists(parentGroupId)){
 					String description = entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyNewValue);
 					groupAdapter.setProperty(parentGroupId, COURSE_TITLE_PROPERTY, description);
 				}

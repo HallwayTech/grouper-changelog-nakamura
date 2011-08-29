@@ -87,6 +87,7 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyChanged)).thenReturn("description");
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyNewValue)).thenReturn("newdescription");
+		when(groupAdapter.groupExists("some_course")).thenReturn(true);
 		when(groupIdAdapter.getGroupId(VALID_STEM + ":students")).thenReturn("some_course-student");
 		when(groupIdAdapter.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
 		assertFalse(consumer.ignoreChangelogEntry(entry));

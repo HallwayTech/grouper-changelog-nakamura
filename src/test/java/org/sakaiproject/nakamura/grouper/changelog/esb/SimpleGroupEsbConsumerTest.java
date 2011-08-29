@@ -39,6 +39,9 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
 
+	private String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+	private String groupId = "some_course-student";
+
 	public void setUp(){
 		groupAdapter = mock(HttpSimpleGroupAdapter.class);
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
@@ -71,7 +74,7 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testIgnoreNotASimpleGroup(){
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(false);
@@ -79,7 +82,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testDontIgnore(){
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
@@ -87,7 +89,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testDontAllowProvisionedByDefault(){
-		String grouperName = "inst:sis:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
@@ -106,7 +107,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testAddGroup() throws GroupModificationException{
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
@@ -123,8 +123,8 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(GrouperSession.startRootSession()).thenReturn(session);
 		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(group);
 
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
-		when(groupIdAdapter.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
+		when(groupIdAdapter.getPseudoGroupParent(groupId)).thenReturn("some_course");
 		when(groupAdapter.groupExists("some_course")).thenReturn(false);
 		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
@@ -169,7 +169,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testDeleteGroupIsNotNull() throws GroupModificationException{
-		String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
@@ -190,11 +189,11 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testDeleteGroup() throws GroupModificationException{
-		String grouperName = "edu:apps:sakaiaoe:simplegroups:some:simpleg:students";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_simpleg-student");
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
@@ -209,6 +208,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		consumer.setDeleteRole("students");
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).deleteGroup("some_simpleg-student", grouperName);
+		verify(groupAdapter).deleteGroup(groupId, grouperName);
 	}
 }

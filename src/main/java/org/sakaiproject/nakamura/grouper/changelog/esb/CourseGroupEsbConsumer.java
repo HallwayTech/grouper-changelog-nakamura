@@ -140,8 +140,11 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					continue;
 				}
 
+				String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
+				String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
+				String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
-					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name);
 					log.info("START GROUP_ADD : " + grouperName);
 
 					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
@@ -149,8 +152,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						log.error("Group added event received for a group that doesn't exist? " + grouperName);
 						continue;
 					}
-					String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
-					String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+
 
 					// Create the OAE Course objects when the first role group is created.
 					if (!coursesInSakai.containsKey(parentGroupId) &&
@@ -183,26 +185,32 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name);
-					log.info("START GROUP_DELETE : " + grouperName);
-					if (grouperName.endsWith(deleteRole)){
-						groupAdapter.deleteGroup(groupIdAdapter.getGroupId(grouperName), grouperName);
+					if (groupAdapter.groupExists(nakamuraGroupId)){
+						log.info("START GROUP_DELETE : " + grouperName);
+						if (grouperName.endsWith(deleteRole)){
+							groupAdapter.deleteGroup(nakamuraGroupId, grouperName);
+						}
+					}
+					else {
+						log.info(nakamuraGroupId + " does not exist.");
 					}
 					log.info("DONE GROUP_DELETE : " + grouperName);
 				}
 
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
-					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName);
 					String memberId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
-					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 
-					if (member != null
-							&& "person".equals(member.getTypeName())
+					if (member != null && "person".equals(member.getTypeName())
 							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
 
-						groupAdapter.addMembership(groupId, memberId);
+						if (groupAdapter.groupExists(nakamuraGroupId)) {
+							groupAdapter.addMembership(nakamuraGroupId, memberId);
+						}
+						else {
+							log.info(nakamuraGroupId + " does not exist. Cannot add membership");
+						}
 					}
 					else {
 						log.info("Ignoring this entry : invalid subject for membership add : " + member);
@@ -212,16 +220,19 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
-					String grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 					String memberId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
-					String groupId = groupIdAdapter.getGroupId(grouperName);
 					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 
 					if (member != null
 							&& "person".equals(member.getTypeName())
 							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
-						groupAdapter.deleteMembership(groupId, memberId);
+						if (groupAdapter.groupExists(nakamuraGroupId)) {
+							groupAdapter.deleteMembership(nakamuraGroupId, memberId);
+						}
+						else {
+							log.info(nakamuraGroupId + " does not exist. Cannot remove membership");
+						}
 					}
 					else {
 						log.info("Ignoring this entry : invalid subject for membership delete : " + member);

@@ -202,7 +202,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
@@ -223,7 +225,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		String groupId = "some_course-student";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 
 		assertFalse(consumer.ignoreChangelogEntry(entry));

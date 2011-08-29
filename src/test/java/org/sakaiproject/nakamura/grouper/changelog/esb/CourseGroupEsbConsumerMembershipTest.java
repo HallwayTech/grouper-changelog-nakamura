@@ -40,6 +40,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 	private ChangeLogEntry deleteEntry;
 
 	private String grouperName = "edu:apps:sakaiaoe:courses:some:course:students";
+	private String groupId = "some_course-student";
 	private String subjectId = "unittest123";
 
 	public void setUp(){
@@ -77,16 +78,17 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 	public void testAddMembershipSubjectNull() throws GroupModificationException{
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(null);
 
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-
 		verifyNoMoreInteractions(groupAdapter);
 	}
 
 	public void testAddMembershipSubjectIncludeExcludeSubGroup() throws GroupModificationException{
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(true);
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
 		Subject subject = mock(Subject.class);
@@ -102,6 +104,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 	public void testAddMembershipSubjectNotNull() throws GroupModificationException{
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
 		Subject subject = mock(Subject.class);
@@ -124,6 +127,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 	public void testDeleteMembershipSubjectIncludeExcludeSubGroup() throws GroupModificationException{
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(true);
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
 		Subject subject = mock(Subject.class);
@@ -138,6 +142,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 	public void testDeleteMembershipSubjectNotNull() throws GroupModificationException{
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
+		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(deleteEntry));
 
 		Subject subject = mock(Subject.class);
@@ -147,6 +152,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
 
+		verify(groupAdapter).groupExists(groupId);
 		verify(groupAdapter).deleteMembership("some_course-student", subjectId);
 	}
 }
