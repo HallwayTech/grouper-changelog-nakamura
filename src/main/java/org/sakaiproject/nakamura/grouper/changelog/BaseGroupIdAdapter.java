@@ -90,7 +90,9 @@ public abstract class BaseGroupIdAdapter {
 		roleMap = new HashMap<String,String>();
 		for(String map: StringUtils.split(propertyString, ",")){
 			String[] m = StringUtils.split(map.trim(), ":");
-			roleMap.put(m[0], m[1]);
+			if (m.length == 2){
+				roleMap.put(m[0], m[1]);
+			}
 		}
 	}
 
