@@ -57,16 +57,16 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 	 * Load up the configuration necessary to act on {@link ChangeLogEntry} objects.
 	 */
 	protected void loadConfiguration(String consumerName) {
-		if (configurationLoaded){
-			return;
-		}
-		super.loadConfiguration(consumerName);
-		try {
-			String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
+		String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
+		if (!configurationLoaded){
 			restrictionQuery = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_RESTRICTION_QUERY, true);
 			log.info("restrictionQuery = " + restrictionQuery);
 			dbProfile = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DB_PROFILE, DEFAULT_DB_PROFILE);
 			log.info("dbProfile = " + dbProfile);
+			super.loadConfiguration(consumerName);
+		}
+
+		try {
 			loadRestrictionTable();
 		}
 		catch (SQLException sqle){
