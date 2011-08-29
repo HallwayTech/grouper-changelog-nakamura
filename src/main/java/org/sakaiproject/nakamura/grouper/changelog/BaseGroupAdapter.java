@@ -167,7 +167,7 @@ public abstract class BaseGroupAdapter {
 		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + role + ")");
 		method.addParameter("sakai:pseudoGroup", "true");
 		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
-		method.setParameter("sakai:group-joinable", "yes");
+		method.setParameter("sakai:group-joinable", "no");
 		method.addParameter(GROUPER_NAME_PROP, groupName.substring(0, groupName.lastIndexOf(":") + 1 )
 											+ nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
 		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
