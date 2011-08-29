@@ -125,7 +125,6 @@ public abstract class BaseGroupAdapter {
 	 * @return if this group exists in Sakai OAE.
 	 */
 	public boolean groupExists(String groupId){
-		boolean exists = false;
 		if (dryrun){
 			return false;
 		}
@@ -144,7 +143,7 @@ public abstract class BaseGroupAdapter {
 			}
 		}
 		if (log.isDebugEnabled()){
-			log.debug(groupId + " exists: " + exists);
+			log.debug(groupId + " exists: " + existsInSakai.containsKey(groupId));
 		}
 		return existsInSakai.containsKey(groupId);
 	}
