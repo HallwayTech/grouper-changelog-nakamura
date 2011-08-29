@@ -96,7 +96,10 @@ public class NakamuraHttpUtils {
 			}
 
 			if(log.isDebugEnabled()){
-				log.debug(responseCode + " " + method.getName() + " " + method.getPath() + " reponse: " + responseString);
+				log.debug(responseCode + " " + method.getName() + " " + method.getPath());
+			}
+			if (log.isTraceEnabled()){
+				log.trace("reponse: " + responseString);
 			}
 
 			switch (responseCode){
