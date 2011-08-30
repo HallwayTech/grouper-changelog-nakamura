@@ -3,7 +3,6 @@ package org.sakaiproject.nakamura.grouper.changelog;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -62,9 +61,9 @@ public abstract class BaseHttpNakamuraManager {
 	protected boolean createUsers = false;
 
 	// Avoid multiple user exists and user create HTTP calls
-	protected Set<String> createdUsersCache;
+	protected Map<String,Boolean> userExistsInSakai;
 
-	protected Map<String,Boolean> existsInSakai;
+	protected Map<String,Boolean> groupExistsInSakai;
 
 	// Subject attributes for creating users
 	protected String firstNameAttribute;
@@ -81,8 +80,8 @@ public abstract class BaseHttpNakamuraManager {
 	protected GroupIdAdapter groupIdAdapter;
 
 	public BaseHttpNakamuraManager(){
-		createdUsersCache = new HashSet<String>();
-		existsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
+		userExistsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
+		groupExistsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
 	}
 
 	/**
@@ -128,13 +127,13 @@ public abstract class BaseHttpNakamuraManager {
 			return false;
 		}
 
-		if (!existsInSakai.containsKey(groupId)){
+		if (!groupExistsInSakai.containsKey(groupId)){
 			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 			GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
 			try {
 				if (client.executeMethod(method) == HttpStatus.SC_OK){
 					log.debug("Found " + groupId + " on " + url);
-					existsInSakai.put(groupId, Boolean.TRUE);
+					groupExistsInSakai.put(groupId, Boolean.TRUE);
 				}
 			}
 			catch (Exception e){
@@ -143,9 +142,9 @@ public abstract class BaseHttpNakamuraManager {
 			}
 		}
 		if (log.isDebugEnabled()){
-			log.debug(groupId + " exists: " + existsInSakai.containsKey(groupId));
+			log.debug(groupId + " exists: " + groupExistsInSakai.containsKey(groupId));
 		}
-		return existsInSakai.containsKey(groupId);
+		return groupExistsInSakai.containsKey(groupId);
 	}
 
 	/**
@@ -175,10 +174,13 @@ public abstract class BaseHttpNakamuraManager {
 		}
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		try {
+			// throws exception if not found or not unique
 			Subject subject = SubjectFinder.findByIdOrIdentifier(userId, true);
+
 			String randomPassword = UUID.randomUUID().toString();
 			PostMethod method = new PostMethod(url.toString() + USER_CREATE_URI);
 
+			// Get properties from the Grouper Subject
 			String firstName = subject.getAttributeValue(firstNameAttribute);
 			if (firstName == null){
 				firstName = "Firstname";
@@ -191,7 +193,8 @@ public abstract class BaseHttpNakamuraManager {
 			if (email == null){
 				email = userId + "@nyu.edu";
 			}
-			String profileTemplate = "\"{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"FIRSTNAME\"},\"lastName\":{\"value\":\"LASTNAME\"},\"email\":{\"value\":\"EMAIL\"}},\"access\":\"everybody\"},\"email\":\"EMAIL\"}\"}";
+			// Fill in the template
+			String profileTemplate = "{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"FIRSTNAME\"},\"lastName\":{\"value\":\"LASTNAME\"},\"email\":{\"value\":\"EMAIL\"}},\"access\":\"everybody\"},\"email\":\"EMAIL\"}}";
 			profileTemplate = profileTemplate.replaceAll("FIRSTNAME", firstName)
 								.replaceAll("LASTNAME", lastName)
 								.replaceAll("EMAIL", email);
@@ -207,7 +210,7 @@ public abstract class BaseHttpNakamuraManager {
 			method.addParameter(":sakai:profile-import", profileTemplate);
 
 			NakamuraHttpUtils.http(client, method);
-			createdUsersCache.add(userId);
+			userExistsInSakai.put(userId, Boolean.TRUE);
 			log.info("Created a user in Sakai OAE for " + userId);
 		}
 		catch (Exception e){
@@ -241,7 +244,7 @@ public abstract class BaseHttpNakamuraManager {
 
 	private boolean userExists(String userId){
 		boolean exists = false;
-		if (dryrun || createdUsersCache.contains(userId)){
+		if (dryrun || userExistsInSakai.containsKey(userId)){
 			exists = true;
 		}
 		if (!exists){
