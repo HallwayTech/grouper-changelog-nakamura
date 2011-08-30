@@ -229,6 +229,7 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 			try {
 				if (!dryrun){
 					NakamuraHttpUtils.http(client, method);
+					existsInSakai.remove(deleteId);
 				}
 			}
 			catch (GroupModificationException e) {

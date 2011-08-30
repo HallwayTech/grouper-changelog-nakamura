@@ -133,6 +133,7 @@ public abstract class BaseHttpNakamuraManager {
 			GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
 			try {
 				if (client.executeMethod(method) == HttpStatus.SC_OK){
+					log.debug("Found " + groupId + " on " + url);
 					existsInSakai.put(groupId, Boolean.TRUE);
 				}
 			}
