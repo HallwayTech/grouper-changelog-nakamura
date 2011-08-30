@@ -227,11 +227,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 					log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 				}
-
-				log.info("Finished the batch of " + entryCount + " entries : " +
-						changeLogEntryList.get(0).getSequenceNumber() + " - " +
-						changeLogEntryList.get(entryCount - 1).getSequenceNumber());
 			}
+			log.info("Finished the batch of " + entryCount + " entries : " +
+					changeLogEntryList.get(0).getSequenceNumber() + " - " +
+					changeLogEntryList.get(entryCount - 1).getSequenceNumber());
 		}
 		// Stop processing changelog entries.
 		catch (Exception e) {

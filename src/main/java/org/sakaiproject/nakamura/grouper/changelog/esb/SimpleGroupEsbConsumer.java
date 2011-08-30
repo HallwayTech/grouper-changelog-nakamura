@@ -191,11 +191,10 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 					log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 				}
-
-				log.info("Finished the batch of " + entryCount + " entries : " +
-						changeLogEntryList.get(0).getSequenceNumber() + " - " +
-						changeLogEntryList.get(entryCount - 1).getSequenceNumber());
 			}
+			log.info("Finished the batch of " + entryCount + " entries : " +
+					changeLogEntryList.get(0).getSequenceNumber() + " - " +
+					changeLogEntryList.get(entryCount - 1).getSequenceNumber());
 		}
 		catch (Exception e) {
 			changeLogProcessorMetadata.registerProblem(e, "Error processing record", currentId);
