@@ -25,8 +25,6 @@ import com.google.common.collect.MapMaker;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.exception.GrouperException;
 import edu.internet2.middleware.subject.Subject;
-import edu.internet2.middleware.subject.SubjectNotFoundException;
-import edu.internet2.middleware.subject.SubjectNotUniqueException;
 
 /**
  * Shared functionality for the GroupAdapter classes goes in here.
@@ -98,7 +96,7 @@ public abstract class BaseHttpNakamuraManager {
         method.addParameter(":viewer", memberId);
         method.addParameter(CHARSET_PARAM, UTF_8);
         if (createUsers){
-        	createOAEUser(memberId);
+        	createUser(memberId);
         }
         if (!dryrun){
             NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
@@ -164,55 +162,14 @@ public abstract class BaseHttpNakamuraManager {
 		log.info("Set " + groupId + " : "+ key + "=" + value);
 	}
 
-
-	protected void createPseudoGroup(String nakamuraGroupId, String groupName, String description) throws GroupModificationException {
-		String role = nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf('-') + 1);
-		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-		PostMethod method = new PostMethod(url + GROUP_CREATE_URI);
-		method.addParameter(":name", nakamuraGroupId);
-		method.addParameter(CHARSET_PARAM, UTF_8);
-		method.addParameter("sakai:group-id", nakamuraGroupId);
-		method.addParameter("sakai:excludeSearch", "true");
-		method.addParameter("sakai:group-description", description);
-		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + role + ")");
-		method.addParameter("sakai:pseudoGroup", "true");
-		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
-		method.setParameter("sakai:group-joinable", "no");
-		method.addParameter(GROUPER_NAME_PROP, groupName.substring(0, groupName.lastIndexOf(":") + 1 )
-											+ nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
-		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
-		if (!dryrun){
-            NakamuraHttpUtils.http(client, method);
-		}
-		log.info("Created pseudoGroup in OAE for " + nakamuraGroupId);
-	}
-
-	private boolean oaeUserExists(String userId){
-		boolean exists = false;
-		if (dryrun || createdUsersCache.contains(userId)){
-			exists = true;
-		}
-		if (!exists){
-			try {
-				HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-				int returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
-				exists = (returnCode == HttpStatus.SC_OK);
-			}
-			catch (IOException ioe){
-				log.error("Could not communicate with OAE to check if a user exists.");
-			}
-		}
-		return exists;
-	}
-
 	/**
 	 * Create a user in OAE if it doesn't exist.
 	 * @param userId
 	 * @throws Exception
 	 */
-	public void createOAEUser(String userId) throws GroupModificationException, UserModificationException {
+	public void createUser(String userId) throws UserModificationException {
 
-		if (dryrun || oaeUserExists(userId)){
+		if (dryrun || userExists(userId)){
 			return;
 		}
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
@@ -250,14 +207,51 @@ public abstract class BaseHttpNakamuraManager {
 			createdUsersCache.add(userId);
 			log.info("Created a user in Sakai OAE for " + userId);
 		}
-		catch (SubjectNotFoundException snfe){
-			log.error("Unable to create the user in Sakai OAE", snfe);
-			throw new UserModificationException(snfe.getMessage());
+		catch (Exception e){
+			log.error("Unable to create the user in Sakai OAE", e);
+			throw new UserModificationException(e.getMessage());
 		}
-		catch (SubjectNotUniqueException snue){
-			log.error("Unable to create the user in Sakai OAE", snue);
-			throw new UserModificationException(snue.getMessage());
+	}
+
+
+	protected void createPseudoGroup(String nakamuraGroupId, String groupName, String description) throws GroupModificationException {
+		String role = nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf('-') + 1);
+		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+		PostMethod method = new PostMethod(url + GROUP_CREATE_URI);
+		method.addParameter(":name", nakamuraGroupId);
+		method.addParameter(CHARSET_PARAM, UTF_8);
+		method.addParameter("sakai:group-id", nakamuraGroupId);
+		method.addParameter("sakai:excludeSearch", "true");
+		method.addParameter("sakai:group-description", description);
+		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + role + ")");
+		method.addParameter("sakai:pseudoGroup", "true");
+		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
+		method.setParameter("sakai:group-joinable", "no");
+		method.addParameter(GROUPER_NAME_PROP, groupName.substring(0, groupName.lastIndexOf(":") + 1 )
+											+ nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
+		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
+		if (!dryrun){
+            NakamuraHttpUtils.http(client, method);
 		}
+		log.info("Created pseudoGroup in OAE for " + nakamuraGroupId);
+	}
+
+	private boolean userExists(String userId){
+		boolean exists = false;
+		if (dryrun || createdUsersCache.contains(userId)){
+			exists = true;
+		}
+		if (!exists){
+			try {
+				HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+				int returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
+				exists = (returnCode == HttpStatus.SC_OK);
+			}
+			catch (IOException ioe){
+				log.error("Could not communicate with OAE to check if a user exists.");
+			}
+		}
+		return exists;
 	}
 
 	/**

@@ -82,7 +82,7 @@ public class BaseHttpNakamuraManagerTestCase extends TestCase {
 	@Test
 	public void testUserAlreadyExsists() throws HttpException, IOException, GroupModificationException, UserModificationException{
 		when(httpClient.executeMethod(any(HttpMethod.class))).thenReturn(200);
-		nakamuraManager.createOAEUser(userId);
+		nakamuraManager.createUser(userId);
 		verify(httpClient).executeMethod(any(GetMethod.class));
 		verifyNoMoreInteractions(httpClient);
 	}
@@ -91,7 +91,7 @@ public class BaseHttpNakamuraManagerTestCase extends TestCase {
 	public void testUserDoesntExsistInSakaiOrGrouper() throws HttpException, IOException, GroupModificationException, UserModificationException{
 		when(httpClient.executeMethod(any(HttpMethod.class))).thenReturn(404);
 		when(SubjectFinder.findByIdOrIdentifier(userId, true)).thenThrow(new SubjectNotFoundException("user1"));
-		nakamuraManager.createOAEUser(userId);
+		nakamuraManager.createUser(userId);
 		verify(httpClient, times(1)).executeMethod(any(HttpMethod.class));
 	}
 
@@ -104,7 +104,7 @@ public class BaseHttpNakamuraManagerTestCase extends TestCase {
 
 		when(SubjectFinder.findByIdOrIdentifier(userId, true)).thenReturn(user1);
 		whenNew(PostMethod.class).withArguments(url.toString() + BaseHttpNakamuraManager.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
-		nakamuraManager.createOAEUser(userId);
+		nakamuraManager.createUser(userId);
 		verify(httpClient, times(1)).executeMethod(any(HttpMethod.class));
 
 		verify(user1).getAttributeValue("givenName");
@@ -122,7 +122,7 @@ public class BaseHttpNakamuraManagerTestCase extends TestCase {
 		when(SubjectFinder.findByIdOrIdentifier(userId, true)).thenReturn(user1);
 		whenNew(PostMethod.class).withArguments(url.toString() + BaseHttpNakamuraManager.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
 		nakamuraManager.dryrun = true;
-		nakamuraManager.createOAEUser(userId);
+		nakamuraManager.createUser(userId);
 		verifyNoMoreInteractions(httpClient);
 	}
 }

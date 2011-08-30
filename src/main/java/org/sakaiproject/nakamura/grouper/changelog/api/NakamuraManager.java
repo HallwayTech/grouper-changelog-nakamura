@@ -16,12 +16,11 @@ public interface NakamuraManager {
 	public void createGroup(String groupName, String description) throws GroupModificationException;
 
 	/**
-	 * Delete a group from Sakai OAE
-	 * @param groupId the id of the group in OAE
-	 * @param groupName the full name of the group (includes stem)
-	 * @throws GroupModificationException
+	 * Create a user in Sakai OAE
+	 * @param userId the id of the User
+	 * @throws UserModificationException
 	 */
-	public void deleteGroup(String groupId, String groupName) throws GroupModificationException;
+	public void createUser(String userId) throws UserModificationException;
 
 	/**
 	 * Add a subject to a group.
@@ -30,6 +29,14 @@ public interface NakamuraManager {
 	 * @throws GroupModificationException
 	 */
 	public void addMembership(String groupId, String subjectId) throws GroupModificationException, UserModificationException;
+
+	/**
+	 * Delete a group from Sakai OAE
+	 * @param groupId the id of the group in OAE
+	 * @param groupName the full name of the group (includes stem)
+	 * @throws GroupModificationException
+	 */
+	public void deleteGroup(String groupId, String groupName) throws GroupModificationException;
 
 	/**
 	 * Remove a subject from a group.
