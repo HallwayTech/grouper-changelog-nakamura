@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -79,15 +80,15 @@ public class BaseGroupAdapterTestCase extends TestCase {
 	}
 
 	@Test
-	public void testUserAlreadyExsists() throws HttpException, IOException, GroupModificationException{
+	public void testUserAlreadyExsists() throws HttpException, IOException, GroupModificationException, UserModificationException{
 		when(httpClient.executeMethod(any(HttpMethod.class))).thenReturn(200);
 		groupAdapter.createOAEUser(userId);
 		verify(httpClient).executeMethod(any(GetMethod.class));
 		verifyNoMoreInteractions(httpClient);
 	}
 
-	@Test(expected=GroupModificationException.class)
-	public void testUserDoesntExsistInSakaiOrGrouper() throws HttpException, IOException, GroupModificationException{
+	@Test(expected=UserModificationException.class)
+	public void testUserDoesntExsistInSakaiOrGrouper() throws HttpException, IOException, GroupModificationException, UserModificationException{
 		when(httpClient.executeMethod(any(HttpMethod.class))).thenReturn(404);
 		when(SubjectFinder.findByIdOrIdentifier(userId, true)).thenThrow(new SubjectNotFoundException("user1"));
 		groupAdapter.createOAEUser(userId);

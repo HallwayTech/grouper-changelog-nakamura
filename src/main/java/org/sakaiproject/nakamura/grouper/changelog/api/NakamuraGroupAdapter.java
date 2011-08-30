@@ -1,6 +1,7 @@
 package org.sakaiproject.nakamura.grouper.changelog.api;
 
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 
 import edu.internet2.middleware.grouper.exception.GrouperException;
 
@@ -28,7 +29,7 @@ public interface NakamuraGroupAdapter {
 	 * @param subjectId the id of the subject being added
 	 * @throws GroupModificationException
 	 */
-	public void addMembership(String groupId, String subjectId) throws GroupModificationException;
+	public void addMembership(String groupId, String subjectId) throws GroupModificationException, UserModificationException;
 
 	/**
 	 * Remove a subject from a group.

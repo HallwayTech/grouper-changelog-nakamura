@@ -17,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
 import com.google.common.collect.MapMaker;
@@ -91,7 +92,7 @@ public abstract class BaseGroupAdapter {
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
 	 */
 	public void addMembership(String nakamuraGroupId, String memberId)
-			throws GroupModificationException {
+			throws GroupModificationException, UserModificationException {
         PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
         method.addParameter(":member", memberId);
         method.addParameter(":viewer", memberId);
@@ -186,78 +187,76 @@ public abstract class BaseGroupAdapter {
 		log.info("Created pseudoGroup in OAE for " + nakamuraGroupId);
 	}
 
+	private boolean oaeUserExists(String userId){
+		boolean exists = false;
+		if (dryrun || createdUsersCache.contains(userId)){
+			exists = true;
+		}
+		if (!exists){
+			try {
+				HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+				int returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
+				exists = (returnCode == HttpStatus.SC_OK);
+			}
+			catch (IOException ioe){
+				log.error("Could not communicate with OAE to check if a user exists.");
+			}
+		}
+		return exists;
+	}
+
 	/**
 	 * Create a user in OAE if it doesn't exist.
 	 * @param userId
 	 * @throws Exception
 	 */
-	protected void createOAEUser(String userId) throws GroupModificationException {
+	public void createOAEUser(String userId) throws GroupModificationException, UserModificationException {
 
-		boolean created = false;
-		if (dryrun || createdUsersCache.contains(userId)){
-			created = true;
+		if (dryrun || oaeUserExists(userId)){
+			return;
 		}
-
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+		try {
+			Subject subject = SubjectFinder.findByIdOrIdentifier(userId, true);
+			String randomPassword = UUID.randomUUID().toString();
+			PostMethod method = new PostMethod(url.toString() + USER_CREATE_URI);
 
-		if (created == false){
-			try {
-				int returnCode = client.executeMethod(new GetMethod(url.toString() + "/system/userManager/user/" + userId + ".json"));
-				if (returnCode == HttpStatus.SC_OK){
-					log.debug(userId + " already exists.");
-					created = true;
-				}
+			String firstName = subject.getAttributeValue(firstNameAttribute);
+			if (firstName == null){
+				firstName = "Firstname";
 			}
-			catch (IOException ioe){
-				log.error("Could not communicate with OAE to check if a user exists.");
-				return;
+			String lastName = subject.getAttributeValue(lastNameAttribute);
+			if (lastName == null){
+				lastName = "Lastname";
 			}
+			String email = subject.getAttributeValue(emailAttribute);
+			if (email == null){
+				email = userId + "@nyu.edu";
+			}
+			String profileTemplate = "\"{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"FIRSTNAME\"},\"lastName\":{\"value\":\"LASTNAME\"},\"email\":{\"value\":\"EMAIL\"}},\"access\":\"everybody\"},\"email\":\"EMAIL\"}\" -F \"timezone=America/New_York\" -F \"locale=en_US\"";
+			profileTemplate.replaceAll("FIRSTNAME", firstName);
+			profileTemplate.replaceAll("LASTNAME", lastName);
+			profileTemplate.replaceAll("EMAIL", email);
+
+			method.addParameter(":name", userId);
+			method.addParameter("pwd", randomPassword);
+			method.addParameter("pwdConfirm", randomPassword);
+			method.addParameter("firstName", firstName);
+			method.addParameter("lastName", lastName);
+			method.addParameter("email", email);
+			method.addParameter(":sakai:profile-import", profileTemplate);
+
+			NakamuraHttpUtils.http(client, method);
+			createdUsersCache.add(userId);
+			log.info("Created a user in Sakai OAE for " + userId);
 		}
-
-		if (created == false){
-			try {
-				Subject subject = SubjectFinder.findByIdOrIdentifier(userId, true);
-				String randomPassword = UUID.randomUUID().toString();
-				PostMethod method = new PostMethod(url.toString() + USER_CREATE_URI);
-
-				String firstName = subject.getAttributeValue(firstNameAttribute);
-				String lastName = subject.getAttributeValue(lastNameAttribute);
-				if (firstName == null){
-					firstName = "Firstname";
-				}
-
-				if (lastName == null){
-					lastName = "Lastname";
-				}
-				String email = subject.getAttributeValue(emailAttribute);
-				if (email == null){
-					email = userId + "@nyu.edu";
-				}
-				String profileTemplate = "\"{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"FIRSTNAME\"},\"lastName\":{\"value\":\"LASTNAME\"},\"email\":{\"value\":\"EMAIL\"}},\"access\":\"everybody\"},\"email\":\"EMAIL\"}\" -F \"timezone=America/New_York\" -F \"locale=en_US\"";
-				profileTemplate.replaceAll("FIRSTNAME", firstName);
-				profileTemplate.replaceAll("LASTNAME", lastName);
-				profileTemplate.replaceAll("EMAIL", email);
-
-				method.addParameter(":name", userId);
-				method.addParameter("pwd", randomPassword);
-				method.addParameter("pwdConfirm", randomPassword);
-				method.addParameter("firstName", firstName);
-				method.addParameter("lastName", lastName);
-				method.addParameter("email", email);
-
-				NakamuraHttpUtils.http(client, method);
-				createdUsersCache.add(userId);
-				log.info("Created a user in Sakai OAE for " + userId);
-				created = true;
-			}
-			catch (SubjectNotFoundException snfe){
-				log.error("Unable to create the user in Sakai OAE", snfe);
-				throw new GroupModificationException(snfe.getMessage());
-			}
-			catch (SubjectNotUniqueException snue){
-				log.error("Unable to create the user in Sakai OAE", snue);
-				throw new GroupModificationException(snue.getMessage());
-			}
+		catch (SubjectNotFoundException snfe){
+			log.error("Unable to create the user in Sakai OAE", snfe);
+			throw new UserModificationException(snfe.getMessage());
+		}
+		catch (SubjectNotUniqueException snue){
+			log.error("Unable to create the user in Sakai OAE", snue);
+			throw new UserModificationException(snue.getMessage());
 		}
 	}
 

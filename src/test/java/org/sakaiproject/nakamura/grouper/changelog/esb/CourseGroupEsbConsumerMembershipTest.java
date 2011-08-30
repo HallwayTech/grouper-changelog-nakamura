@@ -15,6 +15,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 
 import com.google.common.collect.ImmutableList;
 
@@ -102,7 +103,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		verifyNoMoreInteractions(groupAdapter);
 	}
 
-	public void testAddMembershipSubjectNotNull() throws GroupModificationException{
+	public void testAddMembershipSubjectNotNull() throws GroupModificationException, UserModificationException{
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
 		when(groupAdapter.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
