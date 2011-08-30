@@ -1,10 +1,7 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
-import java.util.Iterator;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -15,8 +12,6 @@ import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Provision Course Groups in Sakai OAE over HTTP according to the Grouper changelog.
@@ -218,7 +213,25 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 	    if (!dryrun){
             NakamuraHttpUtils.http(client, method);
 	    }
+
 		log.debug("Updated the visibilty and joinability.");
+
+		method = new PostMethod(url + "/~" + parentGroupId + "/docstructure");
+
+		method.setParameter(":operation", "import");
+		method.setParameter(":contentType", "json");
+		method.setParameter(":replace", "true");
+		method.setParameter(":replaceProperties", "true");
+		method.setParameter(CHARSET_PARAM, UTF_8);
+		JSONObject content = new JSONObject();
+		content.put("structure0", new JSONObject());
+		method.setParameter(":content", content.toString());
+		method.setParameter(CHARSET_PARAM, UTF_8);
+		if(!dryrun){
+			NakamuraHttpUtils.http(client, method);
+		}
+		log.debug("Imported the docstructure.");
+
 	    log.info("Successfully created the course in sakai for " + parentGroupId);
 	}
 
