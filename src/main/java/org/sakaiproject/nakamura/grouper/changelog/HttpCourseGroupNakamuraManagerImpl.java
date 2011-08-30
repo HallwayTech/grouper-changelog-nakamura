@@ -250,7 +250,7 @@ public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 			try {
 				if(!dryrun){
 					NakamuraHttpUtils.http(client, method);
-					existsInSakai.remove(deleteId);
+					groupExistsInSakai.remove(deleteId);
 				}
 			}
 			catch (GroupModificationException e) {
