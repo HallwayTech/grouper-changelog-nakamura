@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
 import com.google.common.collect.ImmutableList;
@@ -33,7 +33,7 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
 public class CourseTitleEsbConsumerTest extends TestCase {
 
 	private CourseTitleEsbConsumer consumer;
-	private HttpCourseAdapter groupAdapter;
+	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
 	private GroupIdAdapterImpl groupIdAdapter;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
@@ -42,13 +42,13 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 	private static final String INVALID_STEM = "edu:apps:sakaioae:courses:some:stem:extra";
 
 	public void setUp(){
-		groupAdapter = mock(HttpCourseAdapter.class);
+		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 
 		consumer = new CourseTitleEsbConsumer();
-		consumer.setGroupAdapter(groupAdapter);
+		consumer.setGroupManager(nakamuraManager);
 		consumer.setGroupIdAdapter(groupIdAdapter);
 		consumer.setConfigurationLoaded(true);
 		consumer.setSectionStemPattern(Pattern.compile("edu:apps:sakaioae:courses:([^:]+):([^:]+)"));
@@ -87,7 +87,7 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyChanged)).thenReturn("description");
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyNewValue)).thenReturn("newdescription");
-		when(groupAdapter.groupExists("some_course")).thenReturn(true);
+		when(nakamuraManager.groupExists("some_course")).thenReturn(true);
 		when(groupIdAdapter.getGroupId(VALID_STEM + ":students")).thenReturn("some_course-student");
 		when(groupIdAdapter.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
 		assertFalse(consumer.ignoreChangelogEntry(entry));
@@ -96,6 +96,6 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).setProperty("some_course", CourseTitleEsbConsumer.COURSE_TITLE_PROPERTY, "newdescription");
+		verify(nakamuraManager).setProperty("some_course", CourseTitleEsbConsumer.COURSE_TITLE_PROPERTY, "newdescription");
 	}
 }

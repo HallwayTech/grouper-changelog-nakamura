@@ -6,7 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
@@ -51,7 +51,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	private static Log log = LogFactory.getLog(CourseGroupEsbConsumer.class);
 
 	// The interface to the Sakai OAE server.
-	protected HttpCourseAdapter groupAdapter;
+	protected HttpCourseGroupNakamuraManagerImpl nakamuraManager;
 
 	// Translates grouper names to Sakai OAE course group ids.
 	protected GroupIdAdapterImpl groupIdAdapter;
@@ -92,18 +92,18 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
 		groupIdAdapter.setTemplateGroupIdAdapter(templateAdapter);
 
-		groupAdapter = new HttpCourseAdapter();
-		groupAdapter.setUrl(url);
-		groupAdapter.setUsername(username);
-		groupAdapter.setPassword(password);
-		groupAdapter.setGroupIdAdapter(groupIdAdapter);
-		groupAdapter.setCreateUsers(createUsers);
-		groupAdapter.setDryrun(dryrun);
-		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		nakamuraManager = new HttpCourseGroupNakamuraManagerImpl();
+		nakamuraManager.setUrl(url);
+		nakamuraManager.setUsername(username);
+		nakamuraManager.setPassword(password);
+		nakamuraManager.setGroupIdAdapter(groupIdAdapter);
+		nakamuraManager.setCreateUsers(createUsers);
+		nakamuraManager.setDryrun(dryrun);
+		nakamuraManager.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 
-		groupAdapter.setFirstNameAttribute(firstNameAttribute);
-		groupAdapter.setLastNameAttribute(lastNameAttribute);
-		groupAdapter.setEmailAttribute(emailAttribute);
+		nakamuraManager.setFirstNameAttribute(firstNameAttribute);
+		nakamuraManager.setLastNameAttribute(lastNameAttribute);
+		nakamuraManager.setEmailAttribute(emailAttribute);
 	}
 
 	@Override
@@ -144,7 +144,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 
 					// Create the OAE Course objects when the first role group is created.
-					if (!groupAdapter.groupExists(parentGroupId)){
+					if (!nakamuraManager.groupExists(parentGroupId)){
 						log.info("CREATE " + parentGroupId + " as parent of " + nakamuraGroupId);
 
 						// Special handling for inst:sis courses.
@@ -161,10 +161,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						if (description == null){
 							description = parentGroupId;
 						}
-						groupAdapter.createGroup(grouperName, description);
+						nakamuraManager.createGroup(grouperName, description);
 
 						if (StringUtils.trimToNull(addAdminAs) != null){
-							groupAdapter.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
+							nakamuraManager.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
 						}
 					}
 
@@ -172,10 +172,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 
 				if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-					if (groupAdapter.groupExists(nakamuraGroupId)){
+					if (nakamuraManager.groupExists(nakamuraGroupId)){
 						log.info("START GROUP_DELETE : " + grouperName);
 						if (grouperName.endsWith(deleteRole)){
-							groupAdapter.deleteGroup(nakamuraGroupId, grouperName);
+							nakamuraManager.deleteGroup(nakamuraGroupId, grouperName);
 						}
 					}
 					else {
@@ -192,8 +192,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					if (member != null && "person".equals(member.getTypeName())
 							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
 
-						if (groupAdapter.groupExists(nakamuraGroupId)) {
-							groupAdapter.addMembership(nakamuraGroupId, memberId);
+						if (nakamuraManager.groupExists(nakamuraGroupId)) {
+							nakamuraManager.addMembership(nakamuraGroupId, memberId);
 						}
 						else {
 							log.info(nakamuraGroupId + " does not exist. Cannot add membership");
@@ -214,8 +214,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 					if (member != null
 							&& "person".equals(member.getTypeName())
 							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
-						if (groupAdapter.groupExists(nakamuraGroupId)) {
-							groupAdapter.deleteMembership(nakamuraGroupId, memberId);
+						if (nakamuraManager.groupExists(nakamuraGroupId)) {
+							nakamuraManager.deleteMembership(nakamuraGroupId, memberId);
 						}
 						else {
 							log.info(nakamuraGroupId + " does not exist. Cannot remove membership");
@@ -286,7 +286,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	}
 
 	// Used by unit tests
-	public void setGroupAdapter(HttpCourseAdapter adapter){
-		this.groupAdapter = adapter;
+	public void setGroupManager(HttpCourseGroupNakamuraManagerImpl manager){
+		this.nakamuraManager = manager;
 	}
 }

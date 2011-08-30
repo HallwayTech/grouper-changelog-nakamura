@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 
@@ -35,7 +35,7 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
 public class CourseGroupEsbConsumerTest extends TestCase {
 
 	private CourseGroupEsbConsumer consumer;
-	private HttpCourseAdapter groupAdapter;
+	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
 	private GroupIdAdapterImpl groupIdAdapter;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
@@ -43,13 +43,13 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	private static final long SEQUENCE_NUMBER = 25;
 
 	public void setUp(){
-		groupAdapter = mock(HttpCourseAdapter.class);
+		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 
 		consumer = new CourseGroupEsbConsumer();
-		consumer.setGroupAdapter(groupAdapter);
+		consumer.setGroupManager(nakamuraManager);
 		consumer.setGroupIdAdapter(groupIdAdapter);
 		consumer.setConfigurationLoaded(true);
 		consumer.setPseudoGroupSuffixes("student, manager, member, ta, lecturer");
@@ -130,12 +130,12 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
 		when(groupIdAdapter.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
-		when(groupAdapter.groupExists("some_course")).thenReturn(false);
+		when(nakamuraManager.groupExists("some_course")).thenReturn(false);
 		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).createGroup(grouperName, "parent description");
+		verify(nakamuraManager).createGroup(grouperName, "parent description");
 	}
 
 	public void testAddGroupDefaultTitle() throws GroupModificationException{
@@ -164,10 +164,10 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.getPseudoGroupParent(groupId)).thenReturn(parentId);
 		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
-		when(groupAdapter.groupExists(parentId)).thenReturn(false);
+		when(nakamuraManager.groupExists(parentId)).thenReturn(false);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).createGroup(grouperName, parentId);
+		verify(nakamuraManager).createGroup(grouperName, parentId);
 	}
 
 	public void testAddGroupInstitutional() throws GroupModificationException{
@@ -194,11 +194,11 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_course-student");
 		when(groupIdAdapter.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
-		when(groupAdapter.groupExists("some_course")).thenReturn(false);
+		when(nakamuraManager.groupExists("some_course")).thenReturn(false);
 
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).createGroup(rewrittenGrouperName, "parent description");
+		verify(nakamuraManager).createGroup(rewrittenGrouperName, "parent description");
 	}
 
 	public void testDeleteGroupIsNotNull() throws GroupModificationException{
@@ -207,7 +207,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
-		when(groupAdapter.groupExists(groupId)).thenReturn(true);
+		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
@@ -222,7 +222,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).deleteGroup(groupId, grouperName);
+		verify(nakamuraManager).deleteGroup(groupId, grouperName);
 	}
 
 	public void testDeleteGroup() throws GroupModificationException{
@@ -230,7 +230,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		String groupId = "some_course-student";
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
-		when(groupAdapter.groupExists(groupId)).thenReturn(true);
+		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
@@ -245,7 +245,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).deleteGroup(groupId, grouperName);
+		verify(nakamuraManager).deleteGroup(groupId, grouperName);
 	}
 
 	public void testAddAdminAsLecturer() throws GroupModificationException, UserModificationException{
@@ -269,14 +269,14 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 		when(groupIdAdapter.getPseudoGroupParent(groupId)).thenReturn("some_course");
-		when(groupAdapter.groupExists("some_course")).thenReturn(false);
+		when(nakamuraManager.groupExists("some_course")).thenReturn(false);
 		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
 		consumer.addAdminAs = "lecturer";
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).createGroup(grouperName, "parent description");
-		verify(groupAdapter).addMembership("some_course-lecturer", "admin");
+		verify(nakamuraManager).createGroup(grouperName, "parent description");
+		verify(nakamuraManager).addMembership("some_course-lecturer", "admin");
 	}
 
 	public void testUserModificationExceptionStopsProcessing() throws GroupModificationException, UserModificationException{
@@ -300,17 +300,17 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 		when(groupIdAdapter.getPseudoGroupParent(groupId)).thenReturn("some_course");
-		when(groupAdapter.groupExists("some_course")).thenReturn(false);
+		when(nakamuraManager.groupExists("some_course")).thenReturn(false);
 		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
-		doThrow(new UserModificationException()).when(groupAdapter).addMembership("some_course-lecturer", "admin");
+		doThrow(new UserModificationException()).when(nakamuraManager).addMembership("some_course-lecturer", "admin");
 
 		consumer.addAdminAs = "lecturer";
 		consumer.createUsers = true;
 		long last = consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 		assertEquals(SEQUENCE_NUMBER - 1, last);
 
-		verify(groupAdapter).createGroup(grouperName, "parent description");
-		verify(groupAdapter).addMembership("some_course-lecturer", "admin");
+		verify(nakamuraManager).createGroup(grouperName, "parent description");
+		verify(nakamuraManager).addMembership("some_course-lecturer", "admin");
 	}
 }

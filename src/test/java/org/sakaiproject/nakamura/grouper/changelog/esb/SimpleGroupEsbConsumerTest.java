@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
 import com.google.common.collect.ImmutableList;
@@ -34,7 +34,7 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
 public class SimpleGroupEsbConsumerTest extends TestCase {
 
 	private SimpleGroupEsbConsumer consumer;
-	private HttpSimpleGroupAdapter groupAdapter;
+	private HttpSimpleGroupNakamuraManagerImpl nakamuraManager;
 	private GroupIdAdapterImpl groupIdAdapter;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
@@ -43,13 +43,13 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	private String groupId = "some_course-student";
 
 	public void setUp(){
-		groupAdapter = mock(HttpSimpleGroupAdapter.class);
+		nakamuraManager = mock(HttpSimpleGroupNakamuraManagerImpl.class);
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 
 		consumer = new SimpleGroupEsbConsumer();
-		consumer.setGroupAdapter(groupAdapter);
+		consumer.setGroupManager(nakamuraManager);
 		consumer.setGroupIdAdapter(groupIdAdapter);
 		consumer.setConfigurationLoaded(true);
 		consumer.setPseudoGroupSuffixes("manager, member");
@@ -125,14 +125,14 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 		when(groupIdAdapter.getPseudoGroupParent(groupId)).thenReturn("some_course");
-		when(groupAdapter.groupExists("some_course")).thenReturn(false);
+		when(nakamuraManager.groupExists("some_course")).thenReturn(false);
 		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).createGroup(grouperName, "parent description");
+		verify(nakamuraManager).createGroup(grouperName, "parent description");
 	}
 
 	public void testAddGroupInstitutional() throws GroupModificationException{
@@ -159,13 +159,13 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_simpleg-student");
 		when(groupIdAdapter.getPseudoGroupParent("some_simpleg-student")).thenReturn("some_course");
-		when(groupAdapter.groupExists("some_simpleg")).thenReturn(false);
+		when(nakamuraManager.groupExists("some_simpleg")).thenReturn(false);
 
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).createGroup(rewrittenGrouperName, "parent description");
+		verify(nakamuraManager).createGroup(rewrittenGrouperName, "parent description");
 	}
 
 	public void testDeleteGroupIsNotNull() throws GroupModificationException{
@@ -185,13 +185,13 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verifyNoMoreInteractions(groupAdapter);
+		verifyNoMoreInteractions(nakamuraManager);
 	}
 
 	public void testDeleteGroup() throws GroupModificationException{
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
-		when(groupAdapter.groupExists(groupId)).thenReturn(true);
+		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 
@@ -208,6 +208,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		consumer.setDeleteRole("students");
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(groupAdapter).deleteGroup(groupId, grouperName);
+		verify(nakamuraManager).deleteGroup(groupId, grouperName);
 	}
 }

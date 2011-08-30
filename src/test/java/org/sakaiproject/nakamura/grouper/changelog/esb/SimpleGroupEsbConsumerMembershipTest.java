@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 
@@ -34,7 +34,7 @@ import edu.internet2.middleware.subject.Subject;
 public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 
 	private SimpleGroupEsbConsumer consumer;
-	private HttpSimpleGroupAdapter groupAdapter;
+	private HttpSimpleGroupNakamuraManagerImpl nakamuraManager;
 	private GroupIdAdapterImpl groupIdAdapter;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry addEntry;
@@ -49,7 +49,7 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		suppress(method(GrouperUtil.class, "getLog"));
 		mockStatic(SubjectFinder.class);
 
-		groupAdapter = mock(HttpSimpleGroupAdapter.class);
+		nakamuraManager = mock(HttpSimpleGroupNakamuraManagerImpl.class);
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
@@ -59,7 +59,7 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 
 		consumer = new SimpleGroupEsbConsumer();
-		consumer.setGroupAdapter(groupAdapter);
+		consumer.setGroupManager(nakamuraManager);
 		consumer.setGroupIdAdapter(groupIdAdapter);
 		consumer.setConfigurationLoaded(true);
 		consumer.setPseudoGroupSuffixes("manager, member");
@@ -84,7 +84,7 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 
-		verifyNoMoreInteractions(groupAdapter);
+		verifyNoMoreInteractions(nakamuraManager);
 	}
 
 	public void testAddMembershipSubjectIncludeExcludeSubGroup() throws GroupModificationException{
@@ -99,11 +99,11 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 
-		verifyNoMoreInteractions(groupAdapter);
+		verifyNoMoreInteractions(nakamuraManager);
 	}
 
 	public void testAddMembershipSubjectNotNull() throws GroupModificationException, UserModificationException{
-		when(groupAdapter.groupExists(groupId)).thenReturn(true);
+		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
@@ -112,7 +112,7 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 
-		verify(groupAdapter).addMembership(groupId, subjectId);
+		verify(nakamuraManager).addMembership(groupId, subjectId);
 	}
 
 	/// ---- Delete Membership
@@ -122,7 +122,7 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(null);
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
 
-		verifyNoMoreInteractions(groupAdapter);
+		verifyNoMoreInteractions(nakamuraManager);
 	}
 
 	public void testDeleteMembershipSubjectIncludeExcludeSubGroup() throws GroupModificationException{
@@ -136,12 +136,12 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
 
-		verifyNoMoreInteractions(groupAdapter);
+		verifyNoMoreInteractions(nakamuraManager);
 	}
 
 	public void testDeleteMembershipSubjectNotNull() throws GroupModificationException{
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
-		when(groupAdapter.groupExists(groupId)).thenReturn(true);
+		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(deleteEntry));
 
 		Subject subject = mock(Subject.class);
@@ -151,6 +151,6 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
 
-		verify(groupAdapter).deleteMembership(groupId, subjectId);
+		verify(nakamuraManager).deleteMembership(groupId, subjectId);
 	}
 }

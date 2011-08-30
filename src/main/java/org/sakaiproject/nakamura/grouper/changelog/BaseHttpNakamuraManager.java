@@ -31,9 +31,9 @@ import edu.internet2.middleware.subject.SubjectNotUniqueException;
 /**
  * Shared functionality for the GroupAdapter classes goes in here.
  */
-public abstract class BaseGroupAdapter {
+public abstract class BaseHttpNakamuraManager {
 
-	private static Log log = LogFactory.getLog(BaseGroupAdapter.class);
+	private static Log log = LogFactory.getLog(BaseHttpNakamuraManager.class);
 
 	// URI for the OAE user and group management servlets.
 	protected static String USER_MANAGER_URI = "/system/userManager";
@@ -82,7 +82,7 @@ public abstract class BaseGroupAdapter {
 	// Convert grouper names to Sakai OAE groupIds
 	protected GroupIdAdapter groupIdAdapter;
 
-	public BaseGroupAdapter(){
+	public BaseHttpNakamuraManager(){
 		createdUsersCache = new HashSet<String>();
 		existsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
 	}

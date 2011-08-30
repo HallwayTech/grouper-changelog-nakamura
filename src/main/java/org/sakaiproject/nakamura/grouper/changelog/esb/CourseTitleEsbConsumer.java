@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 
@@ -28,7 +28,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	private Pattern sectionStemPattern;
 
 	// The interface to the SakaiOAE/nakamura server.
-	private HttpCourseAdapter groupAdapter;
+	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
 
 	// Convert grouper names to nakamura group ids
 	protected GroupIdAdapterImpl groupIdAdapter;
@@ -62,14 +62,14 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
 		groupIdAdapter.setTemplateGroupIdAdapter(tmplAdapter);
 
-		groupAdapter = new HttpCourseAdapter();
-		groupAdapter.setUrl(url);
-		groupAdapter.setUsername(username);
-		groupAdapter.setPassword(password);
-		groupAdapter.setGroupIdAdapter(groupIdAdapter);
-		groupAdapter.setCreateUsers(createUsers);
-		groupAdapter.setDryrun(dryrun);
-		groupAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		nakamuraManager = new HttpCourseGroupNakamuraManagerImpl();
+		nakamuraManager.setUrl(url);
+		nakamuraManager.setUsername(username);
+		nakamuraManager.setPassword(password);
+		nakamuraManager.setGroupIdAdapter(groupIdAdapter);
+		nakamuraManager.setCreateUsers(createUsers);
+		nakamuraManager.setDryrun(dryrun);
+		nakamuraManager.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 	}
 
 	@Override
@@ -100,9 +100,9 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 				log.info("Start STEM_UPDATE : " + stemName);
 				String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupIdAdapter.getGroupId(stemName + ":students"));
 
-				if (parentGroupId != null && groupAdapter.groupExists(parentGroupId)){
+				if (parentGroupId != null && nakamuraManager.groupExists(parentGroupId)){
 					String description = entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyNewValue);
-					groupAdapter.setProperty(parentGroupId, COURSE_TITLE_PROPERTY, description);
+					nakamuraManager.setProperty(parentGroupId, COURSE_TITLE_PROPERTY, description);
 				}
 				log.info("Finished STEM_UPDATE : " + stemName);
 			}
@@ -159,8 +159,8 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		this.sectionStemPattern = sectionStemPattern;
 	}
 
-	public void setGroupAdapter(HttpCourseAdapter groupAdapter) {
-		this.groupAdapter = groupAdapter;
+	public void setGroupManager(HttpCourseGroupNakamuraManagerImpl groupAdapter) {
+		this.nakamuraManager = groupAdapter;
 	}
 
 	public void setGroupIdAdapter(GroupIdAdapterImpl groupIdAdapter) {

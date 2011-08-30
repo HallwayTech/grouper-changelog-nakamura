@@ -43,9 +43,9 @@ import edu.internet2.middleware.subject.SubjectNotFoundException;
 @PrepareForTest(value = { GrouperUtil.class, GroupFinder.class,
 		GrouperSession.class, SubjectFinder.class,
 		NakamuraHttpUtils.class})
-public class BaseGroupAdapterTestCase extends TestCase {
+public class BaseHttpNakamuraManagerTestCase extends TestCase {
 
-	private HttpSimpleGroupAdapter groupAdapter;
+	private HttpSimpleGroupNakamuraManagerImpl nakamuraManager;
 
 	private HttpClient httpClient;
 
@@ -71,18 +71,18 @@ public class BaseGroupAdapterTestCase extends TestCase {
 		when(NakamuraHttpUtils.getHttpClient(any(URL.class), anyString(), anyString()))
 				.thenReturn(httpClient);
 
-		groupAdapter = new HttpSimpleGroupAdapter();
-		groupAdapter.createUsers = true;
-		groupAdapter.setUrl(url);
-		groupAdapter.emailAttribute = "email";
-		groupAdapter.firstNameAttribute = "givenName";
-		groupAdapter.lastNameAttribute = "sn";
+		nakamuraManager = new HttpSimpleGroupNakamuraManagerImpl();
+		nakamuraManager.createUsers = true;
+		nakamuraManager.setUrl(url);
+		nakamuraManager.emailAttribute = "email";
+		nakamuraManager.firstNameAttribute = "givenName";
+		nakamuraManager.lastNameAttribute = "sn";
 	}
 
 	@Test
 	public void testUserAlreadyExsists() throws HttpException, IOException, GroupModificationException, UserModificationException{
 		when(httpClient.executeMethod(any(HttpMethod.class))).thenReturn(200);
-		groupAdapter.createOAEUser(userId);
+		nakamuraManager.createOAEUser(userId);
 		verify(httpClient).executeMethod(any(GetMethod.class));
 		verifyNoMoreInteractions(httpClient);
 	}
@@ -91,7 +91,7 @@ public class BaseGroupAdapterTestCase extends TestCase {
 	public void testUserDoesntExsistInSakaiOrGrouper() throws HttpException, IOException, GroupModificationException, UserModificationException{
 		when(httpClient.executeMethod(any(HttpMethod.class))).thenReturn(404);
 		when(SubjectFinder.findByIdOrIdentifier(userId, true)).thenThrow(new SubjectNotFoundException("user1"));
-		groupAdapter.createOAEUser(userId);
+		nakamuraManager.createOAEUser(userId);
 		verify(httpClient, times(1)).executeMethod(any(HttpMethod.class));
 	}
 
@@ -103,8 +103,8 @@ public class BaseGroupAdapterTestCase extends TestCase {
 		when(user1.getAttributeValue("email")).thenReturn("EMAIL");
 
 		when(SubjectFinder.findByIdOrIdentifier(userId, true)).thenReturn(user1);
-		whenNew(PostMethod.class).withArguments(url.toString() + BaseGroupAdapter.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
-		groupAdapter.createOAEUser(userId);
+		whenNew(PostMethod.class).withArguments(url.toString() + BaseHttpNakamuraManager.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
+		nakamuraManager.createOAEUser(userId);
 		verify(httpClient, times(1)).executeMethod(any(HttpMethod.class));
 
 		verify(user1).getAttributeValue("givenName");
@@ -120,9 +120,9 @@ public class BaseGroupAdapterTestCase extends TestCase {
 		when(user1.getAttributeValue("email")).thenReturn("EMAIL");
 
 		when(SubjectFinder.findByIdOrIdentifier(userId, true)).thenReturn(user1);
-		whenNew(PostMethod.class).withArguments(url.toString() + BaseGroupAdapter.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
-		groupAdapter.dryrun = true;
-		groupAdapter.createOAEUser(userId);
+		whenNew(PostMethod.class).withArguments(url.toString() + BaseHttpNakamuraManager.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
+		nakamuraManager.dryrun = true;
+		nakamuraManager.createOAEUser(userId);
 		verifyNoMoreInteractions(httpClient);
 	}
 }

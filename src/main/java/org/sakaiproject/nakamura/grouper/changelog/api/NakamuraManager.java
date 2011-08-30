@@ -5,7 +5,7 @@ import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationEx
 
 import edu.internet2.middleware.grouper.exception.GrouperException;
 
-public interface NakamuraGroupAdapter {
+public interface NakamuraManager {
 
 	/**
 	 * Create a group in Sakai OAE

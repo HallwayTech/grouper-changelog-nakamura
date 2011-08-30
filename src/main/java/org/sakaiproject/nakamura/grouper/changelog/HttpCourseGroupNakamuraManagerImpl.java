@@ -8,7 +8,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
@@ -16,9 +16,9 @@ import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 /**
  * Provision Course Groups in Sakai OAE over HTTP according to the Grouper changelog.
  */
-public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroupAdapter {
+public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager implements NakamuraManager {
 
-	private Log log = LogFactory.getLog(HttpCourseAdapter.class);
+	private Log log = LogFactory.getLog(HttpCourseGroupNakamuraManagerImpl.class);
 
 	private static final String DEFAULT_COURSE_TEMPLATE = "mathcourse";
 

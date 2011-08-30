@@ -8,7 +8,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraGroupAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
@@ -23,9 +23,9 @@ import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
  *
  * @see edu.internet2.middleware.grouper.changelog.*
  */
-public class HttpSimpleGroupAdapter extends BaseGroupAdapter implements NakamuraGroupAdapter {
+public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager implements NakamuraManager {
 
-	private Log log = LogFactory.getLog(HttpSimpleGroupAdapter.class);
+	private Log log = LogFactory.getLog(HttpSimpleGroupNakamuraManagerImpl.class);
 
 	/**
 	 * Create the groups and supporting objects to make a Simple Group in the Sakai OAE UX. 
