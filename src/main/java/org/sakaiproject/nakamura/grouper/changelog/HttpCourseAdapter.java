@@ -222,10 +222,7 @@ public class HttpCourseAdapter extends BaseGroupAdapter implements NakamuraGroup
 		method.setParameter(":contentType", "json");
 		method.setParameter(":replace", "true");
 		method.setParameter(":replaceProperties", "true");
-		method.setParameter(CHARSET_PARAM, UTF_8);
-		JSONObject content = new JSONObject();
-		content.put("structure0", new JSONObject());
-		method.setParameter(":content", content.toString());
+		method.setParameter(":content", "{ \"structure0\":\"{}\"}");
 		method.setParameter(CHARSET_PARAM, UTF_8);
 		if(!dryrun){
 			NakamuraHttpUtils.http(client, method);
