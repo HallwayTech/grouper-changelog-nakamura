@@ -191,7 +191,7 @@ public abstract class BaseHttpNakamuraManager {
 			if (email == null){
 				email = userId + "@nyu.edu";
 			}
-			String profileTemplate = "\"{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"FIRSTNAME\"},\"lastName\":{\"value\":\"LASTNAME\"},\"email\":{\"value\":\"EMAIL\"}},\"access\":\"everybody\"},\"email\":\"EMAIL\"}\" -F \"timezone=America/New_York\" -F \"locale=en_US\"";
+			String profileTemplate = "\"{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"FIRSTNAME\"},\"lastName\":{\"value\":\"LASTNAME\"},\"email\":{\"value\":\"EMAIL\"}},\"access\":\"everybody\"},\"email\":\"EMAIL\"}\"}";
 			profileTemplate = profileTemplate.replaceAll("FIRSTNAME", firstName)
 								.replaceAll("LASTNAME", lastName)
 								.replaceAll("EMAIL", email);
@@ -202,6 +202,8 @@ public abstract class BaseHttpNakamuraManager {
 			method.addParameter("firstName", firstName);
 			method.addParameter("lastName", lastName);
 			method.addParameter("email", email);
+			method.addParameter("timezone", "America/New_York");
+			method.addParameter("locale", "en_US");
 			method.addParameter(":sakai:profile-import", profileTemplate);
 
 			NakamuraHttpUtils.http(client, method);
