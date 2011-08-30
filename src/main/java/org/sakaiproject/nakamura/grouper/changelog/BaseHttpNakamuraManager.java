@@ -192,9 +192,9 @@ public abstract class BaseHttpNakamuraManager {
 				email = userId + "@nyu.edu";
 			}
 			String profileTemplate = "\"{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"FIRSTNAME\"},\"lastName\":{\"value\":\"LASTNAME\"},\"email\":{\"value\":\"EMAIL\"}},\"access\":\"everybody\"},\"email\":\"EMAIL\"}\" -F \"timezone=America/New_York\" -F \"locale=en_US\"";
-			profileTemplate.replaceAll("FIRSTNAME", firstName);
-			profileTemplate.replaceAll("LASTNAME", lastName);
-			profileTemplate.replaceAll("EMAIL", email);
+			profileTemplate = profileTemplate.replaceAll("FIRSTNAME", firstName)
+								.replaceAll("LASTNAME", lastName)
+								.replaceAll("EMAIL", email);
 
 			method.addParameter(":name", userId);
 			method.addParameter("pwd", randomPassword);
