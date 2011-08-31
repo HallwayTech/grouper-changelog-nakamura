@@ -4,7 +4,6 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -230,37 +229,5 @@ public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 		log.debug("Imported the docstructure.");
 
 	    log.info("Successfully created the course in sakai for " + parentGroupId);
-	}
-
-	@Override
-	public void deleteGroup(String groupId, String groupName)
-			throws GroupModificationException {
-
-		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
-		log.info("Deleting course group " + parentGroupId);
-		String lecturerGroupId = parentGroupId + "-lecturer";
-		String taGroupId = parentGroupId + "-ta";
-		String studentGroupId = parentGroupId + "-student";
-
-		for (String deleteId: new String[] { lecturerGroupId, taGroupId, studentGroupId, parentGroupId }){
-			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-			PostMethod method = new PostMethod(url.toString() + getDeleteURI(deleteId));
-			method.addParameter(":operation", "delete");
-			method.addParameter("go", "1");
-			try {
-				if(!dryrun){
-					NakamuraHttpUtils.http(client, method);
-					groupExistsInSakai.remove(deleteId);
-				}
-			}
-			catch (GroupModificationException e) {
-				if (e.code != HttpStatus.SC_NOT_FOUND){
-					throw e;
-				}
-			}
-			log.info("Deleted " + deleteId);
-		}
-
-
 	}
 }

@@ -8,6 +8,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -70,7 +73,7 @@ public abstract class BaseHttpNakamuraManager {
 	protected String lastNameAttribute;
 	protected String emailAttribute;
 
-	// Sakai OAE psudeoGroup siffixes
+	// Sakai OAE pseudoGroup suffixes (lecturer, ta, student...)
 	protected Set<String> pseudoGroupSuffixes;
 
 	// Mock out calls to Sakai
@@ -129,20 +132,19 @@ public abstract class BaseHttpNakamuraManager {
 
 		if (!groupExistsInSakai.containsKey(groupId)){
 			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-			GetMethod method = new GetMethod(url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json");
+			String groupUrl = url.toString() + GROUP_PATH_PREFIX + "/" + groupId + ".json";
+			GetMethod method = new GetMethod(groupUrl);
 			try {
-				if (client.executeMethod(method) == HttpStatus.SC_OK){
-					log.debug("Found " + groupId + " on " + url);
+				int responseCode = client.executeMethod(method);
+				if (responseCode == HttpStatus.SC_OK){
 					groupExistsInSakai.put(groupId, Boolean.TRUE);
 				}
+				log.debug(responseCode + " : " + groupUrl);
 			}
 			catch (Exception e){
 				log.error(e.getMessage());
 				throw new GrouperException(e.getMessage());
 			}
-		}
-		if (log.isDebugEnabled()){
-			log.debug(groupId + " exists: " + groupExistsInSakai.containsKey(groupId));
 		}
 		return groupExistsInSakai.containsKey(groupId);
 	}
@@ -219,6 +221,48 @@ public abstract class BaseHttpNakamuraManager {
 		}
 	}
 
+	/**
+	 * Send a batch request to delete the group and its pseudoGroups
+	 * @param groupId id of the group or one of its pseudoGroups
+	 * @param groupName
+	 * @throws GroupModificationException
+	 */
+	public void deleteGroup(String groupId, String groupName) throws GroupModificationException {
+		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
+		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+
+		JSONArray batchRequests = new JSONArray();
+		// Add the delete requests for the parent group
+		JSONObject request = new JSONObject();
+		request.put("method", "POST");
+		request.put(CHARSET_PARAM, UTF_8);
+		request.put("url", getDeleteURI(parentGroupId));
+		JSONObject params = new JSONObject();
+		params.put(":operation", "delete");
+		request.put("parameters", params);
+		batchRequests.add(request);
+
+		// Add the delete requests for the pseudoGroups
+		for (String suffix: pseudoGroupSuffixes){
+			JSONObject psRequest = new JSONObject();
+			psRequest.put("method", "POST");
+			psRequest.put(CHARSET_PARAM, UTF_8);
+			psRequest.put("url", getDeleteURI(parentGroupId + "-" + suffix));
+			JSONObject psParams = new JSONObject();
+			psParams.put(":operation", "delete");
+			psParams.put("parameters", psParams);
+			batchRequests.add(psRequest);
+		}
+
+		PostMethod method = new PostMethod(url + BATCH_URI);
+		JSONArray json = JSONArray.fromObject(batchRequests);
+		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
+		method.setParameter(CHARSET_PARAM, UTF_8);
+
+		if (!dryrun){
+			NakamuraHttpUtils.http(client, method);
+		}
+	}
 
 	protected void createPseudoGroup(String nakamuraGroupId, String groupName, String description) throws GroupModificationException {
 		String role = nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf('-') + 1);

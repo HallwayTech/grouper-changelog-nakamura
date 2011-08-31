@@ -4,7 +4,6 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -209,35 +208,5 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 		}
 
 	    log.info("Done creating the Sakai OAE group " + parentGroupId);
-	}
-
-	/**
-	 * Delete a group from sakai3
-	 * curl -Fgo=1 http://localhost:8080/system/userManager/group/groupId.delete.json
-	 */
-	public void deleteGroup(String groupId, String groupName) throws GroupModificationException {
-
-		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
-		String memberPseudoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX;
-		String managerPseudoGroupId = parentGroupId + "-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX;
-
-		for (String deleteId: new String[] { memberPseudoGroupId, managerPseudoGroupId, parentGroupId }){
-			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-			PostMethod method = new PostMethod(url.toString() + getDeleteURI(deleteId));
-			method.addParameter(":operation", "delete");
-			method.addParameter("go", "1");
-			try {
-				if (!dryrun){
-					NakamuraHttpUtils.http(client, method);
-					groupExistsInSakai.remove(deleteId);
-				}
-			}
-			catch (GroupModificationException e) {
-				if (e.code != HttpStatus.SC_NOT_FOUND){
-					throw e;
-				}
-			}
-			log.info("Deleted " + deleteId + " for " + groupName);
-		}
 	}
 }
