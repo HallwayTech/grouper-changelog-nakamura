@@ -32,10 +32,10 @@ Clone this repository and use maven to build the jar.
 
     git clone URL
     cd grouper-changelog-nakamura
-    mvn clean install
-    mvn package -Dgrouper.custom.directory=/path/to/grouper/lib/custom
+    export GROUPER_HOME=/apps/grouper/
+    mvn clean package
 
-If you're not building on the same machine you'll be running the grouper loader on set grouper.custom.directory to any directory and copy the resulting jars to $GROUPER_HOME/lib/custom/
+If you're not building on the same machine you'll be running the grouper loader on set $GROUPER_HOME to any directory and copy the resulting jars to $GROUPER_HOME/lib/custom/ on your grouper server.
 
 Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER_HOME}/conf/grouper-loader.properties
 
