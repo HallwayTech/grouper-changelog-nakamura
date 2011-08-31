@@ -65,6 +65,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		nakamuraManager.setGroupIdAdapter(groupIdAdapter);
 		nakamuraManager.setDryrun(dryrun);
 		nakamuraManager.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		nakamuraManager.setDefaultEmailDomain(defaultEmailDomain);
 
 		nakamuraManager.setFirstNameAttribute(firstNameAttribute);
 		nakamuraManager.setLastNameAttribute(lastNameAttribute);

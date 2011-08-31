@@ -75,6 +75,9 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.simpleGroup.firstname.attribute = givenName
     changeLog.consumer.simpleGroup.lastname.attribute = sn
     changeLog.consumer.simpleGroup.email.attribute = email
+    # If no emaila attribute is found, the email will be set to:
+    # subjectId@${changeLog.consumer.simpleGroup.email.domain}
+    changeLog.consumer.simpleGroup.email.domain = example.edu
 
     changeLog.consumer.simpleGroup.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups
     changeLog.consumer.simpleGroup.adhoc.coursegroups.stem = edu:apps:sakaioae:adhoc:groups
@@ -136,6 +139,9 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseGroups.firstname.attribute = givenName
     changeLog.consumer.courseGroups.lastname.attribute = sn
     changeLog.consumer.courseGroups.email.attribute = email
+    # If no emaila attribute is found, the email will be set to:
+    # subjectId@${changeLog.consumer.simpleGroup.email.domain}
+    changeLog.consumer.courseGroups.email.domain = example.edu
 
     # Where the groups are in grouper
     changeLog.consumer.courseGroups.adhoc.simplegroups.stem = edu:apps:sakaioae:adhoc:simplegroups

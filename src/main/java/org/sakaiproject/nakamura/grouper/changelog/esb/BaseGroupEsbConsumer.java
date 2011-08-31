@@ -51,6 +51,9 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String PROP_LDAP_ATTRIBUTE_EMAIL = "email.attribute";
 	protected String emailAttribute;
 
+	public static final String PROP_DEFAULT_EMAIL_DOMAIN = "email.domain";
+	protected String defaultEmailDomain;
+
 	public static final String PROP_ALLOW_INSTITUTIONAL = "allow.institutional";
 	public static final boolean DEFAULT_ALLOW_INSTITUTIONAL = false;
 	protected boolean allowInstitutional = DEFAULT_ALLOW_INSTITUTIONAL;
@@ -112,8 +115,12 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("lastNameAttribute = " + lastNameAttribute);
 		emailAttribute = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_LDAP_ATTRIBUTE_EMAIL, false);
 		log.info("emailAttribute = " + emailAttribute);
+		defaultEmailDomain = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DEFAULT_EMAIL_DOMAIN, "example.edu");
+		log.info("defaultEmailDomain = " + defaultEmailDomain);
+
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PSEUDOGROUP_SUFFIXES, true));
 		log.info("pseudoGroupSuffixes = " + StringUtils.join(pseudoGroupSuffixes.iterator(), ","));
+
 		configurationLoaded = true;
 	}
 

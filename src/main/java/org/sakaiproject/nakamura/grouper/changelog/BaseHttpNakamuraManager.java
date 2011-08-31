@@ -82,6 +82,7 @@ public abstract class BaseHttpNakamuraManager {
 	protected String firstNameAttribute;
 	protected String lastNameAttribute;
 	protected String emailAttribute;
+	protected String defaultEmailDomain;
 
 	// Sakai OAE pseudoGroup suffixes (lecturer, ta, student...)
 	protected Set<String> pseudoGroupSuffixes;
@@ -203,7 +204,7 @@ public abstract class BaseHttpNakamuraManager {
 			}
 			String email = subject.getAttributeValue(emailAttribute);
 			if (email == null){
-				email = userId + "@nyu.edu";
+				email = userId + "@" + defaultEmailDomain;
 			}
 			// Fill in the template
 			String profileTemplate = "{\"basic\":{\"elements\":{\"firstName\":{\"value\":\"FIRSTNAME\"},\"lastName\":{\"value\":\"LASTNAME\"},\"email\":{\"value\":\"EMAIL\"}},\"access\":\"everybody\"},\"email\":\"EMAIL\"}}";
@@ -378,5 +379,9 @@ public abstract class BaseHttpNakamuraManager {
 
 	public void setGroupIdAdapter(GroupIdAdapter gia){
 		this.groupIdAdapter = gia;
+	}
+
+	public void setDefaultEmailDomain(String domain){
+		this.defaultEmailDomain = domain;
 	}
 }

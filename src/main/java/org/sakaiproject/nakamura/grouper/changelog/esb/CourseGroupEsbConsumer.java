@@ -104,6 +104,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		nakamuraManager.setFirstNameAttribute(firstNameAttribute);
 		nakamuraManager.setLastNameAttribute(lastNameAttribute);
 		nakamuraManager.setEmailAttribute(emailAttribute);
+		nakamuraManager.setDefaultEmailDomain(defaultEmailDomain);
 	}
 
 	@Override
