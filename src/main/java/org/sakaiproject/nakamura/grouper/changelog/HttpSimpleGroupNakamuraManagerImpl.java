@@ -94,11 +94,11 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 			JSONObject request = new JSONObject();
 			JSONObject params = new JSONObject();
 			// courseId-managerRoleName will be a manager of roleName
-			params.put(":manager", managerGroupId);
+			params.put(MANAGER_PARAM, managerGroupId);
 			params.put(CHARSET_PARAM, UTF_8);
-			request.put("url", GROUP_PATH_PREFIX + "/" + roleGroupId + ".update.json");
-			request.put("method", "POST");
-			request.put("parameters", params);
+			request.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + roleGroupId + ".update.json");
+			request.put(METHOD_PARAM, "POST");
+			request.put(PARAMETERS_PARAM, params);
 			request.put(CHARSET_PARAM, UTF_8);
 			batchPosts.add(request);
 		}
@@ -118,24 +118,24 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 
 		JSONObject req1 = new JSONObject();
 		JSONObject p1 = new JSONObject();
-		p1.put(":member", creator);
-		p1.put(":viewer", creator);
+		p1.put(MEMBER_PARAM, creator);
+		p1.put(VIEWER_PARAM, creator);
 		p1.put(CHARSET_PARAM, UTF_8);
-		req1.put("url", GROUP_PATH_PREFIX + "/" + managerGroupId + ".update.json");
-		req1.put("method", "POST");
-		req1.put("parameters", p1);
+		req1.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + managerGroupId + ".update.json");
+		req1.put(METHOD_PARAM, "POST");
+		req1.put(PARAMETERS_PARAM, p1);
 		req1.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req1);
 
 		for (String roleGroupId: new String[] { managerGroupId, memberGroupId }){
 			JSONObject request = new JSONObject();
 			JSONObject params = new JSONObject();
-			params.put(":member", roleGroupId);
-			params.put(":viewer", roleGroupId);
+			params.put(MEMBER_PARAM, roleGroupId);
+			params.put(VIEWER_PARAM, roleGroupId);
 			params.put(CHARSET_PARAM, UTF_8);
-			request.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
-			request.put("method", "POST");
-			request.put("parameters", params);
+			request.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
+			request.put(METHOD_PARAM, "POST");
+			request.put(PARAMETERS_PARAM, params);
 			request.put(CHARSET_PARAM, UTF_8);
 			batchPosts.add(request);
 		}
@@ -158,9 +158,9 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 		p1.put("sakai:group-visible", "public");
 		p1.put("sakai:group-joinable", "yes");
 		p1.put(CHARSET_PARAM, UTF_8);
-		req1.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
-		req1.put("method", "POST");
-		req1.put("parameters", p1);
+		req1.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
+		req1.put(METHOD_PARAM, "POST");
+		req1.put(PARAMETERS_PARAM, p1);
 		req1.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req1);
 
@@ -169,9 +169,9 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 		p2.put("principalId", "everyone");
 		p2.put("privilege@jcr:read", "granted");
 		p2.put(CHARSET_PARAM, UTF_8);
-		req2.put("url", "/~" + parentGroupId + ".modifyAce.html");
-		req2.put("method", "POST");
-		req2.put("parameters", p2);
+		req2.put(URL_PARAM, "/~" + parentGroupId + ".modifyAce.html");
+		req2.put(METHOD_PARAM, "POST");
+		req2.put(PARAMETERS_PARAM, p2);
 		req2.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req2);
 
@@ -180,9 +180,9 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 		p3.put("principalId", "anonymous");
 		p3.put("privilege@jcr:read", "granted");
 		p3.put(CHARSET_PARAM, UTF_8);
-		req3.put("url", "/~" + parentGroupId + ".modifyAce.html");
-		req3.put("method", "POST");
-		req3.put("parameters", p3);
+		req3.put(URL_PARAM, "/~" + parentGroupId + ".modifyAce.html");
+		req3.put(METHOD_PARAM, "POST");
+		req3.put(PARAMETERS_PARAM, p3);
 		req3.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req3);
 
@@ -196,7 +196,7 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 
 		method = new PostMethod(url + "/~" + parentGroupId + "/docstructure");
 
-		method.setParameter(":operation", "import");
+		method.setParameter(OPERATION_PARAM, "import");
 		method.setParameter(":contentType", "json");
 		method.setParameter(":replace", "true");
 		method.setParameter(":replaceProperties", "true");

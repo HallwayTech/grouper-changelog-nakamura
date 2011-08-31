@@ -105,11 +105,11 @@ public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 				request = new JSONObject();
 				params = new JSONObject();
 				// courseId-managerRoleName will be a manager of roleName
-				params.put(":manager", managerGroupId);
+				params.put(MANAGER_PARAM, managerGroupId);
 				params.put(CHARSET_PARAM, UTF_8);
-				request.put("url", GROUP_PATH_PREFIX + "/" + roleGroupId + ".update.json");
-				request.put("method", "POST");
-				request.put("parameters", params);
+				request.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + roleGroupId + ".update.json");
+				request.put(METHOD_PARAM, "POST");
+				request.put(PARAMETERS_PARAM, params);
 				request.put(CHARSET_PARAM, UTF_8);
 				batchPosts.add(request);
 			}
@@ -117,11 +117,11 @@ public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 			// managerGroupId will be a manager of courseId
 			request = new JSONObject();
 			params = new JSONObject();
-			params.put(":manager", managerGroupId);
+			params.put(MANAGER_PARAM, managerGroupId);
 			params.put(CHARSET_PARAM, UTF_8);
-			request.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
-			request.put("method", "POST");
-			request.put("parameters", params);
+			request.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
+			request.put(METHOD_PARAM, "POST");
+			request.put(PARAMETERS_PARAM, params);
 			request.put(CHARSET_PARAM, UTF_8);
 			batchPosts.add(request);
 		}
@@ -141,35 +141,35 @@ public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 
 	    JSONObject req1 = new JSONObject();
 		JSONObject p1 = new JSONObject();
-		p1.put(":member", creator);
-		p1.put(":viewer", creator);
+		p1.put(MEMBER_PARAM, creator);
+		p1.put(VIEWER_PARAM, creator);
 		p1.put(CHARSET_PARAM, UTF_8);
-		req1.put("url", GROUP_PATH_PREFIX + "/" + lecturerGroupId + ".update.json");
-		req1.put("method", "POST");
-		req1.put("parameters", p1);
+		req1.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + lecturerGroupId + ".update.json");
+		req1.put(METHOD_PARAM, "POST");
+		req1.put(PARAMETERS_PARAM, p1);
 		req1.put(CHARSET_PARAM, UTF_8);
 		batchPosts.add(req1);
 
 		for (String roleGroupId: new String[] { studentGroupId, taGroupId, lecturerGroupId }){
 			JSONObject request = new JSONObject();
 			JSONObject params = new JSONObject();
-			params.put(":member", roleGroupId);
-			params.put(":viewer", roleGroupId);
+			params.put(MEMBER_PARAM, roleGroupId);
+			params.put(VIEWER_PARAM, roleGroupId);
 			params.put(CHARSET_PARAM, UTF_8);
-			request.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
-			request.put("method", "POST");
-			request.put("parameters", params);
+			request.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + parentGroupId + ".update.json");
+			request.put(METHOD_PARAM, "POST");
+			request.put(PARAMETERS_PARAM, params);
 			request.put(CHARSET_PARAM, UTF_8);
 			batchPosts.add(request);
 		}
 		for (String roleName: new String[] { "ta", "lecturer" }){
 			JSONObject request = new JSONObject();
 			JSONObject params = new JSONObject();
-			params.put(":viewer", parentGroupId + "-student");
+			params.put(VIEWER_PARAM, parentGroupId + "-student");
 			params.put(CHARSET_PARAM, UTF_8);
-			request.put("url", GROUP_PATH_PREFIX + "/" + parentGroupId + "-" + roleName + ".update.json");
-			request.put("method", "POST");
-			request.put("parameters", params);
+			request.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + parentGroupId + "-" + roleName + ".update.json");
+			request.put(METHOD_PARAM, "POST");
+			request.put(PARAMETERS_PARAM, params);
 			request.put(CHARSET_PARAM, UTF_8);
 			batchPosts.add(req1);
 		}
@@ -192,15 +192,15 @@ public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 		for (String gId : parentAndPsuedoGroupIds){
 			JSONObject request = new JSONObject();
 			JSONObject params = new JSONObject();
-			params.put(":viewer", parentGroupId);
-			params.put(":viewer@Delete", everyoneAnonymous);
+			params.put(VIEWER_PARAM, parentGroupId);
+			params.put(VIEWER_DELETE_PARAM, everyoneAnonymous);
 			params.put("sakai:group-visible","members-only");
 			params.put("sakai:group-joinable","no");
 			params.put(CHARSET_PARAM, UTF_8);
 
-			request.put("url", GROUP_PATH_PREFIX + "/" + gId + ".update.json");
-			request.put("method", "POST");
-			request.put("parameters", params);
+			request.put(URL_PARAM, GROUP_PATH_PREFIX + "/" + gId + ".update.json");
+			request.put(METHOD_PARAM, "POST");
+			request.put(PARAMETERS_PARAM, params);
 			request.put(CHARSET_PARAM, UTF_8);
 			batchPosts.add(request);
 		}
@@ -217,7 +217,7 @@ public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 
 		method = new PostMethod(url + "/~" + parentGroupId + "/docstructure");
 
-		method.setParameter(":operation", "import");
+		method.setParameter(OPERATION_PARAM, "import");
 		method.setParameter(":contentType", "json");
 		method.setParameter(":replace", "true");
 		method.setParameter(":replaceProperties", "true");

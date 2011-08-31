@@ -36,20 +36,30 @@ public abstract class BaseHttpNakamuraManager {
 	private static Log log = LogFactory.getLog(BaseHttpNakamuraManager.class);
 
 	// URI for the OAE user and group management servlets.
-	protected static String USER_MANAGER_URI = "/system/userManager";
-	protected static String GROUP_CREATE_URI = USER_MANAGER_URI + "/group.create.json";
-	protected static String GROUP_PATH_PREFIX = USER_MANAGER_URI + "/group";
-	protected static final String USER_CREATE_URI = USER_MANAGER_URI + "/user.create.json";
+	public static String USER_MANAGER_URI = "/system/userManager";
+	public static String GROUP_CREATE_URI = USER_MANAGER_URI + "/group.create.json";
+	public static String GROUP_PATH_PREFIX = USER_MANAGER_URI + "/group";
+	public static final String USER_CREATE_URI = USER_MANAGER_URI + "/user.create.json";
 
 	// Nakamura Batch servlet takes a JSONArray of JSONObjects that each represent a request
-	protected static final String BATCH_URI         = "/system/batch";
-	protected static final String BATCH_REQUESTS_PARAM = "requests";
+	public static final String BATCH_URI         = "/system/batch";
+	public static final String BATCH_REQUESTS_PARAM = "requests";
+	public static final String PARAMETERS_PARAM = "parameters";
 
-	protected static final String CHARSET_PARAM = "_charset_";
-	protected static final String UTF_8 = "utf-8";
+	public static final String URL_PARAM = "url";
+	public static final String OPERATION_PARAM = ":operation";
+	public static final String METHOD_PARAM = "method";
+	public static final String VIEWER_PARAM = ":viewer";
+	public static final String MEMBER_PARAM = ":member";
+	public static final String MANAGER_PARAM = ":member";
+	public static final String VIEWER_DELETE_PARAM = ":viewer@Delete";
+	public static final String MEMBER_DELETE_PARAM = ":member@Delete";
+
+	public static final String CHARSET_PARAM = "_charset_";
+	public static final String UTF_8 = "utf-8";
 
 	// Creates new files
-	protected static final String CREATE_FILE_URI   = "/system/pool/createfile";
+	public static final String CREATE_FILE_URI   = "/system/pool/createfile";
 
 	// Properties stored on authorizables in Sakai OAE
 	public static final String GROUPER_NAME_PROP = "grouper:name";
@@ -94,8 +104,8 @@ public abstract class BaseHttpNakamuraManager {
 	public void addMembership(String nakamuraGroupId, String memberId)
 			throws GroupModificationException, UserModificationException {
         PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
-        method.addParameter(":member", memberId);
-        method.addParameter(":viewer", memberId);
+        method.addParameter(MEMBER_PARAM, memberId);
+        method.addParameter(VIEWER_PARAM, memberId);
         method.addParameter(CHARSET_PARAM, UTF_8);
         if (createUsers){
         	createUser(memberId);
@@ -113,8 +123,8 @@ public abstract class BaseHttpNakamuraManager {
 	public void deleteMembership(String nakamuraGroupId, String memberId)
 			throws GroupModificationException {
         PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
-        method.addParameter(":member@Delete", memberId);
-        method.addParameter(":viewer@Delete", memberId);
+        method.addParameter(MEMBER_DELETE_PARAM, memberId);
+        method.addParameter(VIEWER_DELETE_PARAM, memberId);
         method.addParameter(CHARSET_PARAM, UTF_8);
         if (!dryrun){
             NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
@@ -234,23 +244,23 @@ public abstract class BaseHttpNakamuraManager {
 		JSONArray batchRequests = new JSONArray();
 		// Add the delete requests for the parent group
 		JSONObject request = new JSONObject();
-		request.put("method", "POST");
+		request.put(METHOD_PARAM, "POST");
 		request.put(CHARSET_PARAM, UTF_8);
-		request.put("url", getDeleteURI(parentGroupId));
+		request.put(URL_PARAM, getDeleteURI(parentGroupId));
 		JSONObject params = new JSONObject();
-		params.put(":operation", "delete");
-		request.put("parameters", params);
+		params.put(OPERATION_PARAM, "delete");
+		request.put(PARAMETERS_PARAM, params);
 		batchRequests.add(request);
 
 		// Add the delete requests for the pseudoGroups
 		for (String suffix: pseudoGroupSuffixes){
 			JSONObject psRequest = new JSONObject();
-			psRequest.put("method", "POST");
+			psRequest.put(METHOD_PARAM, "POST");
 			psRequest.put(CHARSET_PARAM, UTF_8);
-			psRequest.put("url", getDeleteURI(parentGroupId + "-" + suffix));
+			psRequest.put(URL_PARAM, getDeleteURI(parentGroupId + "-" + suffix));
 			JSONObject psParams = new JSONObject();
-			psParams.put(":operation", "delete");
-			psParams.put("parameters", psParams);
+			psParams.put(OPERATION_PARAM, "delete");
+			psParams.put(PARAMETERS_PARAM, psParams);
 			batchRequests.add(psRequest);
 		}
 
