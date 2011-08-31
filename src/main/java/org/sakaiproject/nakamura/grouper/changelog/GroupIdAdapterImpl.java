@@ -83,11 +83,6 @@ public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAda
 
 	}
 
-	@Override
-	public String getPseudoGroupParent(String nakamuraGroupId){
-		return templateGroupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
-	}
-
 	protected boolean isAdhoc(String grouperName){
 		if (grouperName != null){
 			return grouperName.startsWith(adhocCourseGroupsStem) ||
