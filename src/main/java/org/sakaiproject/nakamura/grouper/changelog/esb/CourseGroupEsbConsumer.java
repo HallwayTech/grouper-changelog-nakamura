@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
@@ -199,6 +200,18 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						else {
 							log.info(nakamuraGroupId + " does not exist. Cannot add membership");
 						}
+
+						// When a user is added to inst:sis:course:G:ROLE,
+						// Remove them from app:atlas:provisioned:course:G:ROLE_excludes
+						if (groupIdAdapter.isInstitutional(grouperName)){
+							String excludesGroupName = grouperName.replaceFirst(
+									groupIdAdapter.getInstitutionalCourseGroupsStem(),
+									groupIdAdapter.getProvisionedCourseGroupsStem()) + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
+							Group excludesGroup = GroupFinder.findByName(getGrouperSession(), excludesGroupName, false);
+							if (excludesGroup != null && excludesGroup.hasMember(member)){
+								excludesGroup.deleteMember(member);
+							}
+						}
 					}
 					else {
 						log.info("Ignoring this entry : invalid subject for membership add : " + member);
@@ -220,6 +233,19 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						}
 						else {
 							log.info(nakamuraGroupId + " does not exist. Cannot remove membership");
+						}
+
+						// When a user is removed from inst:sis:course:G:ROLE,
+						// Remove them from app:atlas:provisioned:course:G:ROLE_includes
+						if (groupIdAdapter.isInstitutional(grouperName)){
+							String includesGroupName = grouperName.replaceFirst(
+								groupIdAdapter.getInstitutionalCourseGroupsStem(),
+								groupIdAdapter.getProvisionedCourseGroupsStem()) + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+
+							Group includesGroup = GroupFinder.findByName(getGrouperSession(), includesGroupName, false);
+							if (includesGroup != null && includesGroup.hasMember(member)){
+								includesGroup.deleteMember(member);
+							}
 						}
 					}
 					else {

@@ -34,22 +34,22 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 	private GroupIdAdapterImpl groupIdAdapter;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
-	
+
 	private static final String[] ENABLED_STEMS = new String[] {
 		"edu:apps:sakai:courses:FA11:SOMETHING.*",
-		"inst:sis:courses:.*", 
+		"inst:sis:courses:.*",
 		"edu:apps:sakai:courses:FA11:SOMETHING:ELSE.*",
 	};
 
 	public void setUp(){
-		
+
 		suppress(method(GrouperUtil.class, "getLog"));
-		
+
 		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
-		
+
 		entry = mock(ChangeLogEntry.class);
 
 		consumer = new RestrictedCourseGroupEsbConsumer();
@@ -59,7 +59,7 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 
 		List<String> enabledStems = Arrays.asList(ENABLED_STEMS);
 		consumer.setEnabledStems(enabledStems);
-		
+
 	}
 
 	public void testSortedByLength(){
@@ -83,7 +83,7 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 		prepEntry(grouperName);
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 	}
-	
+
 	public void testIgnoreNotInRestrictionTable(){
 		String[] invalidNames = new String[] {"edu:apps:sakai:courses:FA11", "edu", "inst:sis", "unknown", "", null};
 		for (String invalid : invalidNames){

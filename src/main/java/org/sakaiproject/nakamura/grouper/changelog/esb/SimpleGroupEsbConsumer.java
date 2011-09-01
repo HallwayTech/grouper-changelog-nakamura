@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
@@ -111,7 +112,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					}
 					Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 
-					if (group != null) {
+					if (group != null && !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)) {
 						// Create the OAE Course objects when the first role group is created.
 						if (!nakamuraManager.groupExists(parentGroupId)){
 
@@ -154,14 +155,26 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
 					log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
 
-					if (member != null && "person".equals(member.getTypeName())
-							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
+					if (member != null && "person".equals(member.getTypeName())) {
 
-						if (nakamuraManager.groupExists(nakamuraGroupId)) {
+						if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName)
+								&& nakamuraManager.groupExists(nakamuraGroupId)) {
 							nakamuraManager.addMembership(nakamuraGroupId, memberId);
 						}
 						else {
 							log.info(nakamuraGroupId + " does not exist. Cannot add membership");
+						}
+
+						// When a user is added to inst:sis:course:G:ROLE,
+						// Remove them from app:atlas:provisioned:course:G:ROLE_excludes
+						if (groupIdAdapter.isInstitutional(grouperName)){
+							String excludesGroupName = grouperName.replaceFirst(
+									groupIdAdapter.getInstitutionalSimpleGroupsStem(),
+									groupIdAdapter.getProvisionedSimpleGroupsStem()) + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
+							Group excludesGroup = GroupFinder.findByName(getGrouperSession(), excludesGroupName, false);
+							if (excludesGroup != null && excludesGroup.hasMember(member)){
+								excludesGroup.deleteMember(member);
+							}
 						}
 					}
 					else {
@@ -176,14 +189,27 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 					Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
 					log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 
-					if (member != null
-							&& "person".equals(member.getTypeName())
-							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
-						if (nakamuraManager.groupExists(nakamuraGroupId)) {
+					if (member != null && "person".equals(member.getTypeName())){
+
+						if (!groupIdAdapter.isIncludeExcludeSubGroup(grouperName)
+								&& nakamuraManager.groupExists(nakamuraGroupId)) {
 							nakamuraManager.deleteMembership(nakamuraGroupId, memberId);
 						}
 						else {
 							log.info(nakamuraGroupId + " does not exist. Cannot remove membership");
+						}
+
+						// When a user is removed from inst:sis:course:G:ROLE,
+						// Remove them from app:atlas:provisioned:course:G:ROLE_includes
+						if (groupIdAdapter.isInstitutional(grouperName)){
+							String includesGroupName = grouperName.replaceFirst(
+								groupIdAdapter.getInstitutionalSimpleGroupsStem(),
+								groupIdAdapter.getProvisionedSimpleGroupsStem()) + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+
+							Group includesGroup = GroupFinder.findByName(getGrouperSession(), includesGroupName, false);
+							if (includesGroup != null && includesGroup.hasMember(member)){
+								includesGroup.deleteMember(member);
+							}
 						}
 					}
 					else {
@@ -192,10 +218,10 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 					log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
 				}
+				log.info("Finished the batch of " + entryCount + " entries : " +
+						changeLogEntryList.get(0).getSequenceNumber() + " - " +
+						changeLogEntryList.get(entryCount - 1).getSequenceNumber());
 			}
-			log.info("Finished the batch of " + entryCount + " entries : " +
-					changeLogEntryList.get(0).getSequenceNumber() + " - " +
-					changeLogEntryList.get(entryCount - 1).getSequenceNumber());
 		}
 		catch (Exception e) {
 			changeLogProcessorMetadata.registerProblem(e, "Error processing record", currentId);
