@@ -51,7 +51,7 @@ public abstract class BaseHttpNakamuraManager {
 	public static final String METHOD_PARAM = "method";
 	public static final String VIEWER_PARAM = ":viewer";
 	public static final String MEMBER_PARAM = ":member";
-	public static final String MANAGER_PARAM = ":member";
+	public static final String MANAGER_PARAM = ":manager";
 	public static final String VIEWER_DELETE_PARAM = ":viewer@Delete";
 	public static final String MEMBER_DELETE_PARAM = ":member@Delete";
 
