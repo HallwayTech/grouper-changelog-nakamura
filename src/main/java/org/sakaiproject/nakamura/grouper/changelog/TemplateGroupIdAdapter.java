@@ -58,7 +58,13 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 			return null;
 		}
 
-		String nakamuraGroupId = applyTemplate(grouperName);
+		String nakamuraGroupId;
+		try {
+			nakamuraGroupId = applyTemplate(grouperName);
+		} catch (Exception e) {
+			log.error(e);
+			return null;
+		}
 		String originalExtension = grouperName.substring(grouperName.lastIndexOf(':') + 1);
 
 		// If the groupername ends in one of the include/exclude groups we remove that suffix.
@@ -88,12 +94,13 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 	 * Create the course Id for OAE from the grouperName
 	 * @param grouperName
 	 * @return
+	 * @throws Exception 
 	 */
-	private String applyTemplate(String grouperName){
+	private String applyTemplate(String grouperName) throws Exception{
 		Matcher matcher = pattern.matcher(grouperName);
 
 		if (!matcher.find()){
-			throw new RuntimeException(grouperName + " does not match the regex in ");
+			throw new Exception(grouperName + " does not match the regex in ");
 		}
 		String[] g = new String[matcher.groupCount()];
 		for (int i = 1; i <= matcher.groupCount(); i++){
