@@ -2,6 +2,7 @@ package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -25,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
@@ -53,7 +55,11 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 	private String groupId = "some_course-student";
 	private static final String subjectId = "unittest123";
 
+	private static final long SEQUENCE_NUMBER = 25;
+
 	private Subject subject;
+	private GrouperSession session;
+	private Stem stem;
 
 	public void setUp(){
 		// Static stuff
@@ -62,7 +68,10 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		mockStatic(GroupFinder.class);
 		mockStatic(GrouperSession.class);
 
-		when(GrouperSession.startRootSession()).thenReturn(mock(GrouperSession.class));
+		session = mock(GrouperSession.class);
+		stem = mock(Stem.class);
+
+		when(GrouperSession.startRootSession()).thenReturn(session);
 
 		subject = mock(Subject.class);
 		when(subject.getTypeName()).thenReturn("person");
@@ -72,6 +81,9 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
+
+		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
+		when(groupIdAdapter.getPseudoGroupParent(groupId)).thenReturn("some_course");
 
 		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
@@ -92,11 +104,13 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(addEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(grouperName);
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId)).thenReturn(subjectId);
+		when(addEntry.getSequenceNumber()).thenReturn(SEQUENCE_NUMBER);
 
 		deleteEntry = mock(ChangeLogEntry.class);
 		when(deleteEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(true);
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(grouperName);
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId)).thenReturn(subjectId);
+		when(deleteEntry.getSequenceNumber()).thenReturn(SEQUENCE_NUMBER);
 	}
 
 	/// ---- Add Membership
@@ -116,8 +130,6 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
-		Subject subject = mock(Subject.class);
-		when(subject.getTypeName()).thenReturn("person");
 		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
 
 		// Prevent GrouperLoaderConfig from staticing the test up
@@ -132,8 +144,6 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
-		Subject subject = mock(Subject.class);
-		when(subject.getTypeName()).thenReturn("person");
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 
@@ -155,7 +165,6 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 		Group provisionedExcludesGroup = mock(Group.class);
 		when(GroupFinder.findByName(any(GrouperSession.class), eq(provExcludesName), eq(false))).thenReturn(provisionedExcludesGroup);
-
 		when(provisionedExcludesGroup.hasMember(subject)).thenReturn(true);
 
 		consumer.allowInstitutional = true;
@@ -163,6 +172,32 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 		verify(provisionedExcludesGroup).deleteMember(subject);
 		verify(nakamuraManager).addMembership(groupId, subjectId);
+	}
+
+	public void testUserModificationExceptionStopsProcessing() throws GroupModificationException, UserModificationException{
+		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
+		assertFalse(consumer.ignoreChangelogEntry(addEntry));
+
+		Group group = mock(Group.class);
+		when(group.getParentStem()).thenReturn(stem);
+		when(stem.getDescription()).thenReturn("parent description");
+		when(GrouperSession.startRootSession()).thenReturn(session);
+		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(group);
+		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
+
+		when(nakamuraManager.groupExists("some_course")).thenReturn(false);
+		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
+
+		doThrow(new UserModificationException()).when(nakamuraManager).createUser(subjectId);
+
+		consumer.addAdminAs = "lecturer";
+		consumer.createUsers = true;
+		long last = consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
+		assertEquals(SEQUENCE_NUMBER - 1, last);
+
+		verify(nakamuraManager).createUser(subjectId);
+		verifyNoMoreInteractions(nakamuraManager);
 	}
 
 	/// ---- Delete Membership
@@ -179,9 +214,6 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(true);
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
-
-		Subject subject = mock(Subject.class);
-		when(subject.getTypeName()).thenReturn("person");
 		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
 
 		// Prevent GrouperLoaderConfig from staticing the test up
@@ -194,9 +226,6 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(deleteEntry));
-
-		Subject subject = mock(Subject.class);
-		when(subject.getTypeName()).thenReturn("person");
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 
 		// Prevent GrouperLoaderConfig from staticing the test up
@@ -222,7 +251,6 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 		Group provisionedIncludesGroup = mock(Group.class);
 		when(GroupFinder.findByName(any(GrouperSession.class), eq(provIncludesName), eq(false))).thenReturn(provisionedIncludesGroup);
-
 		when(provisionedIncludesGroup.hasMember(subject)).thenReturn(true);
 
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);

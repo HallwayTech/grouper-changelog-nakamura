@@ -112,6 +112,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
 			ChangeLogProcessorMetadata changeLogProcessorMetadata) {
 
+		// Load up the necessary components
 		String consumerName = changeLogProcessorMetadata.getConsumerName();
 		loadConfiguration(consumerName);
 
@@ -121,7 +122,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				changeLogEntryList.get(entryCount - 1).getSequenceNumber());
 
 		long currentId = -1;
-		// try catch so we can track that we made some progress
+
 		try {
 			for (ChangeLogEntry entry : changeLogEntryList) {
 				currentId = entry.getSequenceNumber();
@@ -143,7 +144,6 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 						log.error("Group added event received for a group that doesn't exist? " + grouperName);
 						continue;
 					}
-
 
 					// Create the OAE Course objects when the first role group is created.
 					if (!nakamuraManager.groupExists(parentGroupId)){
@@ -193,6 +193,10 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 					if (member != null && "person".equals(member.getTypeName())
 							&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
+
+						if (createUsers){
+							nakamuraManager.createUser(memberId);
+						}
 
 						if (nakamuraManager.groupExists(nakamuraGroupId)) {
 							nakamuraManager.addMembership(nakamuraGroupId, memberId);

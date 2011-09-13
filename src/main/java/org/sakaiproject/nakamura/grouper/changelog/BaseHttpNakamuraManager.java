@@ -15,11 +15,13 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
+import org.sakaiproject.nakamura.grouper.changelog.log.AuditLogUtils;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
 import com.google.common.collect.MapMaker;
@@ -103,18 +105,24 @@ public abstract class BaseHttpNakamuraManager {
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
 	 */
 	public void addMembership(String nakamuraGroupId, String memberId)
-			throws GroupModificationException, UserModificationException {
-        PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
+			throws GroupModificationException {
+		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+		String role = StringUtils.substringAfterLast(nakamuraGroupId, "-");
+		PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
         method.addParameter(MEMBER_PARAM, memberId);
         method.addParameter(VIEWER_PARAM, memberId);
         method.addParameter(CHARSET_PARAM, UTF_8);
-        if (createUsers){
-        	createUser(memberId);
+        try {
+        	if (!dryrun){
+        		NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+        		AuditLogUtils.audit(AuditLogUtils.USER_ADDED, memberId, parentGroupId, role, AuditLogUtils.SUCCESS);
+        	}
+        	log.info("Added subjectId=" + memberId + " to group=" + nakamuraGroupId);
         }
-        if (!dryrun){
-            NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+        catch (GrouperException ge){
+        	AuditLogUtils.audit(AuditLogUtils.USER_ADDED, memberId, parentGroupId, role, AuditLogUtils.FAILURE);
+        	throw ge;
         }
-	    log.info("Added subjectId=" + memberId + " to group=" + nakamuraGroupId);
 	}
 
 	/**
@@ -123,14 +131,23 @@ public abstract class BaseHttpNakamuraManager {
 	 */
 	public void deleteMembership(String nakamuraGroupId, String memberId)
 			throws GroupModificationException {
+		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+        String role = StringUtils.substringAfterLast(nakamuraGroupId, "-");
         PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
         method.addParameter(MEMBER_DELETE_PARAM, memberId);
         method.addParameter(VIEWER_DELETE_PARAM, memberId);
         method.addParameter(CHARSET_PARAM, UTF_8);
-        if (!dryrun){
-            NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+        try {
+        	if (!dryrun){
+        		NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+        		AuditLogUtils.audit(AuditLogUtils.USER_DELETED, memberId, parentGroupId, role, AuditLogUtils.SUCCESS);
+        	}
+        	log.info("Deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
         }
-	    log.info("Deleted subjectId=" + memberId + " from group=" + nakamuraGroupId );
+        catch (GrouperException ge){
+        	AuditLogUtils.audit(AuditLogUtils.USER_DELETED, memberId, parentGroupId, role, AuditLogUtils.FAILURE);
+        	throw ge;
+        }
 	}
 
 	/**
@@ -165,14 +182,20 @@ public abstract class BaseHttpNakamuraManager {
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json key=value
 	 */
 	public void setProperty(String groupId, String key, String value) throws GroupModificationException {
-		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 		PostMethod method = new PostMethod(url.toString() + getUpdateURI(groupId));
 		method.setParameter(key, value);
 		method.setParameter(CHARSET_PARAM, UTF_8);
-		if (!dryrun){
-            NakamuraHttpUtils.http(client, method);
+		try {
+			if (!dryrun){
+        		NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+                AuditLogUtils.audit(AuditLogUtils.GROUP_MODIFIED, null, groupId, key + "=" + value, AuditLogUtils.SUCCESS);
+        	}
+        	log.info("Set " + groupId + " : "+ key + "=" + value);
 		}
-		log.info("Set " + groupId + " : "+ key + "=" + value);
+		catch (GrouperException ge){
+        	AuditLogUtils.audit(AuditLogUtils.GROUP_MODIFIED, null, groupId, key + "=" + value, AuditLogUtils.FAILURE);
+        	throw ge;
+        }
 	}
 
 	/**
@@ -186,6 +209,8 @@ public abstract class BaseHttpNakamuraManager {
 			return;
 		}
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+
+		String fullName = null;
 		try {
 			// throws exception if not found or not unique
 			Subject subject = SubjectFinder.findByIdOrIdentifier(userId, true);
@@ -202,6 +227,9 @@ public abstract class BaseHttpNakamuraManager {
 			if (lastName == null){
 				lastName = "Lastname";
 			}
+
+			fullName = firstName + " " + lastName;
+
 			String email = subject.getAttributeValue(emailAttribute);
 			if (email == null){
 				email = userId + "@" + defaultEmailDomain;
@@ -225,9 +253,11 @@ public abstract class BaseHttpNakamuraManager {
 			NakamuraHttpUtils.http(client, method);
 			userExistsInSakai.put(userId, Boolean.TRUE);
 			log.info("Created a user in Sakai OAE for " + userId);
+			AuditLogUtils.audit(AuditLogUtils.USER_CREATED, userId, null, fullName, AuditLogUtils.SUCCESS);
 		}
 		catch (Exception e){
 			log.error("Unable to create the user in Sakai OAE", e);
+			AuditLogUtils.audit(AuditLogUtils.USER_CREATED, userId, null, fullName, AuditLogUtils.FAILURE);
 			throw new UserModificationException(e.getMessage());
 		}
 	}
@@ -270,8 +300,21 @@ public abstract class BaseHttpNakamuraManager {
 		method.setParameter(BATCH_REQUESTS_PARAM, json.toString());
 		method.setParameter(CHARSET_PARAM, UTF_8);
 
-		if (!dryrun){
-			NakamuraHttpUtils.http(client, method);
+		try {
+			if (!dryrun){
+				NakamuraHttpUtils.http(client, method);
+				AuditLogUtils.audit(AuditLogUtils.GROUP_DELETED, null, parentGroupId, "deleted", AuditLogUtils.SUCCESS);
+				for (String suffix: pseudoGroupSuffixes){
+					AuditLogUtils.audit(AuditLogUtils.GROUP_DELETED, null, parentGroupId + "-" + suffix, "deleted", AuditLogUtils.SUCCESS);
+				}
+			}
+		}
+		catch (GroupModificationException e){
+			AuditLogUtils.audit(AuditLogUtils.GROUP_DELETED, null, parentGroupId, "deleted", AuditLogUtils.FAILURE);
+			for (String suffix: pseudoGroupSuffixes){
+				AuditLogUtils.audit(AuditLogUtils.GROUP_DELETED, null, parentGroupId + "-" + suffix, "deleted", AuditLogUtils.FAILURE);
+			}
+			throw e;
 		}
 	}
 
@@ -291,10 +334,18 @@ public abstract class BaseHttpNakamuraManager {
 		method.addParameter(GROUPER_NAME_PROP, groupName.substring(0, groupName.lastIndexOf(":") + 1 )
 											+ nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
 		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
-		if (!dryrun){
-            NakamuraHttpUtils.http(client, method);
+
+		try {
+			if (!dryrun){
+				NakamuraHttpUtils.http(client, method);
+			}
+			log.info("Created pseudoGroup in OAE for " + nakamuraGroupId);
+			AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, nakamuraGroupId, description, AuditLogUtils.SUCCESS);
 		}
-		log.info("Created pseudoGroup in OAE for " + nakamuraGroupId);
+		catch (GroupModificationException e){
+			AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, nakamuraGroupId, description, AuditLogUtils.FAILURE);
+			throw e;
+		}
 	}
 
 	private boolean userExists(String userId){
