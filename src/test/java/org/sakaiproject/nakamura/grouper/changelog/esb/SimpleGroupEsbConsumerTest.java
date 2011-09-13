@@ -45,12 +45,20 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 
 	private GrouperSession session;
 
+	private Group group;
+	private Stem stem;
+
 	public void setUp(){
 
 		suppress(method(GrouperUtil.class, "getLog"));
 
 		mockStatic(GrouperSession.class);
 		mockStatic(GroupFinder.class);
+
+		stem = mock(Stem.class);
+		when(stem.getDescription()).thenReturn("parent description");
+		group = mock(Group.class);
+		when(group.getParentStem()).thenReturn(stem);
 
 		session = mock(GrouperSession.class);
 		when(GrouperSession.startRootSession()).thenReturn(session);
@@ -68,7 +76,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		consumer.setGroupIdAdapter(groupIdAdapter);
 		consumer.setConfigurationLoaded(true);
 		consumer.setPseudoGroupSuffixes("manager, member");
-
 
 		entry = mock(ChangeLogEntry.class);
 	}
@@ -135,12 +142,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
 		assertFalse(consumer.ignoreChangelogEntry(entry));
-
-		Group group = mock(Group.class);
-		Stem stem = mock(Stem.class);
-		when(group.getParentStem()).thenReturn(stem);
-		when(stem.getDescription()).thenReturn("parent description");
-
 		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(group);
 
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
@@ -167,10 +168,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.getProvisionedCourseGroupsStem()).thenReturn("edu:apps:sakaiaoe:simplegroups");
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
-		Group group = mock(Group.class);
-		Stem stem = mock(Stem.class);
-		when(group.getParentStem()).thenReturn(stem);
-		when(stem.getDescription()).thenReturn("parent description");
 		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(group);
 
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn("some_simpleg-student");
@@ -189,8 +186,6 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(entry));
-
-		Group group = mock(Group.class);
 		when(GroupFinder.findByName(session, grouperName, false)).thenReturn(group);
 
 		// Prevent GrouperLoaderConfig from staticing the test up
