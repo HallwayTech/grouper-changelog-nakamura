@@ -1,25 +1,25 @@
-## Overview
+# Overview
 A Grouper changelog consumer that sends info to SakaiOAE/nakamura via HTTP POSTs.
 
-The Grouper changelog is a list of events in a Grouper system stored in a database table/views.
-The Grouper loader can have multiple changelog consumer jobs configured to run a intervals
-defined by a quartz scheduler. The Grouper loader keeps track of the last changelog entry
-that each consumer successfully processed.
+The Grouper changelog is a list of events in a Grouper system stored in the database. Changelog consumers periodically process batches of those events. The loader has multiple changelog consumer jobs configured to run a intervals defined by a quartz scheduler. The loader keeps track of the last changelog entry that each consumer successfully processed so they make progress through the list of changes.
 
-This package included 4 Grouper changelog consumers.
+This package includes 4 Grouper changelog consumers.
 
 ### org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
-Provisions and updates "Simple Groups" in Sakai OAE
+Provisions and updates "Simple Groups" and their memberships in Sakai OAE.
 
 ### org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
-Provisions and updates "Course Groups" in Sakai OAE
+Provisions and updates "Course Groups" and their memberships in Sakai OAE.
 
 ### org.sakaiproject.nakamura.grouper.changelog.esb.RestrictedCourseGroupEsbConsumer
-Functionally equivalent to the CourseGroupEsbConsumer. It Restricts group actions to those with names that match a list stored in a database table.
-If you want to use the RestrictedCourseGroupEsbConsumer just replace the CourseGroupEsbConsumer class configuration for the with RestrictedCourseGroupEsbConsumer.
+Functionally equivalent to the CourseGroupEsbConsumer. It only processes group actions if the group name matches a list stored in a database table. If you want to use the RestrictedCourseGroupEsbConsumer just replace the CourseGroupEsbConsumer class configuration for the with RestrictedCourseGroupEsbConsumer. Then add the SQL statement that retrieves a list of regular expressions to match group names. (see the example configuration below).
 
 ### org.sakaiproject.nakamura.grouper.changelog.esb.CourseTitleEsbConsumer
 Respond to stem updates by storing the description attribute on the sakai:group-title property.
+
+## User Provisioning
+
+The SimpleGroupEsbConsumer, CourseTitleEsbConsumer, and RestrictedCourseGroupEsbConsumer will try to create users in Sakai OAE if they don't already exist. The consumer will try to get the user's full name from their grouper subject attributes. These attributes are configurable (see the examples below);
 
 ## Build Prerequisites
 * git
@@ -210,6 +210,32 @@ Then add it to the administrators group to give it admin rights.
 
     curl -uadmin:ADMIN_PASSWORD -F:member=grouper-admin \
         http://localhost:8080/system/userManager/group/administrators.update.json
+
+## Logging and Auditing
+
+The package includes standard application logging as well as simplified auditing logging suitable for reporting.
+
+Its recommended that you configure the grouper loader to send the Sakai OAE logging messages to their own file.
+Do do this add the following to $GROUPER_HOME/conf/log4j.properties
+
+    log4j.appender.grouper_sakai                            = org.apache.log4j.RollingFileAppender
+    log4j.appender.grouper_sakai.File                       = ${grouper.home}logs/grouper_sakai.log
+    log4j.appender.grouper_sakai.MaxFileSize                = 10000KB
+    log4j.appender.grouper_sakai.MaxBackupIndex             = 1
+    log4j.appender.grouper_sakai.layout                     = org.apache.log4j.PatternLayout
+    log4j.appender.grouper_sakai.layout.ConversionPattern   = %d{ISO8601}: [%t] %-5p %C{1}.%M(%L) - %x - %m%n
+    log4j.logger.org.sakaiproject.nakamura.grouper = INFO, grouper_sakai
+
+Auditing logging is configured similarly in $GROUPER_HOME/conf/log4j.properties
+
+    log4j.appender.sakai_audit                            = org.apache.log4j.DailyRollingFileAppender
+    log4j.appender.sakai_audit.DatePattern                =’-'yyyy-MM-dd’.log’
+    log4j.appender.sakai_audit.File                       = ${grouper.home}logs/grouper_audit
+    log4j.appender.sakai_audit.MaxFileSize                = 10000KB
+    log4j.appender.sakai_audit.MaxBackupIndex             = 1
+    log4j.appender.sakai_audit.layout                     = org.apache.log4j.PatternLayout
+    log4j.appender.sakai_audit.layout.ConversionPattern   = %d %m%n
+    log4j.logger.org.sakaiproject.nakamura.grouper.changelog.log.audit = INFO, sakai_audit
 
 ## Links
 https://spaces.internet2.edu/display/Grouper/Notifications+(change+log)
