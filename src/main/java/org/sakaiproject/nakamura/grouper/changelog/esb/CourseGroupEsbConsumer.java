@@ -157,125 +157,145 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 
 		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
-			log.info("START GROUP_ADD : " + grouperName);
-
-			Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
-			if (group != null) {
-				// Create the OAE Course objects when the first role group is created.
-				if (!nakamuraManager.groupExists(parentGroupId)){
-					log.info("CREATE " + parentGroupId + " as parent of " + nakamuraGroupId);
-
-					// Special handling for inst:sis courses.
-					// This will provision a group in Sakai OAE when a group is created in the institutional
-					// When the group is modified in Sakai OAE it will be written back to Grouper in the
-					// Sakai OAE provisioned stem.
-
-					if (grouperName.startsWith(groupIdAdapter.getInstitutionalCourseGroupsStem())){
-						grouperName = grouperName.replace(
-								groupIdAdapter.getInstitutionalCourseGroupsStem(),
-								groupIdAdapter.getProvisionedCourseGroupsStem());
-					}
-					String description = group.getParentStem().getDescription();
-					if (description == null){
-						description = parentGroupId;
-					}
-					nakamuraManager.createGroup(grouperName, description);
-
-					if (StringUtils.trimToNull(addAdminAs) != null){
-						nakamuraManager.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
-					}
-				} else {
-					log.error("Group added event received for a group that doesn't exist? " + grouperName);
-				}
-			}
-			log.info("DONE GROUP_ADD : " + grouperName);
+			processGroupAdd(grouperName, nakamuraGroupId, parentGroupId);
 		}
 
 		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
-			log.info("START GROUP_DELETE : " + grouperName);
-			if (grouperName.endsWith(deleteRole)){
-				if (nakamuraManager.groupExists(nakamuraGroupId)){
-					nakamuraManager.deleteGroup(nakamuraGroupId, grouperName);
-				}
-				else {
-					log.info(nakamuraGroupId + " does not exist.");
-				}
-			}
-			log.info("DONE GROUP_DELETE : " + grouperName);
+			prcoessGroupDelete(grouperName, parentGroupId);
 		}
 
 		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
-			String memberId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
-			Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
-			log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
-
-			if (member != null && "person".equals(member.getTypeName())
-					&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
-
-				if (createUsers){
-					nakamuraManager.createUser(memberId);
-				}
-
-				if (nakamuraManager.groupExists(nakamuraGroupId)) {
-					nakamuraManager.addMembership(nakamuraGroupId, memberId);
-				}
-				else {
-					log.info(nakamuraGroupId + " does not exist. Cannot add membership");
-				}
-
-				// When a user is added to inst:sis:course:G:ROLE,
-				// Remove them from app:atlas:provisioned:course:G:ROLE_excludes
-				if (groupIdAdapter.isInstitutional(grouperName)){
-					String excludesGroupName = grouperName.replaceFirst(
-							groupIdAdapter.getInstitutionalCourseGroupsStem(),
-							groupIdAdapter.getProvisionedCourseGroupsStem()) + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
-					Group excludesGroup = GroupFinder.findByName(getGrouperSession(), excludesGroupName, false);
-					if (excludesGroup != null && excludesGroup.hasMember(member)){
-						excludesGroup.deleteMember(member);
-					}
-				}
-			}
-			else {
-				log.info("Ignoring this entry : invalid subject for membership add : " + member);
-			}
-
-			log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + memberId);
+			String subjectId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
+			processMembershipAdd(grouperName, nakamuraGroupId, subjectId);
 		}
 
 		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
-			String memberId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
-			Subject member = SubjectFinder.findByIdOrIdentifier(memberId, false);
-			log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
+			String subjectId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
+			prcoessMembershipDelete(grouperName, nakamuraGroupId, subjectId);
+		}
 
-			if (member != null
-					&& "person".equals(member.getTypeName())
-					&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
-				if (nakamuraManager.groupExists(nakamuraGroupId)) {
-					nakamuraManager.deleteMembership(nakamuraGroupId, memberId);
-				}
-				else {
-					log.info(nakamuraGroupId + " does not exist. Cannot remove membership");
-				}
+	}
 
-				// When a user is removed from inst:sis:course:G:ROLE,
-				// Remove them from app:atlas:provisioned:course:G:ROLE_includes
-				if (groupIdAdapter.isInstitutional(grouperName)){
-					String includesGroupName = grouperName.replaceFirst(
-						groupIdAdapter.getInstitutionalCourseGroupsStem(),
-						groupIdAdapter.getProvisionedCourseGroupsStem()) + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+	private void processGroupAdd(String grouperName, String nakamuraGroupId,
+			String parentGroupId) throws GroupModificationException {
+		log.info("START GROUP_ADD : " + grouperName);
+		Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
+		if (group != null) {
+			// Create the OAE Course objects when the first role group is created.
+			if (!nakamuraManager.groupExists(parentGroupId)){
+				log.info("CREATE " + parentGroupId + " as parent of " + nakamuraGroupId);
 
-					Group includesGroup = GroupFinder.findByName(getGrouperSession(), includesGroupName, false);
-					if (includesGroup != null && includesGroup.hasMember(member)){
-						includesGroup.deleteMember(member);
-					}
+				// Special handling for inst:sis courses.
+				// This will provision a group in Sakai OAE when a group is created in the institutional
+				// When the group is modified in Sakai OAE it will be written back to Grouper in the
+				// Sakai OAE provisioned stem.
+
+				if (grouperName.startsWith(groupIdAdapter.getInstitutionalCourseGroupsStem())){
+					grouperName = grouperName.replace(
+							groupIdAdapter.getInstitutionalCourseGroupsStem(),
+							groupIdAdapter.getProvisionedCourseGroupsStem());
 				}
+				String description = group.getParentStem().getDescription();
+				if (description == null){
+					description = parentGroupId;
+				}
+				nakamuraManager.createGroup(grouperName, description);
+
+				if (StringUtils.trimToNull(addAdminAs) != null){
+					nakamuraManager.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
+				}
+			} else {
+				log.error("Group added event received for a group that doesn't exist? " + grouperName);
+			}
+		}
+		log.info("DONE GROUP_ADD : " + grouperName);
+	}
+
+	private void prcoessGroupDelete(String grouperName, String nakamuraGroupId) throws GroupModificationException {
+		log.info("START GROUP_DELETE : " + grouperName);
+		if (grouperName.endsWith(deleteRole)){
+			if (nakamuraManager.groupExists(nakamuraGroupId)){
+				nakamuraManager.deleteGroup(nakamuraGroupId, grouperName);
 			}
 			else {
-				log.info("Ignoring this entry : invalid subject for membership delete : " + member);
+				log.info(nakamuraGroupId + " does not exist.");
+			}
+		}
+		log.info("DONE GROUP_DELETE : " + grouperName);
+	}
+
+	private void processMembershipAdd(String grouperName, String nakamuraGroupId, String subjectId) throws UserModificationException, GroupModificationException {
+
+		Subject member = SubjectFinder.findByIdOrIdentifier(subjectId, false);
+		log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + subjectId);
+
+		if (member != null && "person".equals(member.getTypeName())
+				&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
+
+			if (createUsers){
+				nakamuraManager.createUser(subjectId);
 			}
 
-			log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + memberId);
+			if (nakamuraManager.groupExists(nakamuraGroupId)) {
+				nakamuraManager.addMembership(nakamuraGroupId, subjectId);
+			}
+			else {
+				log.info(nakamuraGroupId + " does not exist. Cannot add membership");
+			}
+
+			// When a user is added to inst:sis:course:G:ROLE,
+			// Remove them from app:atlas:provisioned:course:G:ROLE_excludes
+			if (groupIdAdapter.isInstitutional(grouperName)){
+				String excludesGroupName = grouperName.replaceFirst(
+						groupIdAdapter.getInstitutionalCourseGroupsStem(),
+						groupIdAdapter.getProvisionedCourseGroupsStem()) + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
+				Group excludesGroup = GroupFinder.findByName(getGrouperSession(), excludesGroupName, false);
+				if (excludesGroup != null && excludesGroup.hasMember(member)){
+					excludesGroup.deleteMember(member);
+				}
+			}
 		}
+		else {
+			log.info("Ignoring this entry : invalid subject for membership add : " + member);
+		}
+
+		log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + subjectId);
+	}
+
+	private void prcoessMembershipDelete(String grouperName,
+			String nakamuraGroupId, String subjectId) throws GroupModificationException {
+		Subject member = SubjectFinder.findByIdOrIdentifier(subjectId, false);
+		log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + subjectId);
+
+		if (member != null
+				&& "person".equals(member.getTypeName())
+				&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
+			if (nakamuraManager.groupExists(nakamuraGroupId)) {
+				nakamuraManager.deleteMembership(nakamuraGroupId, subjectId);
+			}
+			else {
+				log.info(nakamuraGroupId + " does not exist. Cannot remove membership");
+			}
+
+			// When a user is removed from inst:sis:course:G:ROLE,
+			// Remove them from app:atlas:provisioned:course:G:ROLE_includes
+			if (groupIdAdapter.isInstitutional(grouperName)){
+				String includesGroupName = grouperName.replaceFirst(
+					groupIdAdapter.getInstitutionalCourseGroupsStem(),
+					groupIdAdapter.getProvisionedCourseGroupsStem()) + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+
+				Group includesGroup = GroupFinder.findByName(getGrouperSession(), includesGroupName, false);
+				if (includesGroup != null && includesGroup.hasMember(member)){
+					includesGroup.deleteMember(member);
+				}
+			}
+		}
+		else {
+			log.info("Ignoring this entry : invalid subject for membership delete : " + member);
+		}
+
+		log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + subjectId);
+
 
 	}
 
@@ -295,7 +315,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			ignore = true;
 		}
 		else {
-			if (grouperName.endsWith(":all")){
+			if(grouperName.endsWith(":all")){
 				log.info("ignoring:  " + entryId + " all group: " + grouperName);
 				ignore = true;
 			}
