@@ -29,6 +29,8 @@ public abstract class BaseGroupIdAdapter {
 	public static final String DEFAULT_INCLUDES_SUFFIX = "_includes";
 	public static final String DEFAULT_EXCLUDES_SUFFIX = "_excludes";
 
+	public static final String ALL_GROUP_EXTENSION = "all";
+
 	public void loadConfiguration(String consumerName) {
 		String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
 		setRoleMap(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_ROLE_MAPPINGS, true));

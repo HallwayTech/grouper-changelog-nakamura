@@ -148,7 +148,22 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 
 		if (group != null && !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)) {
-			if (!nakamuraManager.groupExists(parentGroupId)){
+
+			// Special case for the inst:sis:course:X:all
+			if (groupIdAdapter.isInstitutional(grouperName)
+					&& grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
+				// Check if app:sakaioae:provisioned:course:X:all exists
+				String appGrouperName = grouperName.replaceFirst(
+						groupIdAdapter.getInstitutionalSimpleGroupsStem(),
+						groupIdAdapter.getProvisionedSimpleGroupsStem());
+				Group appAllGroup = GroupFinder.findByName(getGrouperSession(), appGrouperName, false);
+				// Add the inst:sis:course:X:all as a member of app:sakaoae:provisioned:course:X:all
+				if (appAllGroup != null){
+					appAllGroup.addMember((Subject) GroupFinder.findByName(getGrouperSession(), grouperName, false));
+				}
+			}
+			// Create the OAE Course objects when the first role group is created.
+			else if (!nakamuraManager.groupExists(parentGroupId)){
 
 				log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
 
@@ -264,7 +279,9 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 			ignore = true;
 		}
 		else {
-			if(grouperName.endsWith(":all")){
+			if(grouperName.endsWith(":all")
+					&& groupIdAdapter.isInstitutional(grouperName)
+					&& entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD) == false){
 				log.debug("ignoring: all group: " + grouperName);
 				ignore = true;
 			}

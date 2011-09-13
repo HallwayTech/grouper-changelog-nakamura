@@ -88,6 +88,14 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		assertTrue(consumer.ignoreChangelogEntry(entry));
 	}
 
+	public void testDontIgnoreAddAll(){
+		String grouperName = "edu:apps:sakaiaoe:courses:some:course:all";
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
+		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
+		assertFalse(consumer.ignoreChangelogEntry(entry));
+	}
+
 	public void testIgnoreNotASimpleGroup(){
 
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);

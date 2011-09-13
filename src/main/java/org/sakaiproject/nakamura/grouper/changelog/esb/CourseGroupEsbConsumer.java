@@ -22,6 +22,7 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
+import edu.internet2.middleware.grouper.misc.SaveMode;
 import edu.internet2.middleware.subject.Subject;
 
 /**
@@ -178,23 +179,45 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 	private void processGroupAdd(String grouperName, String nakamuraGroupId,
 			String parentGroupId) throws GroupModificationException {
+
 		log.info("START GROUP_ADD : " + grouperName);
 		Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
+
 		if (group != null) {
-			// Create the OAE Course objects when the first role group is created.
+
+			// handle the app:sakaioae:provisioned:courses:X:all group
+			if (groupIdAdapter.isInstitutional(grouperName)
+					&& grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
+				String provAllGrouperName = grouperName.replaceFirst(
+						groupIdAdapter.getInstitutionalCourseGroupsStem(),
+						groupIdAdapter.getProvisionedCourseGroupsStem());
+				// Create app:sakaoae:provisioned:course:X:all if it doesnt exist
+				Group provAllGroup = GroupFinder.findByName(getGrouperSession(), provAllGrouperName, false);
+				if (provAllGroup == null){
+					provAllGroup = Group.saveGroup(getGrouperSession(), null, null, provAllGrouperName,
+							BaseGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true);
+				}
+				// Add the inst:sis:course:X:all as a member of app:sakaoae:provisioned:course:X:all
+				Subject subj = SubjectFinder.findByIdOrIdentifier(grouperName, false);
+				provAllGroup.addMember(subj);
+				log.debug("Created " + provAllGrouperName + " and added " + grouperName + " as a member.");
+			}
+
 			if (!nakamuraManager.groupExists(parentGroupId)){
 				log.info("CREATE " + parentGroupId + " as parent of " + nakamuraGroupId);
 
-				// Special handling for inst:sis courses.
-				// This will provision a group in Sakai OAE when a group is created in the institutional
-				// When the group is modified in Sakai OAE it will be written back to Grouper in the
-				// Sakai OAE provisioned stem.
-
-				if (grouperName.startsWith(groupIdAdapter.getInstitutionalCourseGroupsStem())){
+				// Special case for the inst:sis:course:X:all
+				if (groupIdAdapter.isInstitutional(grouperName)) {
+					// Special handling for inst:sis courses.
+					// This will provision a group in Sakai OAE when a group is created in the institutional
+					// When the group is modified in Sakai OAE it will be written back to Grouper in the
+					// Sakai OAE provisioned stem.
 					grouperName = grouperName.replace(
 							groupIdAdapter.getInstitutionalCourseGroupsStem(),
 							groupIdAdapter.getProvisionedCourseGroupsStem());
 				}
+				// Try t get the course description from the parent stem.
+				// If the parent stem has no description just use the group id.
 				String description = group.getParentStem().getDescription();
 				if (description == null){
 					description = parentGroupId;
@@ -204,9 +227,9 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				if (StringUtils.trimToNull(addAdminAs) != null){
 					nakamuraManager.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
 				}
-			} else {
-				log.error("Group added event received for a group that doesn't exist? " + grouperName);
 			}
+		} else {
+			log.error("Group added event received for a group that doesn't exist? " + grouperName);
 		}
 		log.info("DONE GROUP_ADD : " + grouperName);
 	}
@@ -315,7 +338,9 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			ignore = true;
 		}
 		else {
-			if(grouperName.endsWith(":all")){
+			if(grouperName.endsWith(":all")
+					&& groupIdAdapter.isInstitutional(grouperName)
+					&& !entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)){
 				log.info("ignoring:  " + entryId + " all group: " + grouperName);
 				ignore = true;
 			}
