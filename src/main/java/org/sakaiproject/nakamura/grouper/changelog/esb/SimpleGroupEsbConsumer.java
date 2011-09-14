@@ -165,7 +165,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 				// Add the inst:sis:course:X:all as a member of app:sakaoae:provisioned:course:X:all
 				Subject subj = SubjectFinder.findByIdOrIdentifier(grouperName, false);
-				applicationAllGroup.addMember(subj);
+				applicationAllGroup.addMember(subj, false);
 				log.debug("Created " + applicationAllGroupName + " and added " + grouperName + " as a member.");
 			}
 			// Create the OAE Course objects when the first role group is created.

@@ -199,7 +199,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 				}
 				// Add the inst:sis:course:X:all as a member of app:sakaoae:provisioned:course:X:all
 				Subject subj = SubjectFinder.findByIdOrIdentifier(grouperName, false);
-				applicationAllGroup.addMember(subj);
+				applicationAllGroup.addMember(subj, false);
 				log.debug("Created " + applicationAllGroupName + " and added " + grouperName + " as a member.");
 			}
 

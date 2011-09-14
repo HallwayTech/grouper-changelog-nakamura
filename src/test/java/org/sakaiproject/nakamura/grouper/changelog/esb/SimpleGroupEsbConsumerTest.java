@@ -189,7 +189,7 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		consumer.allowInstitutional = true;
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 
-		verify(appAllGroup).addMember(instAllGroupSubject);
+		verify(appAllGroup).addMember(instAllGroupSubject, false);
 		verifyStatic();
 		Group.saveGroup(session, null, null, simplegAllApplicationGroupName, BaseGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true);
 	}

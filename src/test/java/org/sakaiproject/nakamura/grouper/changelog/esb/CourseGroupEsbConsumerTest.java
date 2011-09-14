@@ -237,7 +237,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		consumer.allowInstitutional = true;
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-		verify(appAllGroup).addMember(instAllGroupSubject);
+		verify(appAllGroup).addMember(instAllGroupSubject, false);
 		verifyStatic();
 		Group.saveGroup(session, null, null, course1AllApplicationGroupName, BaseGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true);
 	}
