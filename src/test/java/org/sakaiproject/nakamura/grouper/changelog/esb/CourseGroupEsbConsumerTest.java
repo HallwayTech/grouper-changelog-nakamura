@@ -127,14 +127,20 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testIgnoreAll(){
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(course1AllApplicationGroupName);
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(course1AllApplicationGroupName);
+		assertTrue(consumer.ignoreChangelogEntry(entry));
+
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(course1AllInstitutionalGroupName);
 		assertTrue(consumer.ignoreChangelogEntry(entry));
 	}
 
 	public void testDontIgnoreAddAll(){
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(course1AllApplicationGroupName);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(course1AllInstitutionalGroupName);
+		when(groupIdAdapter.isInstitutional(course1AllInstitutionalGroupName)).thenReturn(true);
+		consumer.allowInstitutional = true;
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 	}
 

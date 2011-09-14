@@ -328,29 +328,37 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 	 */
 	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
-		Long entryId = entry.getSequenceNumber();
+		Long sequenceNumber = entry.getSequenceNumber();
 		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
 		if (log.isTraceEnabled()){
 			log.trace(entry.toStringDeep());
 		}
 		if (grouperName == null){
-			log.info("ignoring: " + entryId + " Unable to get the group name from the entry. ");
+			log.info("ignoring: " + sequenceNumber + " Unable to get the group name from the entry. ");
 			ignore = true;
 		}
 		else {
-			if( grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)
-					&& !groupIdAdapter.isInstitutional(grouperName)
-					&& !entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)){
-				log.info("ignoring:  " + entryId + " all group: " + grouperName);
-				ignore = true;
-			}
+
 			if (allowInstitutional == false && groupIdAdapter.isInstitutional(grouperName)){
-				log.info("ignoring " + entryId + " : Not processing institutional data : " + grouperName);
+				log.info("ignoring " + sequenceNumber + " : Not processing institutional data : " + grouperName);
 				ignore = true;
 			}
 			if (!groupIdAdapter.isCourseGroup(grouperName)){
-				log.info("ignoring " + entryId + " : Not a course group : " + grouperName);
+				log.info("ignoring " + sequenceNumber + " : Not a course group : " + grouperName);
 				ignore = true;
+			}
+
+			if( grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
+				if (groupIdAdapter.isInstitutional(grouperName)){
+					if (!entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)){
+						log.info("ignoring:  " + sequenceNumber + " all group: " + grouperName);
+						ignore = true;
+					}
+				}
+				else {
+					log.info("ignoring:  " + sequenceNumber + " all group: " + grouperName);
+					ignore = true;
+				}
 			}
 		}
 		return ignore;

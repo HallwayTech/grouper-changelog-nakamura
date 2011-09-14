@@ -279,18 +279,14 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	 */
 	public boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
+		Long sequenceNumber = entry.getSequenceNumber();
 		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
 		if (grouperName == null){
 			log.debug("ignoring: Unable to get the group name from the entry : " + entry.toStringDeep());
 			ignore = true;
 		}
 		else {
-			if(grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)
-					&& !groupIdAdapter.isInstitutional(grouperName)
-					&& entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD) == false){
-				log.debug("ignoring: all group: " + grouperName);
-				ignore = true;
-			}
+
 			if (allowInstitutional == false && groupIdAdapter.isInstitutional(grouperName)){
 				log.debug("ignoring: Not processing institutional data : " + grouperName);
 				ignore = true;
@@ -299,6 +295,19 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 			if (!groupIdAdapter.isSimpleGroup(grouperName)){
 				log.debug("ignoring: Not a simple group : " + grouperName);
 				ignore = true;
+			}
+
+			if( grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
+				if (groupIdAdapter.isInstitutional(grouperName)){
+					if (!entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)){
+						log.info("ignoring:  " + sequenceNumber + " all group: " + grouperName);
+						ignore = true;
+					}
+				}
+				else {
+					log.info("ignoring:  " + sequenceNumber + " all group: " + grouperName);
+					ignore = true;
+				}
 			}
 		}
 		return ignore;
