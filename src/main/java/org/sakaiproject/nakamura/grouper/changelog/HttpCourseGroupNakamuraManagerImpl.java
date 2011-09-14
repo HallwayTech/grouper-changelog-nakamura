@@ -10,7 +10,10 @@ import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
+import org.sakaiproject.nakamura.grouper.changelog.log.AuditLogUtils;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
+
+import edu.internet2.middleware.grouper.exception.GrouperException;
 
 /**
  * Provision Course Groups in Sakai OAE over HTTP according to the Grouper changelog.
@@ -82,11 +85,17 @@ public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 			if (!dryrun){
 				NakamuraHttpUtils.http(client, method);
 				allGroupsExisted = false;
+				AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, parentGroupId, description, AuditLogUtils.SUCCESS);
 				log.info("Created the parent group " + parentGroupId);
 			}
 		}
 		catch (GroupAlreadyExistsException gme){
+			AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, parentGroupId, description, AuditLogUtils.FAILURE);
 			log.debug(parentGroupId + " already exists. No worries.");
+		}
+		catch (GrouperException e){
+			AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, parentGroupId, description, AuditLogUtils.FAILURE);
+			throw e;
 		}
 
 		if (allGroupsExisted){

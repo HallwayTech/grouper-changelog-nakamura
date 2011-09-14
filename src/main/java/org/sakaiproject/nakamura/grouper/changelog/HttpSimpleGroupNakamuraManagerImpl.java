@@ -11,7 +11,10 @@ import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupAlreadyExistsException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
+import org.sakaiproject.nakamura.grouper.changelog.log.AuditLogUtils;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
+
+import edu.internet2.middleware.grouper.exception.GrouperException;
 
 /**
  * Synchronize Simple group information stored in Grouper by reading the
@@ -76,9 +79,15 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 			NakamuraHttpUtils.http(client, method);
 			allGroupsExisted = false;
 			log.info("Created the parent group " + parentGroupId);
+			AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, parentGroupId, description, AuditLogUtils.SUCCESS);
 		}
 		catch (GroupAlreadyExistsException gme){
 			log.debug(parentGroupId + " already exists. No worries.");
+			AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, parentGroupId, description, AuditLogUtils.FAILURE);
+		}
+		catch (GrouperException e){
+			AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, parentGroupId, description, AuditLogUtils.FAILURE);
+			throw e;
 		}
 
 		if (allGroupsExisted){
