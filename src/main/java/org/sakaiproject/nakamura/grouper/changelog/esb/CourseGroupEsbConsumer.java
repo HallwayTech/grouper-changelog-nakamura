@@ -188,19 +188,19 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			// handle the app:sakaioae:provisioned:courses:X:all group
 			if (groupIdAdapter.isInstitutional(grouperName)
 					&& grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
-				String provAllGrouperName = grouperName.replaceFirst(
+				String applicationAllGroupName = grouperName.replaceFirst(
 						groupIdAdapter.getInstitutionalCourseGroupsStem(),
 						groupIdAdapter.getProvisionedCourseGroupsStem());
 				// Create app:sakaoae:provisioned:course:X:all if it doesnt exist
-				Group provAllGroup = GroupFinder.findByName(getGrouperSession(), provAllGrouperName, false);
-				if (provAllGroup == null){
-					provAllGroup = Group.saveGroup(getGrouperSession(), null, null, provAllGrouperName,
+				Group applicationAllGroup = GroupFinder.findByName(getGrouperSession(), applicationAllGroupName, false);
+				if (applicationAllGroup == null){
+					applicationAllGroup = Group.saveGroup(getGrouperSession(), null, null, applicationAllGroupName,
 							BaseGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true);
 				}
 				// Add the inst:sis:course:X:all as a member of app:sakaoae:provisioned:course:X:all
 				Subject subj = SubjectFinder.findByIdOrIdentifier(grouperName, false);
-				provAllGroup.addMember(subj);
-				log.debug("Created " + provAllGrouperName + " and added " + grouperName + " as a member.");
+				applicationAllGroup.addMember(subj);
+				log.debug("Created " + applicationAllGroupName + " and added " + grouperName + " as a member.");
 			}
 
 			if (!nakamuraManager.groupExists(parentGroupId)){
@@ -338,8 +338,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			ignore = true;
 		}
 		else {
-			if(grouperName.endsWith(":all")
-					&& groupIdAdapter.isInstitutional(grouperName)
+			if( grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)
+					&& !groupIdAdapter.isInstitutional(grouperName)
 					&& !entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)){
 				log.info("ignoring:  " + entryId + " all group: " + grouperName);
 				ignore = true;

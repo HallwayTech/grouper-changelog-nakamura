@@ -18,6 +18,7 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
+import edu.internet2.middleware.grouper.misc.SaveMode;
 import edu.internet2.middleware.subject.Subject;
 
 /**
@@ -153,24 +154,29 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 			if (groupIdAdapter.isInstitutional(grouperName)
 					&& grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
 				// Check if app:sakaioae:provisioned:course:X:all exists
-				String appGrouperName = grouperName.replaceFirst(
+				String applicationAllGroupName = grouperName.replaceFirst(
 						groupIdAdapter.getInstitutionalSimpleGroupsStem(),
 						groupIdAdapter.getProvisionedSimpleGroupsStem());
-				Group appAllGroup = GroupFinder.findByName(getGrouperSession(), appGrouperName, false);
+				Group applicationAllGroup = GroupFinder.findByName(getGrouperSession(), applicationAllGroupName, false);
 				// Add the inst:sis:course:X:all as a member of app:sakaoae:provisioned:course:X:all
-				if (appAllGroup != null){
-					appAllGroup.addMember((Subject) GroupFinder.findByName(getGrouperSession(), grouperName, false));
+				if (applicationAllGroup == null){
+					applicationAllGroup = Group.saveGroup(getGrouperSession(), null, null, applicationAllGroupName,
+							BaseGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true);
 				}
+				// Add the inst:sis:course:X:all as a member of app:sakaoae:provisioned:course:X:all
+				Subject subj = SubjectFinder.findByIdOrIdentifier(grouperName, false);
+				applicationAllGroup.addMember(subj);
+				log.debug("Created " + applicationAllGroupName + " and added " + grouperName + " as a member.");
 			}
 			// Create the OAE Course objects when the first role group is created.
 			else if (!nakamuraManager.groupExists(parentGroupId)){
 
 				log.debug("CREATE" + parentGroupId + " as parent of " + nakamuraGroupId);
 
-				if (grouperName.startsWith(groupIdAdapter.getInstitutionalCourseGroupsStem())){
+				if (grouperName.startsWith(groupIdAdapter.getInstitutionalSimpleGroupsStem())){
 					grouperName = grouperName.replace(
-							groupIdAdapter.getInstitutionalCourseGroupsStem(),
-							groupIdAdapter.getProvisionedCourseGroupsStem());
+							groupIdAdapter.getInstitutionalSimpleGroupsStem(),
+							groupIdAdapter.getProvisionedSimpleGroupsStem());
 				}
 
 				nakamuraManager.createGroup(grouperName, group.getParentStem().getDescription());
@@ -279,8 +285,8 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 			ignore = true;
 		}
 		else {
-			if(grouperName.endsWith(":all")
-					&& groupIdAdapter.isInstitutional(grouperName)
+			if(grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)
+					&& !groupIdAdapter.isInstitutional(grouperName)
 					&& entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD) == false){
 				log.debug("ignoring: all group: " + grouperName);
 				ignore = true;
