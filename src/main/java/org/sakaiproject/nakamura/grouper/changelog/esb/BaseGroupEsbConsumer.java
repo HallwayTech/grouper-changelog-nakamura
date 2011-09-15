@@ -224,7 +224,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("DONE GROUP_ADD : " + grouperName);
 	}
 
-	protected void processGroupDelete(String grouperName, String nakamuraGroupId) throws GroupModificationException {
+	private void processGroupDelete(String grouperName, String nakamuraGroupId) throws GroupModificationException {
 		log.info("START GROUP_DELETE : " + grouperName);
 		if (grouperName.endsWith(deleteRole)){
 			if (nakamuraManager.groupExists(nakamuraGroupId)){
@@ -237,7 +237,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("DONE GROUP_DELETE : " + grouperName);
 	}
 
-	protected void processMembershipAdd(String grouperName, String nakamuraGroupId, String subjectId) throws UserModificationException, GroupModificationException {
+	private void processMembershipAdd(String grouperName, String nakamuraGroupId, String subjectId) throws UserModificationException, GroupModificationException {
 
 		Subject member = SubjectFinder.findByIdOrIdentifier(subjectId, false);
 		log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + subjectId);
@@ -273,7 +273,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + subjectId);
 	}
 
-	protected void processMembershipDelete(String grouperName,
+	private void processMembershipDelete(String grouperName,
 			String nakamuraGroupId, String subjectId) throws GroupModificationException {
 		Subject member = SubjectFinder.findByIdOrIdentifier(subjectId, false);
 		log.info("START MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + subjectId);
