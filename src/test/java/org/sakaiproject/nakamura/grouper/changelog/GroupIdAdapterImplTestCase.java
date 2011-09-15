@@ -236,4 +236,37 @@ public class GroupIdAdapterImplTestCase extends TestCase {
 		assertFalse(adapter.isSimpleGroup(ADHOC_COURSEGROUPS_STEM + ":some:group:role"));
 		assertTrue(adapter.isSimpleGroup(ADHOC_SIMPLEGROUPS_STEM + ":some:group:role"));
 	}
+
+	public void testGetAllGroup(){
+		assertEquals(INST_COURSEGROUPS_STEM + ":X:all",adapter.getAllGroup(INST_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(INST_SIMPLEGROUPS_STEM + ":X:all", adapter.getAllGroup(INST_SIMPLEGROUPS_STEM + ":X:students"));
+
+		assertEquals(ADHOC_COURSEGROUPS_STEM + ":X:all", adapter.getAllGroup(ADHOC_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(ADHOC_SIMPLEGROUPS_STEM + ":X:all", adapter.getAllGroup(ADHOC_SIMPLEGROUPS_STEM + ":X:students"));
+
+		assertEquals(PROV_COURSEGROUPS_STEM + ":X:all", adapter.getAllGroup(PROV_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:all", adapter.getAllGroup(PROV_SIMPLEGROUPS_STEM + ":X:students"));
+	}
+
+	public void testToInstitutional(){
+		assertEquals(INST_COURSEGROUPS_STEM + ":X:students",adapter.toInstitutional(INST_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(INST_SIMPLEGROUPS_STEM + ":X:students", adapter.toInstitutional(INST_SIMPLEGROUPS_STEM + ":X:students"));
+
+		assertEquals(null, adapter.toInstitutional(ADHOC_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(null, adapter.toInstitutional(ADHOC_SIMPLEGROUPS_STEM + ":X:students"));
+
+		assertEquals(INST_COURSEGROUPS_STEM + ":X:students", adapter.toInstitutional(PROV_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(INST_SIMPLEGROUPS_STEM + ":X:students", adapter.toInstitutional(PROV_SIMPLEGROUPS_STEM + ":X:students"));
+	}
+
+	public void testToProvisioned(){
+		assertEquals(PROV_COURSEGROUPS_STEM + ":X:students",adapter.toProvisioned(PROV_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:students", adapter.toProvisioned(PROV_SIMPLEGROUPS_STEM + ":X:students"));
+
+		assertEquals(null, adapter.toProvisioned(ADHOC_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(null, adapter.toProvisioned(ADHOC_SIMPLEGROUPS_STEM + ":X:students"));
+
+		assertEquals(PROV_COURSEGROUPS_STEM + ":X:students", adapter.toProvisioned(INST_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:students", adapter.toProvisioned(INST_SIMPLEGROUPS_STEM + ":X:students"));
+	}
 }

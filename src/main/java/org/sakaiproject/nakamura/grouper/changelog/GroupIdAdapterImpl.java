@@ -125,6 +125,39 @@ public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAda
 		return false;
 	}
 
+	public String getAllGroup(String groupName) {
+		return StringUtils.substringBeforeLast(groupName, ":") + ":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION;
+	}
+
+	public String toInstitutional(String grouperName){
+		String instName = null;
+		if (isInstitutional(grouperName)){
+			instName = grouperName;
+		}
+		else if (isSimpleGroup(grouperName) && isProvisioned(grouperName)){
+			instName = grouperName.replace(provisionedSimpleGroupsStem, institutionalSimpleGroupsStem);
+		}
+		else if (isCourseGroup(grouperName) && isProvisioned(grouperName)){
+			instName = grouperName.replace(provisionedCourseGroupsStem, institutionalCourseGroupsStem);
+		}
+		return instName;
+	}
+
+	public String toProvisioned(String grouperName){
+		String provName = null;
+		if (isProvisioned(grouperName)){
+			provName = grouperName;
+		}
+		if (isSimpleGroup(grouperName) && isInstitutional(grouperName)){
+			provName = grouperName.replace(institutionalSimpleGroupsStem, provisionedSimpleGroupsStem);
+		}
+		else if (isCourseGroup(grouperName) && isInstitutional(grouperName)){
+			provName = grouperName.replace(institutionalCourseGroupsStem, provisionedCourseGroupsStem);
+		}
+		return provName;
+	}
+
+
 	/**
 	 * Avoid using the static grouper loader stuff.
 	 * @param consumerName
