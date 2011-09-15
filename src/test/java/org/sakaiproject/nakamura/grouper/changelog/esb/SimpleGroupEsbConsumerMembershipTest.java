@@ -74,8 +74,14 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
+		when(groupIdAdapter.isSimpleGroup(instGrouperName)).thenReturn(true);
+		
 		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
+		when(groupIdAdapter.isInstitutional(instGrouperName)).thenReturn(true);
+		
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
+		when(groupIdAdapter.getGroupId(instGrouperName)).thenReturn(groupId);
+		when(groupIdAdapter.toProvisioned(instGrouperName)).thenReturn(grouperName);
 
 		when(groupIdAdapter.getInstitutionalSimpleGroupsStem()).thenReturn(instSimpleStem);
 		when(groupIdAdapter.getProvisionedSimpleGroupsStem()).thenReturn(provSimpleStem);
@@ -131,13 +137,8 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 	public void testAddMembershipIncludeRemovesProvisionedExcludes() throws GroupModificationException, UserModificationException{
 		String provExcludesName = grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(instGrouperName);
-
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
-
-		when(groupIdAdapter.getGroupId(instGrouperName)).thenReturn(groupId);
 		when(groupIdAdapter.isIncludeExcludeSubGroup(provExcludesName)).thenReturn(true);
-		when(groupIdAdapter.isInstitutional(instGrouperName)).thenReturn(true);
-		when(groupIdAdapter.isSimpleGroup(instGrouperName)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
@@ -169,7 +170,6 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
-
 		verifyNoMoreInteractions(nakamuraManager);
 	}
 
@@ -186,24 +186,18 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 	public void testDeleteMembershipIncludeRemovesProvisionedIncludes() throws GroupModificationException, UserModificationException{
 		String provIncludesName = grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(instGrouperName);
-
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
-
 		when(groupIdAdapter.getGroupId(instGrouperName)).thenReturn(groupId);
 		when(groupIdAdapter.isIncludeExcludeSubGroup(provIncludesName)).thenReturn(true);
 		when(groupIdAdapter.isInstitutional(instGrouperName)).thenReturn(true);
-		when(groupIdAdapter.isSimpleGroup(instGrouperName)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(deleteEntry));
 
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
-
 		Group provisionedIncludesGroup = mock(Group.class);
 		when(GroupFinder.findByName(any(GrouperSession.class), eq(provIncludesName), eq(false))).thenReturn(provisionedIncludesGroup);
-
 		when(provisionedIncludesGroup.hasMember(subject)).thenReturn(true);
 
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
-
 		verify(provisionedIncludesGroup).deleteMember(subject);
 		verify(nakamuraManager).deleteMembership(groupId, subjectId);
 	}
