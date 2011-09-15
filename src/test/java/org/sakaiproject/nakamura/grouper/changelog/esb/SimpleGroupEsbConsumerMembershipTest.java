@@ -82,8 +82,8 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		when(groupIdAdapter.getAdhocSimpleGroupsStem()).thenReturn(adhocSimpleGroupsStem);
 
 		consumer = new SimpleGroupEsbConsumer();
-		consumer.setGroupManager(nakamuraManager);
-		consumer.setGroupIdAdapter(groupIdAdapter);
+		consumer.nakamuraManager = nakamuraManager;
+		consumer.groupIdAdapter = groupIdAdapter;
 		consumer.setConfigurationLoaded(true);
 		consumer.setPseudoGroupSuffixes("manager, member");
 		consumer.allowInstitutional = true;

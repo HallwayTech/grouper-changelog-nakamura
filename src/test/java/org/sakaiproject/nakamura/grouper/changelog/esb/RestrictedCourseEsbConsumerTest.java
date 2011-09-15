@@ -53,8 +53,8 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 		entry = mock(ChangeLogEntry.class);
 
 		consumer = new RestrictedCourseGroupEsbConsumer();
-		consumer.setGroupManager(nakamuraManager);
-		consumer.setGroupIdAdapter(groupIdAdapter);
+		consumer.nakamuraManager = nakamuraManager;
+		consumer.groupIdAdapter = groupIdAdapter;
 		consumer.setConfigurationLoaded(true);
 
 		List<String> enabledStems = Arrays.asList(ENABLED_STEMS);

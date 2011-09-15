@@ -94,8 +94,8 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(groupIdAdapter.getAdhocCourseGroupsStem()).thenReturn(adhocCourseStem);
 
 		consumer = new CourseGroupEsbConsumer();
-		consumer.setGroupManager(nakamuraManager);
-		consumer.setGroupIdAdapter(groupIdAdapter);
+		consumer.nakamuraManager = nakamuraManager;
+		consumer.groupIdAdapter = groupIdAdapter;
 		consumer.setAllowInstitutional(true);
 		consumer.setConfigurationLoaded(true);
 		consumer.setPseudoGroupSuffixes("student, manager, member, ta, lecturer");

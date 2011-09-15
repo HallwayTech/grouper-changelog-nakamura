@@ -93,8 +93,8 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.isInstitutional(simplegAllInstitutionalGroupName)).thenReturn(true);
 
 		consumer = new SimpleGroupEsbConsumer();
-		consumer.setGroupManager(nakamuraManager);
-		consumer.setGroupIdAdapter(groupIdAdapter);
+		consumer.nakamuraManager = nakamuraManager;
+		consumer.groupIdAdapter = groupIdAdapter;
 		consumer.setConfigurationLoaded(true);
 		consumer.setPseudoGroupSuffixes("manager, member");
 		consumer.setDeleteRole("managers");

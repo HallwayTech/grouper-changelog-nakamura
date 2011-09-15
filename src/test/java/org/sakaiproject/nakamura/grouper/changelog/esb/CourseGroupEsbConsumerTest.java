@@ -110,8 +110,8 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 
 		consumer = new CourseGroupEsbConsumer();
-		consumer.setGroupManager(nakamuraManager);
-		consumer.setGroupIdAdapter(groupIdAdapter);
+		consumer.nakamuraManager = nakamuraManager;
+		consumer.groupIdAdapter = groupIdAdapter;
 		consumer.setConfigurationLoaded(true);
 		consumer.setPseudoGroupSuffixes("student, manager, member, ta, lecturer");
 		consumer.setDeleteRole("students");
