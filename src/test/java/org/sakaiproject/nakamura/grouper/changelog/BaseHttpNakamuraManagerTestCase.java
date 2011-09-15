@@ -73,7 +73,7 @@ public class BaseHttpNakamuraManagerTestCase extends TestCase {
 
 		nakamuraManager = new HttpSimpleGroupNakamuraManagerImpl();
 		nakamuraManager.createUsers = true;
-		nakamuraManager.setUrl(url);
+		nakamuraManager.url = url;
 		nakamuraManager.emailAttribute = "email";
 		nakamuraManager.firstNameAttribute = "givenName";
 		nakamuraManager.lastNameAttribute = "sn";

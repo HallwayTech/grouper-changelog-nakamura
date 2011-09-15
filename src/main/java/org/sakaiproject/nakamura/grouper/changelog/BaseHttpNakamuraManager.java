@@ -69,11 +69,11 @@ public abstract class BaseHttpNakamuraManager {
 	public static final String TRUE_VAL = "true";
 
 	// Connection info for the OAE server
-	protected URL url;
-	protected String username;
-	protected String password;
+	public URL url;
+	public String username;
+	public String password;
 
-	protected boolean createUsers = false;
+	public boolean createUsers = false;
 
 	// Avoid multiple user exists and user create HTTP calls
 	protected Map<String,Boolean> userExistsInSakai;
@@ -81,19 +81,19 @@ public abstract class BaseHttpNakamuraManager {
 	protected Map<String,Boolean> groupExistsInSakai;
 
 	// Subject attributes for creating users
-	protected String firstNameAttribute;
-	protected String lastNameAttribute;
-	protected String emailAttribute;
-	protected String defaultEmailDomain;
+	public String firstNameAttribute;
+	public String lastNameAttribute;
+	public String emailAttribute;
+	public String defaultEmailDomain;
 
 	// Sakai OAE pseudoGroup suffixes (lecturer, ta, student...)
-	protected Set<String> pseudoGroupSuffixes;
+	public Set<String> pseudoGroupSuffixes;
 
 	// Mock out calls to Sakai
-	protected boolean dryrun = false;
+	public boolean dryrun = false;
 
 	// Convert grouper names to Sakai OAE groupIds
-	protected GroupIdAdapter groupIdAdapter;
+	public GroupIdAdapter groupIdAdapter;
 
 	public BaseHttpNakamuraManager(){
 		userExistsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
@@ -384,55 +384,11 @@ public abstract class BaseHttpNakamuraManager {
 
 	protected void setUrl(String urlString){
 		try {
-			setUrl(new URL(urlString));
+			url = new URL(urlString);
 		}
 		catch (MalformedURLException mfe){
 			log.error("Could not parse " + urlString + "into a URL.");
 			throw new RuntimeException(mfe.toString());
 		}
-	}
-
-	public void setUrl(URL url) {
-		this.url = url;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public void setCreateUsers(boolean createUsers) {
-		this.createUsers = createUsers;
-	}
-
-	public void setFirstNameAttribute(String firstNameAttribute) {
-		this.firstNameAttribute = firstNameAttribute;
-	}
-
-	public void setLastNameAttribute(String lastNameAttribute) {
-		this.lastNameAttribute = lastNameAttribute;
-	}
-
-	public void setEmailAttribute(String emailAttribute) {
-		this.emailAttribute = emailAttribute;
-	}
-
-	public void setDryrun(boolean dryrun) {
-		this.dryrun = dryrun;
-	}
-
-	public void setPseudoGroupSuffixes(Set<String> pseudoGroupSuffixes) {
-		this.pseudoGroupSuffixes = pseudoGroupSuffixes;
-	}
-
-	public void setGroupIdAdapter(GroupIdAdapter gia){
-		this.groupIdAdapter = gia;
-	}
-
-	public void setDefaultEmailDomain(String domain){
-		this.defaultEmailDomain = domain;
 	}
 }

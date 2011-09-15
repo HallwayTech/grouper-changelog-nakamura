@@ -9,7 +9,6 @@ import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
@@ -72,18 +71,18 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupIdAdapter.setTemplateGroupIdAdapter(templateAdapter);
 
 		HttpCourseGroupNakamuraManagerImpl courseManager = new HttpCourseGroupNakamuraManagerImpl();
-		courseManager.setUrl(url);
-		courseManager.setUsername(username);
-		courseManager.setPassword(password);
-		courseManager.setGroupIdAdapter(groupIdAdapter);
-		courseManager.setCreateUsers(createUsers);
-		courseManager.setDryrun(dryrun);
-		courseManager.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		courseManager.url = url;
+		courseManager.username = username;
+		courseManager.password = password;
+		courseManager.createUsers = createUsers;
+		courseManager.groupIdAdapter = groupIdAdapter;
+		courseManager.dryrun = dryrun;
+		courseManager.pseudoGroupSuffixes = pseudoGroupSuffixes;
 
-		courseManager.setFirstNameAttribute(firstNameAttribute);
-		courseManager.setLastNameAttribute(lastNameAttribute);
-		courseManager.setEmailAttribute(emailAttribute);
-		courseManager.setDefaultEmailDomain(defaultEmailDomain);
+		courseManager.firstNameAttribute = firstNameAttribute;
+		courseManager.lastNameAttribute = lastNameAttribute;
+		courseManager.emailAttribute = emailAttribute;
+		courseManager.defaultEmailDomain = defaultEmailDomain;
 		nakamuraManager = courseManager;
 	}
 

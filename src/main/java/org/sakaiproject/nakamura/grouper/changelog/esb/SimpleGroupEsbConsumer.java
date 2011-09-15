@@ -8,7 +8,6 @@ import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
@@ -48,18 +47,18 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
 
 		HttpSimpleGroupNakamuraManagerImpl simpleManager = new HttpSimpleGroupNakamuraManagerImpl();
-		simpleManager.setUrl(url);
-		simpleManager.setUsername(username);
-		simpleManager.setPassword(password);
-		simpleManager.setCreateUsers(createUsers);
-		simpleManager.setGroupIdAdapter(groupIdAdapter);
-		simpleManager.setDryrun(dryrun);
-		simpleManager.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		simpleManager.url = url;
+		simpleManager.username = username;
+		simpleManager.password = password;
+		simpleManager.createUsers = createUsers;
+		simpleManager.groupIdAdapter = groupIdAdapter;
+		simpleManager.dryrun = dryrun;
+		simpleManager.pseudoGroupSuffixes = pseudoGroupSuffixes;
 
-		simpleManager.setFirstNameAttribute(firstNameAttribute);
-		simpleManager.setLastNameAttribute(lastNameAttribute);
-		simpleManager.setEmailAttribute(emailAttribute);
-		simpleManager.setDefaultEmailDomain(defaultEmailDomain);
+		simpleManager.firstNameAttribute = firstNameAttribute;
+		simpleManager.lastNameAttribute = lastNameAttribute;
+		simpleManager.emailAttribute = emailAttribute;
+		simpleManager.defaultEmailDomain = defaultEmailDomain;
 		nakamuraManager = simpleManager;
 	}
 

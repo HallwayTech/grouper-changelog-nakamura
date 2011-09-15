@@ -63,13 +63,13 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		groupIdAdapter.setTemplateGroupIdAdapter(tmplAdapter);
 
 		nakamuraManager = new HttpCourseGroupNakamuraManagerImpl();
-		nakamuraManager.setUrl(url);
-		nakamuraManager.setUsername(username);
-		nakamuraManager.setPassword(password);
-		nakamuraManager.setGroupIdAdapter(groupIdAdapter);
-		nakamuraManager.setCreateUsers(createUsers);
-		nakamuraManager.setDryrun(dryrun);
-		nakamuraManager.setPseudoGroupSuffixes(pseudoGroupSuffixes);
+		nakamuraManager.url = url;
+		nakamuraManager.username = username;
+		nakamuraManager.password = password;
+		nakamuraManager.groupIdAdapter = groupIdAdapter;
+		nakamuraManager.createUsers = createUsers;
+		nakamuraManager.dryrun = dryrun;
+		nakamuraManager.pseudoGroupSuffixes = pseudoGroupSuffixes;
 	}
 
 	@Override
