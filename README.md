@@ -231,8 +231,6 @@ Auditing logging is configured similarly in $GROUPER_HOME/conf/log4j.properties
     log4j.appender.sakai_audit                            = org.apache.log4j.DailyRollingFileAppender
     log4j.appender.sakai_audit.DatePattern                =’-'yyyy-MM-dd’.log’
     log4j.appender.sakai_audit.File                       = ${grouper.home}logs/grouper_audit
-    log4j.appender.sakai_audit.MaxFileSize                = 10000KB
-    log4j.appender.sakai_audit.MaxBackupIndex             = 1
     log4j.appender.sakai_audit.layout                     = org.apache.log4j.PatternLayout
     log4j.appender.sakai_audit.layout.ConversionPattern   = %d %m%n
     log4j.logger.org.sakaiproject.nakamura.grouper.changelog.log.audit = INFO, sakai_audit
