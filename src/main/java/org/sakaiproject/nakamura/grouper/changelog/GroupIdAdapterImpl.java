@@ -85,42 +85,42 @@ public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAda
 
 	protected boolean isAdhoc(String grouperName){
 		if (grouperName != null){
-			return grouperName.startsWith(adhocCourseGroupsStem) ||
-				grouperName.startsWith(adhocSimpleGroupsStem);
+			return startsWith(grouperName, adhocCourseGroupsStem) ||
+					startsWith(grouperName, adhocSimpleGroupsStem);
 		}
 		return false;
 	}
 
 	protected boolean isProvisioned(String grouperName){
 		if (grouperName != null){
-			return grouperName.startsWith(provisionedSimpleGroupsStem) ||
-				grouperName.startsWith(provisionedCourseGroupsStem);
+			return startsWith(grouperName, provisionedSimpleGroupsStem) ||
+					startsWith(grouperName, provisionedCourseGroupsStem);
 		}
 		return false;
 	}
 
 	public boolean isInstitutional(String grouperName){
 		if (grouperName != null){
-			return grouperName.startsWith(institutionalSimpleGroupsStem) ||
-				grouperName.startsWith(institutionalCourseGroupsStem);
+			return startsWith(grouperName, institutionalSimpleGroupsStem) ||
+					startsWith(grouperName, institutionalCourseGroupsStem);
 		}
 		return false;
 	}
 
 	public boolean isCourseGroup(String grouperName){
 		if (grouperName != null){
-			return grouperName.startsWith(adhocCourseGroupsStem) ||
-				grouperName.startsWith(provisionedCourseGroupsStem) ||
-				grouperName.startsWith(institutionalCourseGroupsStem);
+			return startsWith(grouperName, adhocCourseGroupsStem) ||
+					startsWith(grouperName, provisionedCourseGroupsStem) ||
+					startsWith(grouperName ,institutionalCourseGroupsStem);
 		}
 		return false;
 	}
 
 	public boolean isSimpleGroup(String grouperName){
 		if (grouperName != null){
-			return grouperName.startsWith(adhocSimpleGroupsStem) ||
-				grouperName.startsWith(provisionedSimpleGroupsStem) ||
-				grouperName.startsWith(institutionalSimpleGroupsStem);
+			return startsWith(grouperName,adhocSimpleGroupsStem) ||
+					startsWith(grouperName,provisionedSimpleGroupsStem) ||
+					startsWith(grouperName,institutionalSimpleGroupsStem);
 		}
 		return false;
 	}
@@ -179,9 +179,12 @@ public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAda
 		log.info(cfgPrefix + PROP_INST_SIMPLE_GROUPS_STEM + " : " + institutionalSimpleGroupsStem);
 		log.info(cfgPrefix + PROP_INST_COURSE_GROUPS_STEM + " : " + institutionalCourseGroupsStem);
 	}
-
-	public Set<String> getStems(){
-		return stems;
+	
+	private boolean startsWith(String subject, String prefix){
+		if (subject == null || prefix == null){
+			return false;
+		}
+		return subject.startsWith(prefix);
 	}
 
 	// Setters are ugly.
