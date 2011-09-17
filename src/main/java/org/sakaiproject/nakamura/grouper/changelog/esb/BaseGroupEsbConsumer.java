@@ -149,6 +149,13 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		configurationLoaded = true;
 	}
 
+	/**
+	 * Process a changelog entry
+	 * @param entry the changelog entry to process
+	 * @throws IllegalStateException
+	 * @throws GroupModificationException if there's an error saving group data to Sakai OAE
+	 * @throws UserModificationException if there's an error creating a user in Sakai OAE
+	 */
 	protected void processChangeLogEntry(ChangeLogEntry entry) throws IllegalStateException, GroupModificationException, UserModificationException {
 
 		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
@@ -158,16 +165,14 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
 			processGroupAdd(grouperName, nakamuraGroupId, parentGroupId);
 		}
-		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)) {
 			processGroupDelete(grouperName, parentGroupId);
 		}
-
-		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)) {
 			String subjectId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.subjectId);
 			processMembershipAdd(grouperName, nakamuraGroupId, subjectId);
 		}
-
-		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
 			String subjectId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 			processMembershipDelete(grouperName, nakamuraGroupId, subjectId);
 		}
@@ -180,32 +185,20 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
 
 		if (group != null) {
-			if (groupIdAdapter.isInstitutional(grouperName)){
-				String applicationAllGroupName = groupIdAdapter.getAllGroup(groupIdAdapter.toProvisioned(grouperName));
-				// Create app:sakaoae:provisioned:course:X:all if it doesnt exist
-				Group applicationAllGroup = GroupFinder.findByName(getGrouperSession(), applicationAllGroupName, false);
-				if (applicationAllGroup == null){
-					applicationAllGroup = Group.saveGroup(getGrouperSession(), null, null, applicationAllGroupName,
-							BaseGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true);
-				}
-
-				// Add the inst:sis:course:X:ROLE as a member of app:sakaoae:provisioned:course:X:all
-				Subject institutionalRoleGroupSubject = SubjectFinder.findByIdOrIdentifier(grouperName, false);
-				applicationAllGroup.addMember(institutionalRoleGroupSubject, false);
-				log.debug("Created " + applicationAllGroupName + " and added " + institutionalRoleGroupSubject.getName() + " as a member.");
-			}
+			// Do this even if the group already exists in Sakai OAE
+			handleAllRollUpGroup(grouperName);
 
 			if (!nakamuraManager.groupExists(parentGroupId)){
 				log.info("CREATE " + parentGroupId + " as parent of " + nakamuraGroupId);
 
-				// Special case for the inst:sis:course:X:all
+				// Special handling for inst:sis courses.
+				// This will provision a group in Sakai OAE when a group is created in the institutional
+				// When the group is modified in Sakai OAE it will be written back to Grouper in the
+				// Sakai OAE provisioned stem.
 				if (groupIdAdapter.isInstitutional(grouperName)) {
-					// Special handling for inst:sis courses.
-					// This will provision a group in Sakai OAE when a group is created in the institutional
-					// When the group is modified in Sakai OAE it will be written back to Grouper in the
-					// Sakai OAE provisioned stem.
 					grouperName = groupIdAdapter.toProvisioned(grouperName);
 				}
+
 				// Try to get the course description from the parent stem.
 				// If the parent stem has no description just use the group id.
 				String description = group.getParentStem().getDescription();
@@ -218,10 +211,34 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 					nakamuraManager.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
 				}
 			}
+
 		} else {
 			log.error("Group added event received for a group that doesn't exist? " + grouperName);
 		}
 		log.info("DONE GROUP_ADD : " + grouperName);
+	}
+
+	/**
+	 * Create the app:course:all group.
+	 * @param grouperName
+	 */
+	private void handleAllRollUpGroup(String grouperName){
+		String applicationAllGroupName = groupIdAdapter.getAllGroup(grouperName);
+		if (groupIdAdapter.isInstitutional(grouperName)){
+			applicationAllGroupName = groupIdAdapter.toProvisioned(applicationAllGroupName);
+		}
+		// Create app:sakaioae:provisioned:course:X:all if it doesn't exist
+		Group applicationAllGroup = GroupFinder.findByName(getGrouperSession(), applicationAllGroupName, false);
+		if (applicationAllGroup == null){
+			applicationAllGroup = Group.saveGroup(getGrouperSession(), null, null,
+					applicationAllGroupName, BaseGroupIdAdapter.ALL_GROUP_EXTENSION,
+					null, SaveMode.INSERT, true);
+			log.debug("Created " + applicationAllGroupName);
+		}
+		// Add the inst:sis:course:X:ROLE as a member of app:sakaoae:provisioned:course:X:all
+		Subject institutionalRoleGroupSubject = SubjectFinder.findByIdOrIdentifier(grouperName, false);
+		applicationAllGroup.addMember(institutionalRoleGroupSubject, false);
+		log.debug("Added " + institutionalRoleGroupSubject.getName() + " as a member of " + applicationAllGroupName);
 	}
 
 	private void processGroupDelete(String grouperName, String nakamuraGroupId) throws GroupModificationException {

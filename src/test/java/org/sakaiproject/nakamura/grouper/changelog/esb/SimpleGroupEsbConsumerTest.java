@@ -1,6 +1,5 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -13,9 +12,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
-import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
-
-import com.google.common.collect.ImmutableList;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -27,7 +23,6 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
-import edu.internet2.middleware.subject.Subject;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(value = { GrouperUtil.class, GroupFinder.class, GrouperSession.class, SubjectFinder.class, Group.class })
@@ -90,6 +85,9 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.isInstitutional(simplegAllInstitutionalGroupName)).thenReturn(true);
 		when(groupIdAdapter.isInstitutional(simplegManagersInstitutionalGroupName)).thenReturn(true);
 
+		when(groupIdAdapter.getAllGroup(simplegManagersApplicationGroupName)).thenReturn(simplegAllApplicationGroupName);
+		when(groupIdAdapter.toProvisioned(simplegAllInstitutionalGroupName)).thenReturn(simplegManagersApplicationGroupName);
+
 		consumer = new SimpleGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdAdapter = groupIdAdapter;
@@ -146,80 +144,5 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(entry));
-	}
-
-	public void testAddGroup() throws GroupModificationException{
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(simplegManagersApplicationGroupName);
-		when(groupIdAdapter.isInstitutional(simplegManagersApplicationGroupName)).thenReturn(false);
-		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
-		when(GroupFinder.findByName(session, simplegManagersApplicationGroupName, false)).thenReturn(group);
-		when(nakamuraManager.groupExists(groupId)).thenReturn(false);
-
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-		verify(nakamuraManager).createGroup(simplegManagersApplicationGroupName, "parent description");
-	}
-
-	public void testAddGroupInstitutional() throws GroupModificationException{
-		consumer.setAllowInstitutional(true);
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(simplegManagersInstitutionalGroupName);
-
-		when(groupIdAdapter.toProvisioned(simplegManagersInstitutionalGroupName)).thenReturn(simplegManagersApplicationGroupName);
-		when(groupIdAdapter.getAllGroup(simplegManagersApplicationGroupName)).thenReturn(simplegAllApplicationGroupName);
-
-		when(nakamuraManager.groupExists(parentId)).thenReturn(false);
-		when(GroupFinder.findByName(session, simplegManagersInstitutionalGroupName, false)).thenReturn(group);
-		when(GroupFinder.findByName(session, simplegAllApplicationGroupName, false)).thenReturn(group);
-		Subject instGroupSubject = mock(Subject.class);
-		when(SubjectFinder.findByIdOrIdentifier(simplegManagersInstitutionalGroupName, false)).thenReturn(instGroupSubject);
-
-		consumer.allowInstitutional = true;
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-		verify(nakamuraManager).groupExists(parentId);
-		verify(nakamuraManager).createGroup(simplegManagersApplicationGroupName, "parent description");
-	}
-
-	public void testAddInstitutionalAllGroup() throws GroupModificationException{
-		mockStatic(Group.class);
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(simplegManagersInstitutionalGroupName);
-		when(GroupFinder.findByName(session, simplegManagersInstitutionalGroupName, false)).thenReturn(group);
-		when(nakamuraManager.groupExists(groupId)).thenReturn(false);
-
-		when(groupIdAdapter.toProvisioned(simplegManagersInstitutionalGroupName)).thenReturn(simplegManagersApplicationGroupName);
-		when(groupIdAdapter.getAllGroup(simplegManagersApplicationGroupName)).thenReturn(simplegAllApplicationGroupName);
-
-		Group appAllGroup = mock(Group.class);
-		when(GroupFinder.findByName(session, simplegAllApplicationGroupName, false)).thenReturn(appAllGroup);
-		Subject instGroupSubject = mock(Subject.class);
-		when(SubjectFinder.findByIdOrIdentifier(simplegManagersInstitutionalGroupName, false)).thenReturn(instGroupSubject);
-
-		consumer.allowInstitutional = true;
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-
-		verify(appAllGroup).addMember(instGroupSubject, false);
-		verify(nakamuraManager).createGroup(simplegManagersApplicationGroupName, "parent description");
-	}
-
-	public void testDeleteGroupIsNotNull() throws GroupModificationException{
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(simplegManagersApplicationGroupName);
-		when(GroupFinder.findByName(session, simplegManagersApplicationGroupName, false)).thenReturn(group);
-		when(nakamuraManager.groupExists(parentId)).thenReturn(false);
-
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-		verify(nakamuraManager).groupExists(parentId);
-	}
-
-	public void testDeleteGroup() throws GroupModificationException{
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(simplegManagersApplicationGroupName);
-		when(nakamuraManager.groupExists(parentId)).thenReturn(true);
-		when(GroupFinder.findByName(session, simplegManagersApplicationGroupName, false)).thenReturn(null);
-
-		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-		verify(nakamuraManager).groupExists(parentId);
-		verify(nakamuraManager).deleteGroup(parentId, simplegManagersApplicationGroupName);
 	}
 }
