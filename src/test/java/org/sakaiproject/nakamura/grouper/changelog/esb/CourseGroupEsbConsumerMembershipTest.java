@@ -101,8 +101,8 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		consumer = new CourseGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdAdapter = groupIdAdapter;
-		consumer.setAllowInstitutional(true);
-		consumer.setConfigurationLoaded(true);
+		consumer.allowInstitutional = true;
+		consumer.configurationLoaded = true;
 		consumer.setPseudoGroupSuffixes("student, manager, member, ta, lecturer");
 
 		addEntry = mock(ChangeLogEntry.class);
@@ -134,13 +134,9 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(true);
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
-
 		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
 
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-
 		verifyNoMoreInteractions(nakamuraManager);
 	}
 
@@ -148,30 +144,25 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(groupIdAdapter.isIncludeExcludeSubGroup(grouperName)).thenReturn(false);
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
-
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
-		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 
+		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 		verify(nakamuraManager).addMembership("some_course-student", subjectId);
 	}
 
 	public void testAddMembershipIncludeRemovesProvisionedExcludes() throws GroupModificationException, UserModificationException{
 		String provExcludesName = grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(instGrouperName);
-
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		when(groupIdAdapter.getGroupId(instGrouperName)).thenReturn(groupId);
 		when(groupIdAdapter.isIncludeExcludeSubGroup(provExcludesName)).thenReturn(true);
-
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 
 		Group provisionedExcludesGroup = mock(Group.class);
 		when(GroupFinder.findByName(any(GrouperSession.class), eq(provExcludesName), eq(false))).thenReturn(provisionedExcludesGroup);
 		when(provisionedExcludesGroup.hasMember(subject)).thenReturn(true);
 
-		consumer.allowInstitutional = true;
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-
 		verify(provisionedExcludesGroup).deleteMember(subject);
 		verify(nakamuraManager).addMembership(groupId, subjectId);
 	}

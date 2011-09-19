@@ -92,10 +92,7 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
-		// Prevent GrouperLoaderConfig from staticing the test up
-		consumer.setConfigurationLoaded(true);
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-
 		verify(nakamuraManager).setProperty("some_course", CourseTitleEsbConsumer.COURSE_TITLE_PROPERTY, "newdescription");
 	}
 }

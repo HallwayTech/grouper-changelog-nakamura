@@ -91,9 +91,9 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		consumer = new SimpleGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdAdapter = groupIdAdapter;
-		consumer.setConfigurationLoaded(true);
+		consumer.configurationLoaded = true;
+		consumer.triggerRole = "managers";
 		consumer.setPseudoGroupSuffixes("manager, member");
-		consumer.setDeleteRole("managers");
 
 		entry = mock(ChangeLogEntry.class);
 	}

@@ -55,7 +55,7 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 		consumer = new RestrictedCourseGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdAdapter = groupIdAdapter;
-		consumer.setConfigurationLoaded(true);
+		consumer.configurationLoaded = true;
 
 		List<String> enabledStems = Arrays.asList(ENABLED_STEMS);
 		consumer.setEnabledStems(enabledStems);

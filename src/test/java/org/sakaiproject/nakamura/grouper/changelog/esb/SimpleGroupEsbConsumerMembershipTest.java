@@ -90,9 +90,9 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		consumer = new SimpleGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdAdapter = groupIdAdapter;
-		consumer.setConfigurationLoaded(true);
-		consumer.setPseudoGroupSuffixes("manager, member");
+		consumer.configurationLoaded = true;
 		consumer.allowInstitutional = true;
+		consumer.setPseudoGroupSuffixes("manager, member");
 
 		addEntry = mock(ChangeLogEntry.class);
 		when(addEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);

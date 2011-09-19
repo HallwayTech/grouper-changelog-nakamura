@@ -134,7 +134,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.groupIdAdapter = groupIdAdapter;
 		consumer.configurationLoaded = true;
 		consumer.pseudoGroupSuffixes = ImmutableSet.of("student", "manager", "member", "ta", "lecturer");
-		consumer.deleteRole = "students";
+		consumer.triggerRole = "students";
 	}
 
 	public void testIgnoreInvalidEntryType() throws Exception{
@@ -175,7 +175,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testAllowProvisioned(){
-		consumer.setAllowInstitutional(true);
+		consumer.allowInstitutional = true;
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(course1StudentsInstitutionalGroupName);
 		assertFalse(consumer.ignoreChangelogEntry(entry));
@@ -213,7 +213,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	}
 
 	public void testAddGroupInstitutional() throws GroupModificationException{
-		consumer.setAllowInstitutional(true);
+		consumer.allowInstitutional = true;
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(course1StudentsInstitutionalGroupName);
 		when(GroupFinder.findByName(session, course1StudentsInstitutionalGroupName, false)).thenReturn(group);
