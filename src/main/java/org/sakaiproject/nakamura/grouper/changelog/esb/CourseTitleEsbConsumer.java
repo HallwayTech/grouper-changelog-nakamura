@@ -25,15 +25,15 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	private static Log log = LogFactory.getLog(CourseTitleEsbConsumer.class);
 
 	// Regex to determine if this is a section stem
-	private Pattern sectionStemPattern;
+	protected Pattern sectionStemPattern;
 
 	// The interface to the SakaiOAE/nakamura server.
-	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
+	protected HttpCourseGroupNakamuraManagerImpl nakamuraManager;
 
 	// Convert grouper names to nakamura group ids
 	protected GroupIdAdapterImpl groupIdAdapter;
 
-	private boolean configurationLoaded = false;
+	protected boolean configurationLoaded = false;
 
 	// Configuration
 	public static final String PROP_SECTION_STEM_REGEX = "section.stem.regex";
@@ -153,21 +153,5 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		}
 
 		return ignore;
-	}
-
-	public void setSectionStemPattern(Pattern sectionStemPattern) {
-		this.sectionStemPattern = sectionStemPattern;
-	}
-
-	public void setGroupManager(HttpCourseGroupNakamuraManagerImpl groupAdapter) {
-		this.nakamuraManager = groupAdapter;
-	}
-
-	public void setGroupIdAdapter(GroupIdAdapterImpl groupIdAdapter) {
-		this.groupIdAdapter = groupIdAdapter;
-	}
-
-	public void setConfigurationLoaded(boolean configLoaded){
-		this.configurationLoaded = configLoaded;
 	}
 }

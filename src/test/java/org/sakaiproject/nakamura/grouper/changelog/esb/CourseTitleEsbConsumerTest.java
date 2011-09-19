@@ -48,10 +48,10 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 
 		consumer = new CourseTitleEsbConsumer();
-		consumer.setGroupManager(nakamuraManager);
-		consumer.setGroupIdAdapter(groupIdAdapter);
-		consumer.setConfigurationLoaded(true);
-		consumer.setSectionStemPattern(Pattern.compile("edu:apps:sakaioae:courses:([^:]+):([^:]+)"));
+		consumer.nakamuraManager = nakamuraManager;
+		consumer.groupIdAdapter = groupIdAdapter;
+		consumer.configurationLoaded = true;
+		consumer.sectionStemPattern = Pattern.compile("edu:apps:sakaioae:courses:([^:]+):([^:]+)");
 		suppress(method(GrouperUtil.class, "getLog"));
 
 		entry = mock(ChangeLogEntry.class);
