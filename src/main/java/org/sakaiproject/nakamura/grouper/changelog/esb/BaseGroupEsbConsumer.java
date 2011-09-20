@@ -192,8 +192,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			String subjectId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 			processMembershipDelete(grouperName, nakamuraGroupId, subjectId);
 		}
-		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_FIELD_ADD)) {
-			String groupTypeName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_FIELD_ADD.groupTypeName);
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_TYPE_ASSIGN)) {
+			String groupTypeName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_TYPE_ASSIGN.typeName);
 			processGroupTypeAdd(grouperName, nakamuraGroupId, parentGroupId, groupTypeName);
 		}
 	}
