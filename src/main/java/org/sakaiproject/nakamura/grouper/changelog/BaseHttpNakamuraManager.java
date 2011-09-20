@@ -160,7 +160,6 @@ public abstract class BaseHttpNakamuraManager {
 		}
 		try {
 			batchPost(requests);
-			NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
 			for (String memberId : memberIds){
 				AuditLogUtils.audit(AuditLogUtils.USER_ADDED, memberId, parentGroupId, role, AuditLogUtils.SUCCESS);
 			}
