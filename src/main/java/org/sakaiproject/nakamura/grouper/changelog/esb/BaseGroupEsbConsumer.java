@@ -194,7 +194,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		}
 		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_TYPE_ASSIGN)) {
 			String groupTypeName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_TYPE_ASSIGN.typeName);
-			processGroupTypeAdd(grouperName, nakamuraGroupId, parentGroupId, groupTypeName);
+			processGroupTypeAssign(grouperName, nakamuraGroupId, parentGroupId, groupTypeName);
 		}
 	}
 
@@ -351,9 +351,11 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	 * @throws GroupModificationException
 	 * @throws UserModificationException
 	 */
-	private void processGroupTypeAdd(String grouperName,
+	private void processGroupTypeAssign(String grouperName,
 			String nakamuraGroupId, String parentGroupId, String groupTypeName)
 	throws GroupModificationException, UserModificationException {
+
+		log.info("START GROUP_TYPE_ASSIGN, group: " + grouperName + " groupTypeName: " + groupTypeName);
 
 		String extension = StringUtils.substringAfterLast(grouperName, ":");
 
@@ -367,11 +369,15 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 				Stem courseStem = group.getParentStem();
 				for (Group child : courseStem.getChildGroups(Scope.ONE)){
 					if (!child.getExtension().equals(BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
-						nakamuraManager.addMemberships(groupIdAdapter.getGroupId(child.getName()), getMembersPersonSubjectIds(child));
+						String childGroupId = groupIdAdapter.getGroupId(child.getName());
+						log.info("Syncing memberships from " + child.getName() + " to " + childGroupId);
+						nakamuraManager.addMemberships(childGroupId, getMembersPersonSubjectIds(child));
 					}
 				}
 			}
 		}
+
+		log.info("END GROUP_TYPE_ASSIGN, group: " + grouperName + " groupTypeName: " + groupTypeName);
 	}
 
 	/**
