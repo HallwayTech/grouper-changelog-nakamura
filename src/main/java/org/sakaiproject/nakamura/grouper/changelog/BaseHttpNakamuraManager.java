@@ -130,6 +130,15 @@ public abstract class BaseHttpNakamuraManager {
 	 */
 	public void addMemberships(String nakamuraGroupId, List<String> memberIds)
 			throws GroupModificationException {
+
+		if (memberIds.isEmpty()){
+			return;
+		}
+		else if (memberIds.size() == 1){
+			addMembership(nakamuraGroupId, memberIds.get(0));
+			return;
+		}
+
 		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 		String role = StringUtils.substringAfterLast(nakamuraGroupId, "-");
 
