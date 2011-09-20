@@ -140,8 +140,13 @@ public abstract class BaseHttpNakamuraManager {
 			req.put(METHOD_PARAM, "POST");
 			req.put(CHARSET_PARAM, UTF_8);
 			req.put(URL_PARAM, getUpdateURI(nakamuraGroupId));
-			req.put(MEMBER_PARAM, memberId);
-			req.put(VIEWER_PARAM, memberId);
+
+			JSONObject params = new JSONObject();
+			params.put(MEMBER_PARAM, memberId);
+			params.put(VIEWER_PARAM, memberId);
+			params.put(CHARSET_PARAM, UTF_8);
+
+			req.put(PARAMETERS_PARAM, params);
 			requests.add(req);
 		}
 		try {
