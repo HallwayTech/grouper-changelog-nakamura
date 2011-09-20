@@ -2,8 +2,9 @@ package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -19,8 +20,10 @@ import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GroupType;
-import edu.internet2.middleware.grouper.GroupTypeFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.Member;
+import edu.internet2.middleware.grouper.Stem;
+import edu.internet2.middleware.grouper.Stem.Scope;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogConsumerBase;
@@ -31,6 +34,7 @@ import edu.internet2.middleware.grouper.exception.GrouperException;
 import edu.internet2.middleware.grouper.exception.SessionException;
 import edu.internet2.middleware.grouper.misc.SaveMode;
 import edu.internet2.middleware.subject.Subject;
+import edu.internet2.middleware.subject.provider.SubjectTypeEnum;
 
 /**
  * Common data and methods for the other EsbConsumers.
@@ -339,7 +343,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	}
 
 	/**
-	 *
+	 * Create the group in Sakai and sync all of the role groups.
 	 * @param grouperName
 	 * @param nakamuraGroupId
 	 * @param parentGroupId
@@ -350,10 +354,39 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	private void processGroupTypeAdd(String grouperName,
 			String nakamuraGroupId, String parentGroupId, String groupTypeName)
 	throws GroupModificationException, UserModificationException {
+
 		String extension = StringUtils.substringAfterLast(grouperName, ":");
+
 		if (extension.equals(triggerRole) && groupTypeName.equals(groupTypeNameTrigger)){
-			processGroupAdd(grouperName, nakamuraGroupId, parentGroupId);
+			Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
+			if (group != null){
+				// Provision the course
+				processGroupAdd(grouperName, nakamuraGroupId, parentGroupId);
+
+				// Sync the memberships for each of the role groups
+				Stem courseStem = group.getParentStem();
+				for (Group child : courseStem.getChildGroups(Scope.ONE)){
+					if (!child.getExtension().equals(BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
+						nakamuraManager.addMemberships(groupIdAdapter.getGroupId(child.getName()), getMembersPersonSubjectIds(child));
+					}
+				}
+			}
 		}
+	}
+
+	/**
+	 * @param group
+	 * @return a List of subject Ids for immediate members who are persons
+	 */
+	private List<String> getMembersPersonSubjectIds(Group group){
+		List<String> users = new ArrayList<String>();
+		for (Member member : group.getMembers()){
+			if (member.isImmediateMember(group)
+					&& member.getSubjectType().equals(SubjectTypeEnum.PERSON)){
+				users.add(member.getSubjectId());
+			}
+		}
+		return users;
 	}
 
 	/**

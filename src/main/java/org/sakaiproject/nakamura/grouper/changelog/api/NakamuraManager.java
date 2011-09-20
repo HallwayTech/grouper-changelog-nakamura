@@ -1,5 +1,7 @@
 package org.sakaiproject.nakamura.grouper.changelog.api;
 
+import java.util.List;
+
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 
@@ -27,8 +29,18 @@ public interface NakamuraManager {
 	 * @param groupId the id of the group in OAE
 	 * @param subjectId the id of the subject being added
 	 * @throws GroupModificationException
+	 * @throws UserModificationException
 	 */
 	public void addMembership(String groupId, String subjectId) throws GroupModificationException, UserModificationException;
+	
+	/**
+	 * Add a list of subject sto a group.
+	 * @param groupId the id of the group in OAE
+	 * @param subjectIds the ids of the subjects being added
+	 * @throws GroupModificationException
+	 * @throws UserModificationException
+	 */
+	public void addMemberships(String groupId, List<String> subjectIds) throws GroupModificationException, UserModificationException;
 
 	/**
 	 * Delete a group from Sakai OAE

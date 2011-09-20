@@ -3,6 +3,7 @@ package org.sakaiproject.nakamura.grouper.changelog;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -38,9 +39,9 @@ public abstract class BaseHttpNakamuraManager {
 	private static Log log = LogFactory.getLog(BaseHttpNakamuraManager.class);
 
 	// URI for the OAE user and group management servlets.
-	public static String USER_MANAGER_URI = "/system/userManager";
-	public static String GROUP_CREATE_URI = USER_MANAGER_URI + "/group.create.json";
-	public static String GROUP_PATH_PREFIX = USER_MANAGER_URI + "/group";
+	public static final String USER_MANAGER_URI = "/system/userManager";
+	public static final String GROUP_CREATE_URI = USER_MANAGER_URI + "/group.create.json";
+	public static final String GROUP_PATH_PREFIX = USER_MANAGER_URI + "/group";
 	public static final String USER_CREATE_URI = USER_MANAGER_URI + "/user.create.json";
 
 	// Nakamura Batch servlet takes a JSONArray of JSONObjects that each represent a request
@@ -101,7 +102,6 @@ public abstract class BaseHttpNakamuraManager {
 	}
 
 	/**
-	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
 	 */
 	public void addMembership(String nakamuraGroupId, String memberId)
@@ -126,7 +126,41 @@ public abstract class BaseHttpNakamuraManager {
 	}
 
 	/**
-	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
+	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
+	 */
+	public void addMemberships(String nakamuraGroupId, List<String> memberIds)
+			throws GroupModificationException {
+		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+		String role = StringUtils.substringAfterLast(nakamuraGroupId, "-");
+
+		PostMethod method = new PostMethod(url.toString() + BATCH_URI);
+		JSONArray requests = new JSONArray();
+		for (String memberId : memberIds){
+			JSONObject req = new JSONObject();
+			req.put(METHOD_PARAM, "POST");
+			req.put(CHARSET_PARAM, UTF_8);
+			req.put(URL_PARAM, getUpdateURI(nakamuraGroupId));
+			req.put(MEMBER_PARAM, memberId);
+			req.put(VIEWER_PARAM, memberId);
+			requests.add(req);
+		}
+		try {
+			batchPost(requests);
+			NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+			for (String memberId : memberIds){
+				AuditLogUtils.audit(AuditLogUtils.USER_ADDED, memberId, parentGroupId, role, AuditLogUtils.SUCCESS);
+			}
+			log.info("Added subjectId=" + StringUtils.join(memberIds.toArray(), ",") + " to group=" + nakamuraGroupId);
+		}
+		catch (GrouperException ge){
+			for (String memberId : memberIds){
+				AuditLogUtils.audit(AuditLogUtils.USER_ADDED, memberId, parentGroupId, role, AuditLogUtils.FAILURE);
+			}
+			throw ge;
+		}
+	}
+
+	/**
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
 	 */
 	public void deleteMembership(String nakamuraGroupId, String memberId)
@@ -178,7 +212,6 @@ public abstract class BaseHttpNakamuraManager {
 	}
 
 	/**
-	 * Implemented for org.sakaiproject.grouper.changelog.api.NakamuraGroupAdapter
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json key=value
 	 */
 	public void setProperty(String groupId, String key, String value) throws GroupModificationException {
@@ -318,6 +351,14 @@ public abstract class BaseHttpNakamuraManager {
 		}
 	}
 
+	/**
+	 * Create a pseudoGroup in Sakai OAE. 
+	 * A pseudoGroup is an Authorizable that represents a role group for a course.
+	 * @param nakamuraGroupId the id of the psuedoGroup in OAE
+	 * @param groupName the name of the Grouper group.
+	 * @param description a description for the group in OAE
+	 * @throws GroupModificationException
+	 */
 	protected void createPseudoGroup(String nakamuraGroupId, String groupName, String description) throws GroupModificationException {
 		String role = nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf('-') + 1);
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
@@ -348,6 +389,24 @@ public abstract class BaseHttpNakamuraManager {
 		}
 	}
 
+	/**
+	 * Send a batch request to Sakai OAE.
+	 * @param requests a JSONArray for JSONObjects. Each JSONObject represents a request.
+	 * @throws GroupModificationException
+	 */
+	protected void batchPost(JSONArray requests) throws GroupModificationException{
+		PostMethod method = new PostMethod(url + BATCH_URI);
+		method.setParameter(BATCH_REQUESTS_PARAM, requests.toString());
+		method.setParameter(CHARSET_PARAM, UTF_8);
+		if (!dryrun){
+			NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
+		}
+	}
+
+	/**
+	 * @param userId
+	 * @return does this user exist in Sakai OAE?
+	 */
 	private boolean userExists(String userId){
 		boolean exists = false;
 		if (dryrun || userExistsInSakai.containsKey(userId)){
