@@ -139,16 +139,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		groupTypeNameTrigger = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_GROUP_TYPE_NAME_TRIGGER, DEFAULT_GROUP_TYPE_NAME_TRIGGER);
 		log.info("groupTypeNameTrigger = " + groupTypeNameTrigger);
 
-		// Create the group type if it doesnt exist
-		GroupType groupType = GroupTypeFinder.find(groupTypeNameTrigger, false);
-		if (groupType == null){
-			GroupType type = new GroupType();
-			type.setName(groupTypeNameTrigger);
-			type.setCreatorUuid(getGrouperSession().getMemberUuid());
-			type.setIsAssignable(true);
-			type.setCreateTime(new Date().getTime());
-			type.store();
-		}
+		// Create the group type if it doesn't exist
+		GroupType.createType(getGrouperSession(), groupTypeNameTrigger, false);
 
 		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, DEFAULT_ALLOW_INSTITUTIONAL);
 		log.info("allowInstitutional = " + allowInstitutional);
