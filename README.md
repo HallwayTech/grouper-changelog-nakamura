@@ -61,11 +61,13 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' \
                                                  || event.eventType eq 'MEMBERSHIP_ADD')
 
+    changeLog.consumer.simpleGroup.trigger.role = member
+    changeLog.consumer.courseGroups.group.type.name.trigger = provisionToSakaiOAE
+    
     # Map group group names to sakai psuedo group roles
     changeLog.consumer.simpleGroup.role.map                = TAs:ta, lecturers:lecturer, students:student, managers:manager
     # Identify sakai psuedo groups by their suffixes.
     changeLog.consumer.simpleGroup.pseudoGroup.suffixes    = member, manager, student, lecturer, ta
-    changeLog.consumer.simpleGroup.delete.role = member
     changeLog.consumer.simpleGroup.pseudoGroup.suffixes = member, manager
 
     # User provisioning
@@ -115,7 +117,9 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                  || event.eventType eq 'MEMBERSHIP_ADD')
 
     # When this group is deleted we delete the sakai course shell.
-    changeLog.consumer.courseGroups.delete.role = student
+    # When this group is given the type specified by group.type.name.trigger provision the course shell to OAE
+    changeLog.consumer.courseGroups.trigger.role = student
+    changeLog.consumer.courseGroups.group.type.name.trigger = provisionToSakaiOAE
     # Add the sakai admin account as a lecturer
     changeLog.consumer.courseGroups.add.admin.as = ta
 

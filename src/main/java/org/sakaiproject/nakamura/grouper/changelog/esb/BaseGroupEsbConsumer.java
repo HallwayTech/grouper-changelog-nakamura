@@ -2,6 +2,7 @@ package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,6 +18,8 @@ import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
+import edu.internet2.middleware.grouper.GroupType;
+import edu.internet2.middleware.grouper.GroupTypeFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
 import edu.internet2.middleware.grouper.SubjectFinder;
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
@@ -74,15 +77,17 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	public static final String PROP_PSEUDOGROUP_SUFFIXES = "pseudoGroup.suffixes";
 
-	public static final String PROP_DELETE_ROLE = "delete.role";
+	public static final String PROP_DELETE_ROLE = "trigger.role";
 	public static final String DEFAULT_DELETE_ROLE = "students";
-	protected String deleteRole = DEFAULT_DELETE_ROLE;
+	protected String triggerRole = DEFAULT_DELETE_ROLE;
 
 	public static final String PROP_ADD_ADMIN_AS = "add.admin.as";
 	protected String addAdminAs = "";
-
 	protected static final String ADMIN_USERNAME = "admin";
 
+	public static final String PROP_GROUP_TYPE_NAME_TRIGGER = "group.type.name.trigger";
+	public static final String DEFAULT_GROUP_TYPE_NAME_TRIGGER= "provisionToOAE";
+	private String groupTypeNameTrigger;
 
 	protected boolean configurationLoaded = false;
 
@@ -97,6 +102,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	protected NakamuraManager nakamuraManager;
 	protected GroupIdAdapterImpl groupIdAdapter;
+
 
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 
@@ -125,10 +131,24 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("Sakai OAE password = XXXXXXXXX");
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, DEFAULT_DRYRUN);
 		log.info("dryrun = " + dryrun);
-		deleteRole = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DELETE_ROLE, DEFAULT_DELETE_ROLE);
-		log.info("deleteRole = " + deleteRole);
+		triggerRole = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DELETE_ROLE, DEFAULT_DELETE_ROLE);
+		log.info("triggerRole = " + triggerRole);
 		addAdminAs = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADD_ADMIN_AS, "");
 		log.info("addAdminAs = " + addAdminAs);
+
+		groupTypeNameTrigger = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_GROUP_TYPE_NAME_TRIGGER, DEFAULT_GROUP_TYPE_NAME_TRIGGER);
+		log.info("groupTypeNameTrigger = " + groupTypeNameTrigger);
+
+		// Create the group type if it doesnt exist
+		GroupType groupType = GroupTypeFinder.find(groupTypeNameTrigger, false);
+		if (groupType == null){
+			GroupType type = new GroupType();
+			type.setName(groupTypeNameTrigger);
+			type.setCreatorUuid(getGrouperSession().getMemberUuid());
+			type.setIsAssignable(true);
+			type.setCreateTime(new Date().getTime());
+			type.store();
+		}
 
 		allowInstitutional = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_ALLOW_INSTITUTIONAL, DEFAULT_ALLOW_INSTITUTIONAL);
 		log.info("allowInstitutional = " + allowInstitutional);
@@ -175,6 +195,10 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
 			String subjectId = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId);
 			processMembershipDelete(grouperName, nakamuraGroupId, subjectId);
+		}
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_FIELD_ADD)) {
+			String groupTypeName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_FIELD_ADD.groupTypeName);
+			processGroupTypeAdd(grouperName, nakamuraGroupId, parentGroupId, groupTypeName);
 		}
 	}
 
@@ -243,7 +267,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	private void processGroupDelete(String grouperName, String nakamuraGroupId) throws GroupModificationException {
 		log.info("START GROUP_DELETE : " + grouperName);
-		if (grouperName.endsWith(deleteRole)){
+		if (grouperName.endsWith(triggerRole)){
 			if (nakamuraManager.groupExists(nakamuraGroupId)){
 				nakamuraManager.deleteGroup(nakamuraGroupId, grouperName);
 			}
@@ -323,6 +347,24 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	}
 
 	/**
+	 *
+	 * @param grouperName
+	 * @param nakamuraGroupId
+	 * @param parentGroupId
+	 * @param groupTypeName
+	 * @throws GroupModificationException
+	 * @throws UserModificationException
+	 */
+	private void processGroupTypeAdd(String grouperName,
+			String nakamuraGroupId, String parentGroupId, String groupTypeName)
+	throws GroupModificationException, UserModificationException {
+		String extension = StringUtils.substringAfterLast(grouperName, ":");
+		if (extension.equals(triggerRole) && groupTypeName.equals(groupTypeNameTrigger)){
+			processGroupAdd(grouperName, nakamuraGroupId, parentGroupId);
+		}
+	}
+
+	/**
 	 * Lazy-load the grouperSession
 	 * @return
 	 */
@@ -344,17 +386,5 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		for(String suffix: StringUtils.split(psgConfig, ",")){
 			pseudoGroupSuffixes.add(suffix.trim());
 		}
-	}
-
-	public void setAllowInstitutional(boolean allow){
-		this.allowInstitutional = allow;
-	}
-
-	public void setDeleteRole(String role){
-		this.deleteRole = role;
-	}
-
-	public void setConfigurationLoaded(boolean loaded){
-		this.configurationLoaded = loaded;
 	}
 }
