@@ -59,7 +59,8 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                (event.eventType eq 'GROUP_DELETE' \
                                                  || event.eventType eq 'GROUP_ADD' \
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' \
-                                                 || event.eventType eq 'MEMBERSHIP_ADD')
+                                                 || event.eventType eq 'MEMBERSHIP_ADD' \
+                                                 || event.eventType eq 'GROUP_TYPE_ASSIGN')
 
     changeLog.consumer.simpleGroup.trigger.role = member
     changeLog.consumer.courseGroups.group.type.name.trigger = provisionToSakaiOAE
@@ -114,7 +115,8 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                (event.eventType eq 'GROUP_DELETE' \
                                                  || event.eventType eq 'GROUP_ADD' \
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' \
-                                                 || event.eventType eq 'MEMBERSHIP_ADD')
+                                                 || event.eventType eq 'MEMBERSHIP_ADD' \
+                                                 || event.eventType eq 'GROUP_TYPE_ASSIGN')
 
     # When this group is deleted we delete the sakai course shell.
     # When this group is given the type specified by group.type.name.trigger provision the course shell to OAE
