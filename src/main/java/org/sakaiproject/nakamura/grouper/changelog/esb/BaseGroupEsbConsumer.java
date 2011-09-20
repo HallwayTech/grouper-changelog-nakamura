@@ -91,7 +91,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	public static final String PROP_GROUP_TYPE_NAME_TRIGGER = "group.type.name.trigger";
 	public static final String DEFAULT_GROUP_TYPE_NAME_TRIGGER= "provisionToOAE";
-	private String groupTypeNameTrigger;
+	protected String groupTypeNameTrigger;
 
 	protected boolean configurationLoaded = false;
 

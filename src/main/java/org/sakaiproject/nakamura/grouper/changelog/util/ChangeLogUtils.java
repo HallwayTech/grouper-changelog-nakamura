@@ -29,6 +29,9 @@ public class ChangeLogUtils {
 		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)) {
 			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName);
 		}
+		else if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_FIELD_ADD)) {
+			grouperName = entry.retrieveValueForLabel(ChangeLogLabels.GROUP_FIELD_ADD.name);
+		}
 		return grouperName;
 	}
 }

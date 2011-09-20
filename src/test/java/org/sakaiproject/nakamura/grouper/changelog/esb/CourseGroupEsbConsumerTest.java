@@ -1,8 +1,9 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
@@ -25,8 +26,10 @@ import com.google.common.collect.ImmutableSet;
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
+import edu.internet2.middleware.grouper.Member;
 import edu.internet2.middleware.grouper.Stem;
 import edu.internet2.middleware.grouper.SubjectFinder;
+import edu.internet2.middleware.grouper.Stem.Scope;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogLabels;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
@@ -34,6 +37,7 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.misc.SaveMode;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 import edu.internet2.middleware.subject.Subject;
+import edu.internet2.middleware.subject.provider.SubjectTypeEnum;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(value = { GrouperUtil.class, GroupFinder.class, GrouperSession.class, SubjectFinder.class, Group.class })
@@ -52,6 +56,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	private static final String APP_COURSE_STEM = "app:sakaioae:courses";
 
 	private static final String course1LecturersApplicationGroupName  = APP_COURSE_STEM  + ":course1:lecturers";
+	private static final String course1LecturersInstitutionalGroupName = INST_COURSE_STEM + ":course1:lecturers";
 	private static final String course1StudentsApplicationGroupName   = APP_COURSE_STEM  + ":course1:students";
 	private static final String course1StudentsInstitutionalGroupName = INST_COURSE_STEM + ":course1:students";
 	private static final String course1AllApplicationGroupName        = APP_COURSE_STEM  + ":course1:all";
@@ -69,6 +74,10 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	private Group appAllGroup;
 	private Subject instGroupSubject;
 	private Subject appGroupSubject;
+	private Group instLecturerGroup;
+
+	private Member member1;
+	private Member member2;
 
 	public void setUp(){
 
@@ -80,10 +89,23 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		mockStatic(Group.class);
 
 		// Shared Grouper objects
+		member1 = mock(Member.class);
+		member2 = mock(Member.class);
+
+		when(member1.getSubjectId()).thenReturn("user1");
+		when(member1.getSubjectType()).thenReturn(SubjectTypeEnum.PERSON);
+		when(member1.isImmediateMember(any(Group.class))).thenReturn(true);
+		when(member2.getSubjectId()).thenReturn("user2");
+		when(member2.getSubjectType()).thenReturn(SubjectTypeEnum.PERSON);
+		when(member2.isImmediateMember(any(Group.class))).thenReturn(true);
+
 		stem = mock(Stem.class);
 		when(stem.getDescription()).thenReturn(PARENT_DESCRIPTION);
+
 		group = mock(Group.class);
 		when(group.getParentStem()).thenReturn(stem);
+		when(group.getExtension()).thenReturn("students");
+		when(group.getName()).thenReturn(course1StudentsInstitutionalGroupName);
 
 		session = mock(GrouperSession.class);
 		when(GrouperSession.startRootSession()).thenReturn(session);
@@ -96,6 +118,11 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		instGroupSubject = mock(Subject.class);
 		when(SubjectFinder.findByIdOrIdentifier(course1StudentsInstitutionalGroupName, false)).thenReturn(instGroupSubject);
+
+
+		instLecturerGroup = mock(Group.class);
+		when(instLecturerGroup.getExtension()).thenReturn("lecturers");
+		when(instLecturerGroup.getName()).thenReturn(course1LecturersInstitutionalGroupName);
 
 		appGroupSubject = mock(Subject.class);
 		when(SubjectFinder.findByIdOrIdentifier(course1StudentsApplicationGroupName, false)).thenReturn(appGroupSubject);
@@ -120,11 +147,13 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupIdAdapter.getAllGroup(course1StudentsInstitutionalGroupName)).thenReturn(course1AllInstitutionalGroupName);
 
 		when(groupIdAdapter.toProvisioned(course1AllInstitutionalGroupName)).thenReturn(course1AllApplicationGroupName);
+		when(groupIdAdapter.toProvisioned(course1StudentsInstitutionalGroupName)).thenReturn(course1StudentsApplicationGroupName);
 
 		when(groupIdAdapter.getPseudoGroupParent(anyString())).thenReturn(courseGroupId);
 
 		when(groupIdAdapter.getGroupId(course1StudentsApplicationGroupName)).thenReturn(courseStudentGroupId);
 		when(groupIdAdapter.getGroupId(course1StudentsInstitutionalGroupName)).thenReturn(courseStudentGroupId);
+		when(groupIdAdapter.getGroupId(course1LecturersInstitutionalGroupName)).thenReturn(courseLecturerGroupId);
 
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
@@ -288,5 +317,24 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
 		verify(nakamuraManager).addMembership(courseLecturerGroupId, "admin");
+	}
+
+	public void testAddGroupType() throws GroupModificationException, UserModificationException{
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_FIELD_ADD)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_FIELD_ADD.name)).thenReturn(course1StudentsInstitutionalGroupName);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_FIELD_ADD.groupTypeName)).thenReturn(BaseGroupEsbConsumer.DEFAULT_GROUP_TYPE_NAME_TRIGGER);
+
+		when(GroupFinder.findByName(session, course1StudentsInstitutionalGroupName, false)).thenReturn(group);
+		when(GroupFinder.findByName(session, course1LecturersInstitutionalGroupName, false)).thenReturn(instLecturerGroup);
+		when(stem.getChildGroups(Scope.ONE)).thenReturn(ImmutableSet.of(group, instLecturerGroup));
+		when(group.getMembers()).thenReturn(ImmutableSet.of(member1, member2));
+		when(instLecturerGroup.getMembers()).thenReturn(ImmutableSet.of(member1));
+
+		consumer.allowInstitutional = true;
+		consumer.groupTypeNameTrigger = BaseGroupEsbConsumer.DEFAULT_GROUP_TYPE_NAME_TRIGGER;
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
+		verify(nakamuraManager).addMemberships(courseStudentGroupId, ImmutableList.of("user1", "user2"));
+		verify(nakamuraManager).addMemberships(courseLecturerGroupId, ImmutableList.of("user1"));
 	}
 }
