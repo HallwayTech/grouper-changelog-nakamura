@@ -2,6 +2,7 @@ package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -318,6 +319,19 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 		verify(nakamuraManager).groupExists(courseGroupId);
 		verify(nakamuraManager).deleteGroup(courseGroupId, course1StudentsApplicationGroupName);
+	}
+
+	public void testDeleteGroupDisabled() throws GroupModificationException{
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name))
+			.thenReturn(course1StudentsApplicationGroupName);
+		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(true);
+		when(groupIdAdapter.isIncludeExcludeSubGroup(course1StudentsApplicationGroupName)).thenReturn(false);
+		when(GroupFinder.findByName(session, course1StudentsApplicationGroupName, false)).thenReturn(null);
+
+		consumer.deleteGroups = false;
+		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+		verifyNoMoreInteractions(nakamuraManager);
 	}
 
 	public void testAddAdminAsLecturer() throws GroupModificationException, UserModificationException{

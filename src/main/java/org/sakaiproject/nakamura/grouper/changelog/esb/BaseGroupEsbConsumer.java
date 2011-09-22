@@ -59,6 +59,10 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final boolean DEFAULT_DRYRUN = false;
 	protected boolean dryrun = DEFAULT_DRYRUN;
 
+	public static final String PROP_DELETE_GROUPS = "delete.groups";
+	public static final boolean DEFAULT_DELETE_GROUPS = true;
+	protected boolean deleteGroups = DEFAULT_DELETE_GROUPS;
+
 	public static final String PROP_CREATE_USERS = "create.users";
 	public static final boolean DEFAULT_CREATE_USERS = false;
 	protected boolean createUsers = DEFAULT_CREATE_USERS;
@@ -135,6 +139,9 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("Sakai OAE password = XXXXXXXXX");
 		dryrun = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DRYRUN, DEFAULT_DRYRUN);
 		log.info("dryrun = " + dryrun);
+		deleteGroups = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DELETE_GROUPS, DEFAULT_DELETE_GROUPS);
+		log.info("deleteGroups = " + deleteGroups);
+
 		triggerRole = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DELETE_ROLE, DEFAULT_DELETE_ROLE);
 		log.info("triggerRole = " + triggerRole);
 		addAdminAs = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADD_ADMIN_AS, "");
@@ -263,7 +270,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	private void processGroupDelete(String grouperName, String nakamuraGroupId) throws GroupModificationException {
 		log.info("START GROUP_DELETE : " + grouperName);
-		if (grouperName.endsWith(triggerRole)){
+		if (deleteGroups && grouperName.endsWith(triggerRole)){
 			if (nakamuraManager.groupExists(nakamuraGroupId)){
 				nakamuraManager.deleteGroup(nakamuraGroupId, grouperName);
 			}
