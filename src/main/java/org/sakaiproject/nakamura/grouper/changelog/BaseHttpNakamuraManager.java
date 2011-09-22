@@ -142,7 +142,6 @@ public abstract class BaseHttpNakamuraManager {
 		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
 		String role = StringUtils.substringAfterLast(nakamuraGroupId, "-");
 
-		PostMethod method = new PostMethod(url.toString() + BATCH_URI);
 		JSONArray requests = new JSONArray();
 		for (String memberId : memberIds){
 			JSONObject req = new JSONObject();

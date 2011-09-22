@@ -343,6 +343,8 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.allowInstitutional = true;
 		consumer.groupTypeNameTrigger = BaseGroupEsbConsumer.DEFAULT_GROUP_TYPE_NAME_TRIGGER;
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
+		verify(nakamuraManager).createUser("user1");
+		verify(nakamuraManager).createUser("user2");
 		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
 		verify(nakamuraManager).addMemberships(courseStudentGroupId, ImmutableList.of("user1", "user2"));
 		verify(nakamuraManager).addMemberships(courseLecturerGroupId, ImmutableList.of("user1"));

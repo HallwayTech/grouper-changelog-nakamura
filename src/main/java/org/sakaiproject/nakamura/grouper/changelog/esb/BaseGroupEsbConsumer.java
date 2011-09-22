@@ -349,42 +349,49 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + subjectId);
 	}
 
-	/**
-	 * Create the group in Sakai and sync all of the role groups.
-	 * @param grouperName
-	 * @param nakamuraGroupId
-	 * @param parentGroupId
-	 * @param groupTypeName
-	 * @throws GroupModificationException
-	 * @throws UserModificationException
-	 */
 	private void processGroupTypeAssign(String grouperName,
 			String nakamuraGroupId, String parentGroupId, String groupTypeName)
 	throws GroupModificationException, UserModificationException {
 
 		log.info("START GROUP_TYPE_ASSIGN, group: " + grouperName + " groupTypeName: " + groupTypeName);
-
 		String extension = StringUtils.substringAfterLast(grouperName, ":");
-
 		if (extension.equals(triggerRole) && groupTypeName.equals(groupTypeNameTrigger)){
-			Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
-			if (group != null){
-				// Provision the course
-				processGroupAdd(grouperName, nakamuraGroupId, parentGroupId);
+			provisionGroup(grouperName, nakamuraGroupId, parentGroupId);
+		}
+		log.info("END GROUP_TYPE_ASSIGN, group: " + grouperName + " groupTypeName: " + groupTypeName);
+	}
 
-				// Sync the memberships for each of the role groups
-				Stem courseStem = group.getParentStem();
-				for (Group child : courseStem.getChildGroups(Scope.ONE)){
-					if (!child.getExtension().equals(BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
-						String childGroupId = groupIdAdapter.getGroupId(child.getName());
-						log.info("Syncing memberships from " + child.getName() + " to " + childGroupId);
-						nakamuraManager.addMemberships(childGroupId, getMembersPersonSubjectIds(child));
-					}
+	/**
+	 * Create the group in Sakai and sync all of the role groups.
+	 * @param grouperName
+	 * @param nakamuraGroupId
+	 * @param parentGroupId
+	 * @throws GroupModificationException
+	 * @throws UserModificationException
+	 */
+	private void provisionGroup(String grouperName, String nakamuraGroupId, String parentGroupId) throws GroupModificationException, UserModificationException {
+		Group group = GroupFinder.findByName(getGrouperSession(), grouperName, false);
+		if (group == null){
+			return;
+		}
+		// Provision the course
+		processGroupAdd(grouperName, nakamuraGroupId, parentGroupId);
+
+		// Sync the memberships for each of the role groups
+		Stem courseStem = group.getParentStem();
+		for (Group child : courseStem.getChildGroups(Scope.ONE)){
+			if (!child.getExtension().equals(BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
+
+				List<String> memberIds = getMembersPersonSubjectIds(child);
+				for (String memberId : memberIds){
+					nakamuraManager.createUser(memberId);
 				}
+
+				String childGroupId = groupIdAdapter.getGroupId(child.getName());
+				log.info("Syncing " + memberIds.size() + " memberships from " + child.getName() + " to " + childGroupId);
+				nakamuraManager.addMemberships(childGroupId, memberIds);
 			}
 		}
-
-		log.info("END GROUP_TYPE_ASSIGN, group: " + grouperName + " groupTypeName: " + groupTypeName);
 	}
 
 	/**
