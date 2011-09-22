@@ -42,16 +42,14 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 	};
 
 	public void setUp(){
-
 		suppress(method(GrouperUtil.class, "getLog"));
+		metadata = mock(ChangeLogProcessorMetadata.class);
+		entry = mock(ChangeLogEntry.class);
 
 		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
-		metadata = mock(ChangeLogProcessorMetadata.class);
+
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
-
-		entry = mock(ChangeLogEntry.class);
-
 		consumer = new RestrictedCourseGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdAdapter = groupIdAdapter;
@@ -59,7 +57,6 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 
 		List<String> enabledStems = Arrays.asList(ENABLED_STEMS);
 		consumer.setEnabledStems(enabledStems);
-
 	}
 
 	public void testSortedByLength(){

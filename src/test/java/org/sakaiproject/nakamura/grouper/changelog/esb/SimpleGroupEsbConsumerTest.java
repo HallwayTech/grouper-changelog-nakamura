@@ -28,12 +28,6 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
 @PrepareForTest(value = { GrouperUtil.class, GroupFinder.class, GrouperSession.class, SubjectFinder.class, Group.class })
 public class SimpleGroupEsbConsumerTest extends TestCase {
 
-	private SimpleGroupEsbConsumer consumer;
-	private HttpSimpleGroupNakamuraManagerImpl nakamuraManager;
-	private GroupIdAdapterImpl groupIdAdapter;
-	private ChangeLogProcessorMetadata metadata;
-	private ChangeLogEntry entry;
-
 	private static final String simplegManagersApplicationGroupName   = "edu:apps:sakaiaoe:provisioned:simplegroups:some:simpleg:managers";
 	private static final String simplegManagersInstitutionalGroupName = "inst:sis:simplegroups:some:simpleg:managers";
 	private static final String simplegAllApplicationGroupName        = "edu:apps:sakaiaoe:provisioned:simplegroups:some:simpleg:all";
@@ -43,10 +37,17 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	private static final String groupId = "some_simpleg-manager";
 	private static final String parentId = "some_simpleg";
 
-	private GrouperSession session;
+	private SimpleGroupEsbConsumer consumer;
+	private HttpSimpleGroupNakamuraManagerImpl nakamuraManager;
+	private GroupIdAdapterImpl groupIdAdapter;
 
+	private GrouperSession session;
 	private Group group;
 	private Stem stem;
+
+	private ChangeLogEntry addEntry;
+	private ChangeLogEntry deleteEntry;
+	private ChangeLogProcessorMetadata metadata;
 
 	public void setUp(){
 
@@ -55,6 +56,12 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		mockStatic(GrouperSession.class);
 		mockStatic(GroupFinder.class);
 		mockStatic(SubjectFinder.class);
+
+		addEntry = mock(ChangeLogEntry.class);
+		deleteEntry = mock(ChangeLogEntry.class);
+
+		when(addEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
+		when(deleteEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 
 		stem = mock(Stem.class);
 		when(stem.getDescription()).thenReturn("parent description");
@@ -95,54 +102,52 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		consumer.triggerRole = "managers";
 		consumer.setPseudoGroupSuffixes("manager, member");
 
-		entry = mock(ChangeLogEntry.class);
+		addEntry = mock(ChangeLogEntry.class);
+		when(addEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
+		deleteEntry = mock(ChangeLogEntry.class);
+		when(deleteEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
 	}
 
 	public void testIgnoreInvalidEntryType() throws Exception{
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(false);
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(false);
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_UPDATE)).thenReturn(false);
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(false);
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(false);
-		assertTrue(consumer.ignoreChangelogEntry(entry));
+		ChangeLogEntry bad = mock(ChangeLogEntry.class);
+		when(bad.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(false);
+		when(bad.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(false);
+		when(bad.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_UPDATE)).thenReturn(false);
+		when(bad.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(false);
+		when(bad.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_DELETE)).thenReturn(false);
+		assertTrue(consumer.ignoreChangelogEntry(bad));
 	}
 
 	public void testIgnoreAll(){
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(simplegAllApplicationGroupName);
-		assertTrue(consumer.ignoreChangelogEntry(entry));
+		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(simplegAllApplicationGroupName);
+		assertTrue(consumer.ignoreChangelogEntry(deleteEntry));
 
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_DELETE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(simplegAllInstitutionalGroupName);
-		assertTrue(consumer.ignoreChangelogEntry(entry));
+		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name)).thenReturn(simplegAllInstitutionalGroupName);
+		assertTrue(consumer.ignoreChangelogEntry(deleteEntry));
 	}
 
 	public void testIgnoreNotASimpleGroup(){
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(invalidGroupName);
-		assertTrue(consumer.ignoreChangelogEntry(entry));
+		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(invalidGroupName);
+		assertTrue(consumer.ignoreChangelogEntry(addEntry));
 	}
 
 	public void testDontIgnore(){
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(simplegManagersApplicationGroupName);
-		assertFalse(consumer.ignoreChangelogEntry(entry));
+		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(simplegManagersApplicationGroupName);
+		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 	}
 
 	public void testDontAllowProvisionedByDefault(){
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(simplegManagersInstitutionalGroupName);
+		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(simplegManagersInstitutionalGroupName);
 		when(groupIdAdapter.isInstitutional(simplegManagersInstitutionalGroupName)).thenReturn(true);
-		assertTrue(consumer.ignoreChangelogEntry(entry));
+		assertTrue(consumer.ignoreChangelogEntry(addEntry));
 	}
 
 	public void testAllowProvisioned(){
 		consumer.allowInstitutional = true;
 		String grouperName = "inst:sis:courses:some:course:students";
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
+		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(true);
-		assertFalse(consumer.ignoreChangelogEntry(entry));
+		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 	}
 }

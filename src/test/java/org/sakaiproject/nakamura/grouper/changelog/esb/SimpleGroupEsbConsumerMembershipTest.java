@@ -75,10 +75,10 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 
 		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
 		when(groupIdAdapter.isSimpleGroup(instGrouperName)).thenReturn(true);
-		
+
 		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
 		when(groupIdAdapter.isInstitutional(instGrouperName)).thenReturn(true);
-		
+
 		when(groupIdAdapter.getGroupId(grouperName)).thenReturn(groupId);
 		when(groupIdAdapter.getGroupId(instGrouperName)).thenReturn(groupId);
 		when(groupIdAdapter.toProvisioned(instGrouperName)).thenReturn(grouperName);

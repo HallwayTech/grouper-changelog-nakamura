@@ -32,29 +32,32 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
 @PrepareForTest(value = {GrouperUtil.class, GroupFinder.class, GrouperSession.class })
 public class CourseTitleEsbConsumerTest extends TestCase {
 
+	private static final String VALID_STEM = "edu:apps:sakaioae:courses:some:stem";
+	private static final String INVALID_STEM = "edu:apps:sakaioae:courses:some:stem:extra";
+
 	private CourseTitleEsbConsumer consumer;
 	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
 	private GroupIdAdapterImpl groupIdAdapter;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
 
-	private static final String VALID_STEM = "edu:apps:sakaioae:courses:some:stem";
-	private static final String INVALID_STEM = "edu:apps:sakaioae:courses:some:stem:extra";
-
 	public void setUp(){
+		suppress(method(GrouperUtil.class, "getLog"));
+
 		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
 		groupIdAdapter = mock(GroupIdAdapterImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
+		entry = mock(ChangeLogEntry.class);
+
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
+		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.STEM_UPDATE)).thenReturn(true);
+		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
 
 		consumer = new CourseTitleEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdAdapter = groupIdAdapter;
 		consumer.configurationLoaded = true;
 		consumer.sectionStemPattern = Pattern.compile("edu:apps:sakaioae:courses:([^:]+):([^:]+)");
-		suppress(method(GrouperUtil.class, "getLog"));
-
-		entry = mock(ChangeLogEntry.class);
 	}
 
 	public void testIgnoreInvalidEntryType() throws Exception{
@@ -63,28 +66,22 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 	}
 
 	public void testIgnoreDoesntMatchStemPattern(){
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.STEM_UPDATE)).thenReturn(true);
+
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(INVALID_STEM);
 		assertTrue(consumer.ignoreChangelogEntry(entry));
 	}
 
 	public void testIgnoreNotADescriptionChange(){
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.STEM_UPDATE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyChanged)).thenReturn("notdescription");
 		assertTrue(consumer.ignoreChangelogEntry(entry));
 	}
 
 	public void testDontIgnore(){
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.STEM_UPDATE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyChanged)).thenReturn("description");
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 	}
 
 	public void testAddTitle() throws GroupModificationException{
-		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.STEM_UPDATE)).thenReturn(true);
-		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyChanged)).thenReturn("description");
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyNewValue)).thenReturn("newdescription");
 		when(nakamuraManager.groupExists("some_course")).thenReturn(true);
