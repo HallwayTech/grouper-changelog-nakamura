@@ -79,7 +79,6 @@ public class HttpCourseGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 		method.setParameter("sakai:joinRole", "student");
 		method.setParameter("sakai:joinable", "no");
 		method.setParameter("sakai:roles", "[{\"id\":\"student\",\"roleTitle\":\"Students\",\"title\":\"Student\",\"allowManage\":false},{\"id\":\"ta\",\"roleTitle\":\"Teaching Assistants\",\"title\":\"Teaching Assistant\",\"allowManage\":true},{\"id\":\"lecturer\",\"roleTitle\":\"Lecturers\",\"title\":\"Lecturer\",\"allowManage\":true}]");
-		method.setParameter(GROUPER_NAME_PROP, groupName);
 		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
 		try {
 			if (!dryrun){

@@ -72,7 +72,6 @@ public class HttpSimpleGroupNakamuraManagerImpl extends BaseHttpNakamuraManager 
 		method.setParameter("sakai:joinable", "no");
 		method.setParameter("sakai:roles", "[{\"id\":\"member\",\"title\":\"Member\",\"allowManage\":false},{\"id\":\"manager\",\"title\":\"Manager\",\"allowManage\":true}]");
 		method.setParameter("sakai:template-id", "simplegroup");
-		method.setParameter(GROUPER_NAME_PROP, groupName);
 		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
 
 		try {
