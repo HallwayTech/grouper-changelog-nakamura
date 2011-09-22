@@ -1,6 +1,7 @@
 package org.sakaiproject.nakamura.grouper.changelog.esb;
 
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -13,6 +14,7 @@ import static org.powermock.api.support.membermodification.MemberModifier.suppre
 import junit.framework.TestCase;
 
 import org.junit.runner.RunWith;
+import org.mockito.internal.verification.Times;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
@@ -343,7 +345,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.allowInstitutional = true;
 		consumer.groupTypeNameTrigger = BaseGroupEsbConsumer.DEFAULT_GROUP_TYPE_NAME_TRIGGER;
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-		verify(nakamuraManager).createUser("user1");
+		verify(nakamuraManager, times(2)).createUser("user1");
 		verify(nakamuraManager).createUser("user2");
 		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
 		verify(nakamuraManager).addMemberships(courseStudentGroupId, ImmutableList.of("user1", "user2"));
