@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 
 import com.google.common.collect.ImmutableSet;
 
-public class GroupIdManagerImplTestCase extends TestCase {
+public class GroupIdManagerTestCase extends TestCase {
 
 	private Set<String> pseudoGroupSuffixes = ImmutableSet.of("student", "ta", "lecturer", "manager", "members");
 	private Set<String> includeExcludeSuffixes = ImmutableSet.of("_includes", "_excludes", "_systemOfRecord", "_systemOfRecordAndIncludes");
