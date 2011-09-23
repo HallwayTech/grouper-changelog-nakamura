@@ -150,19 +150,25 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		verify(nakamuraManager).addMembership("some_course-student", subjectId);
 	}
 
-	public void testAddMembershipIncludeRemovesProvisionedExcludes() throws GroupModificationException, UserModificationException{
-		String provExcludesName = grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
+	public void testAddMembershipIncludeRemovesIncludeExcludes() throws GroupModificationException, UserModificationException{
+		String includesName = grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+		String excludesName = grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(instGrouperName);
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
-		when(groupIdManager.isIncludeExcludeSubGroup(provExcludesName)).thenReturn(true);
+		when(groupIdManager.isIncludeExcludeSubGroup(excludesName)).thenReturn(true);
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 
-		Group provisionedExcludesGroup = mock(Group.class);
-		when(GroupFinder.findByName(any(GrouperSession.class), eq(provExcludesName), eq(false))).thenReturn(provisionedExcludesGroup);
-		when(provisionedExcludesGroup.hasMember(subject)).thenReturn(true);
+		Group excludesGroup = mock(Group.class);
+		when(GroupFinder.findByName(any(GrouperSession.class), eq(excludesName), eq(false))).thenReturn(excludesGroup);
+		when(excludesGroup.hasMember(subject)).thenReturn(true);
+
+		Group includesGroup = mock(Group.class);
+		when(GroupFinder.findByName(any(GrouperSession.class), eq(includesName), eq(false))).thenReturn(includesGroup);
+		when(includesGroup.hasMember(subject)).thenReturn(true);
 
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-		verify(provisionedExcludesGroup).deleteMember(subject);
+		verify(excludesGroup).deleteMember(subject);
+		verify(includesGroup).deleteMember(subject);
 		verify(nakamuraManager).addMembership(groupId, subjectId);
 	}
 
@@ -207,7 +213,6 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 		when(SubjectFinder.findByIdentifier(subjectId, false)).thenReturn(subject);
 
-		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
 		verifyNoMoreInteractions(nakamuraManager);
 	}
@@ -218,25 +223,30 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		assertFalse(consumer.ignoreChangelogEntry(deleteEntry));
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 
-		// Prevent GrouperLoaderConfig from staticing the test up
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
 		verify(nakamuraManager).groupExists(groupId);
 		verify(nakamuraManager).deleteMembership("some_course-student", subjectId);
 	}
 
-	public void testDeleteMembershipIncludeRemovesProvisionedIncludes() throws GroupModificationException, UserModificationException{
-		String provIncludesName = grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+	public void testDeleteMembershipIncludeRemovesProvisionedIncludesExcludes() throws GroupModificationException, UserModificationException{
+		String includesName = grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+		String excludesName = grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(instGrouperName);
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
-		when(groupIdManager.isIncludeExcludeSubGroup(provIncludesName)).thenReturn(true);
+		when(groupIdManager.isIncludeExcludeSubGroup(includesName)).thenReturn(true);
 		when(SubjectFinder.findByIdOrIdentifier(subjectId, false)).thenReturn(subject);
 
-		Group provisionedIncludesGroup = mock(Group.class);
-		when(GroupFinder.findByName(any(GrouperSession.class), eq(provIncludesName), eq(false))).thenReturn(provisionedIncludesGroup);
-		when(provisionedIncludesGroup.hasMember(subject)).thenReturn(true);
+		Group includesGroup = mock(Group.class);
+		when(GroupFinder.findByName(any(GrouperSession.class), eq(includesName), eq(false))).thenReturn(includesGroup);
+		when(includesGroup.hasMember(subject)).thenReturn(true);
+
+		Group excludesGroup = mock(Group.class);
+		when(GroupFinder.findByName(any(GrouperSession.class), eq(excludesName), eq(false))).thenReturn(excludesGroup);
+		when(excludesGroup.hasMember(subject)).thenReturn(true);
 
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
-		verify(provisionedIncludesGroup).deleteMember(subject);
+		verify(includesGroup).deleteMember(subject);
+		verify(excludesGroup).deleteMember(subject);
 		verify(nakamuraManager).deleteMembership(groupId, subjectId);
 	}
 }

@@ -326,15 +326,10 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			else {
 				log.info(nakamuraGroupId + " does not exist. Cannot add membership");
 			}
-
-			// When a user is added to inst:sis:course:G:ROLE,
-			// Remove them from app:atlas:provisioned:course:G:ROLE_excludes
+			// When a user is removed from inst:sis:course:G:ROLE,
+			// remove them from app:atlas:provisioned:course:G:ROLE_{includes,excludes}
 			if (groupIdManager.isInstitutional(grouperName)){
-				String excludesGroupName = groupIdManager.toProvisioned(grouperName) + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
-				Group excludesGroup = GroupFinder.findByName(getGrouperSession(), excludesGroupName, false);
-				if (excludesGroup != null && excludesGroup.hasMember(member)){
-					excludesGroup.deleteMember(member);
-				}
+				removeFromIncludeExcludeGroups(groupIdManager.toProvisioned(grouperName), member);
 			}
 		}
 		else {
@@ -365,22 +360,33 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			else {
 				log.info(nakamuraGroupId + " does not exist. Cannot remove membership");
 			}
-
 			// When a user is removed from inst:sis:course:G:ROLE,
-			// Remove them from app:atlas:provisioned:course:G:ROLE_includes
+			// remove them from app:atlas:provisioned:course:G:ROLE_{includes,excludes}
 			if (groupIdManager.isInstitutional(grouperName)){
-				String includesGroupName = groupIdManager.toProvisioned(grouperName) + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
-
-				Group includesGroup = GroupFinder.findByName(getGrouperSession(), includesGroupName, false);
-				if (includesGroup != null && includesGroup.hasMember(member)){
-					includesGroup.deleteMember(member);
-				}
+				removeFromIncludeExcludeGroups(groupIdManager.toProvisioned(grouperName), member);
 			}
 		}
 		else {
 			log.info("Ignoring this entry : invalid subject for membership delete : " + member);
 		}
 		log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + subjectId);
+	}
+
+	/**
+	 * Remove a subject from the _includes and _excludes group.
+	 * @param grouperName
+	 * @param member
+	 */
+	private void removeFromIncludeExcludeGroups(String grouperName, Subject member){
+		Group g = null;
+		for (String gName : new String[] { 
+				 grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX, 
+				 grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX } ){
+			g = GroupFinder.findByName(getGrouperSession(), gName, false);
+			if (g != null && g.hasMember(member)){
+				g.deleteMember(member);
+			}
+		}
 	}
 
 	/**
