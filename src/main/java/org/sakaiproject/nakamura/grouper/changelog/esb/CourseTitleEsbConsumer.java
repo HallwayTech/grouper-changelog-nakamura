@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
@@ -32,7 +32,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	protected HttpCourseGroupNakamuraManagerImpl nakamuraManager;
 
 	// Convert grouper names to nakamura group ids
-	protected GroupIdAdapterImpl groupIdAdapter;
+	protected GroupIdManagerImpl groupIdManager;
 
 	protected boolean configurationLoaded = false;
 
@@ -63,16 +63,17 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		TemplateGroupIdAdapter tmplAdapter = new TemplateGroupIdAdapter();
 		tmplAdapter.loadConfiguration(consumerName);
 
-		groupIdAdapter = new GroupIdAdapterImpl();
-		groupIdAdapter.loadConfiguration(consumerName);
-		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
-		groupIdAdapter.setTemplateGroupIdAdapter(tmplAdapter);
+		GroupIdManagerImpl gidMgr = new GroupIdManagerImpl();
+		gidMgr.loadConfiguration(consumerName);
+		gidMgr.setSimpleGroupIdAdapter(simpleAdapter);
+		gidMgr.setTemplateGroupIdAdapter(tmplAdapter);
+		groupIdManager = gidMgr;
 
 		nakamuraManager = new HttpCourseGroupNakamuraManagerImpl();
 		nakamuraManager.url = url;
 		nakamuraManager.username = username;
 		nakamuraManager.password = password;
-		nakamuraManager.groupIdAdapter = groupIdAdapter;
+		nakamuraManager.groupIdAdapter = groupIdManager;
 		nakamuraManager.createUsers = createUsers;
 		nakamuraManager.dryrun = dryrun;
 		nakamuraManager.pseudoGroupSuffixes = pseudoGroupSuffixes;
@@ -95,7 +96,8 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		// try catch so we can track that we made some progress
 		try {
 			for (ChangeLogEntry entry : changeLogEntryList) {
-				log.info("Processing changelog entry=" + entry.getSequenceNumber());
+				currentId = entry.getSequenceNumber();
+				log.info("Processing changelog entry=" + currentId);
 				if (!ignoreChangelogEntry(entry)){
 					processChangeLogEntry(entry);
 				}
@@ -138,7 +140,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	 */
 	protected void processStemUpdate(String stemName, String propertyName, String propertyValue) throws GroupModificationException{
 		log.info("Start STEM_UPDATE : " + stemName);
-		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupIdAdapter.getGroupId(stemName + ":students"));
+		String parentGroupId = groupIdManager.getPseudoGroupParent(groupIdManager.getGroupId(stemName + ":students"));
 
 		if (parentGroupId != null && nakamuraManager.groupExists(parentGroupId)){
 			nakamuraManager.setProperty(parentGroupId, COURSE_TITLE_PROPERTY, propertyValue);

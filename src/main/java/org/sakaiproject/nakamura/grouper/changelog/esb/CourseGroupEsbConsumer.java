@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
@@ -65,17 +65,18 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		TemplateGroupIdAdapter templateAdapter = new TemplateGroupIdAdapter();
 		templateAdapter.loadConfiguration(consumerName);
 
-		groupIdAdapter = new GroupIdAdapterImpl();
-		groupIdAdapter.loadConfiguration(consumerName);
-		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
-		groupIdAdapter.setTemplateGroupIdAdapter(templateAdapter);
+		GroupIdManagerImpl gidMgr = new GroupIdManagerImpl(); 
+		gidMgr.loadConfiguration(consumerName);
+		gidMgr.setSimpleGroupIdAdapter(simpleAdapter);
+		gidMgr.setTemplateGroupIdAdapter(templateAdapter);
+		groupIdManager = gidMgr;
 
 		HttpCourseGroupNakamuraManagerImpl courseManager = new HttpCourseGroupNakamuraManagerImpl();
 		courseManager.url = url;
 		courseManager.username = username;
 		courseManager.password = password;
 		courseManager.createUsers = createUsers;
-		courseManager.groupIdAdapter = groupIdAdapter;
+		courseManager.groupIdAdapter = groupIdManager;
 		courseManager.dryrun = dryrun;
 		courseManager.pseudoGroupSuffixes = pseudoGroupSuffixes;
 
@@ -103,7 +104,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 		try {
 			for (ChangeLogEntry entry : changeLogEntryList) {
-				log.info("Processing changelog entry=" + entry.getSequenceNumber());
+				currentId = entry.getSequenceNumber();
+				log.info("Processing changelog entry=" + currentId); 
 				if (!ignoreChangelogEntry(entry)){
 					processChangeLogEntry(entry);
 				}
@@ -142,11 +144,11 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		}
 		else {
 
-			if (allowInstitutional == false && groupIdAdapter.isInstitutional(grouperName)){
+			if (allowInstitutional == false && groupIdManager.isInstitutional(grouperName)){
 				log.info("ignoring " + sequenceNumber + " : Not processing institutional data : " + grouperName);
 				ignore = true;
 			}
-			if (!groupIdAdapter.isCourseGroup(grouperName)){
+			if (!groupIdManager.isCourseGroup(grouperName)){
 				log.info("ignoring " + sequenceNumber + " : Not a course group : " + grouperName);
 				ignore = true;
 			}

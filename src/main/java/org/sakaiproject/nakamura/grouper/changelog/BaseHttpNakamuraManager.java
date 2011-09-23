@@ -19,7 +19,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.log.AuditLogUtils;
@@ -94,7 +94,7 @@ public abstract class BaseHttpNakamuraManager {
 	public boolean dryrun = false;
 
 	// Convert grouper names to Sakai OAE groupIds
-	public GroupIdAdapter groupIdAdapter;
+	public GroupIdManager groupIdAdapter;
 
 	public BaseHttpNakamuraManager(){
 		userExistsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();

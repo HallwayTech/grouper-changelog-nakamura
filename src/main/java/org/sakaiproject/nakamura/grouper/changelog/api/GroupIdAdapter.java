@@ -19,5 +19,4 @@ public interface GroupIdAdapter {
 	 * @return
 	 */
 	public String getPseudoGroupParent(String groupId);
-
 }

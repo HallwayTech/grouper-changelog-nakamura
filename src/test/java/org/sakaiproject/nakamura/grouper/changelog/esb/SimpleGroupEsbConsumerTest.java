@@ -10,7 +10,7 @@ import junit.framework.TestCase;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
 
 import edu.internet2.middleware.grouper.Group;
@@ -39,7 +39,7 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 
 	private SimpleGroupEsbConsumer consumer;
 	private HttpSimpleGroupNakamuraManagerImpl nakamuraManager;
-	private GroupIdAdapterImpl groupIdAdapter;
+	private GroupIdManagerImpl groupIdManager;
 
 	private GrouperSession session;
 	private Group group;
@@ -72,32 +72,32 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(GrouperSession.startRootSession()).thenReturn(session);
 
 		nakamuraManager = mock(HttpSimpleGroupNakamuraManagerImpl.class);
-		groupIdAdapter = mock(GroupIdAdapterImpl.class);
+		groupIdManager = mock(GroupIdManagerImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 
-		when(groupIdAdapter.getGroupId(simplegManagersApplicationGroupName)).thenReturn(groupId);
-		when(groupIdAdapter.getGroupId(simplegManagersInstitutionalGroupName)).thenReturn(groupId);
-		when(groupIdAdapter.getPseudoGroupParent(groupId)).thenReturn(parentId);
+		when(groupIdManager.getGroupId(simplegManagersApplicationGroupName)).thenReturn(groupId);
+		when(groupIdManager.getGroupId(simplegManagersInstitutionalGroupName)).thenReturn(groupId);
+		when(groupIdManager.getPseudoGroupParent(groupId)).thenReturn(parentId);
 
-		when(groupIdAdapter.getAdhocSimpleGroupsStem()).thenReturn("edu:apps:sakaiaoe:adhoc:simplegroups");
-		when(groupIdAdapter.getInstitutionalSimpleGroupsStem()).thenReturn("inst:sis:simplegroups");
-		when(groupIdAdapter.getProvisionedSimpleGroupsStem()).thenReturn("edu:apps:sakaiaoe:provisioned:simplegroups");
+		when(groupIdManager.getAdhocSimpleGroupsStem()).thenReturn("edu:apps:sakaiaoe:adhoc:simplegroups");
+		when(groupIdManager.getInstitutionalSimpleGroupsStem()).thenReturn("inst:sis:simplegroups");
+		when(groupIdManager.getProvisionedSimpleGroupsStem()).thenReturn("edu:apps:sakaiaoe:provisioned:simplegroups");
 
-		when(groupIdAdapter.isSimpleGroup(invalidGroupName)).thenReturn(false);
-		when(groupIdAdapter.isSimpleGroup(simplegManagersApplicationGroupName)).thenReturn(true);
-		when(groupIdAdapter.isSimpleGroup(simplegManagersInstitutionalGroupName)).thenReturn(true);
-		when(groupIdAdapter.isSimpleGroup(simplegAllInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.isSimpleGroup(invalidGroupName)).thenReturn(false);
+		when(groupIdManager.isSimpleGroup(simplegManagersApplicationGroupName)).thenReturn(true);
+		when(groupIdManager.isSimpleGroup(simplegManagersInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.isSimpleGroup(simplegAllInstitutionalGroupName)).thenReturn(true);
 
-		when(groupIdAdapter.isInstitutional(simplegAllInstitutionalGroupName)).thenReturn(true);
-		when(groupIdAdapter.isInstitutional(simplegManagersInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.isInstitutional(simplegAllInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.isInstitutional(simplegManagersInstitutionalGroupName)).thenReturn(true);
 
-		when(groupIdAdapter.getAllGroup(simplegManagersApplicationGroupName)).thenReturn(simplegAllApplicationGroupName);
-		when(groupIdAdapter.toProvisioned(simplegAllInstitutionalGroupName)).thenReturn(simplegManagersApplicationGroupName);
+		when(groupIdManager.getAllGroup(simplegManagersApplicationGroupName)).thenReturn(simplegAllApplicationGroupName);
+		when(groupIdManager.toProvisioned(simplegAllInstitutionalGroupName)).thenReturn(simplegManagersApplicationGroupName);
 
 		consumer = new SimpleGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
-		consumer.groupIdAdapter = groupIdAdapter;
+		consumer.groupIdManager = groupIdManager;
 		consumer.configurationLoaded = true;
 		consumer.triggerRole = "managers";
 		consumer.setPseudoGroupSuffixes("manager, member");
@@ -138,7 +138,7 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 
 	public void testDontAllowProvisionedByDefault(){
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(simplegManagersInstitutionalGroupName);
-		when(groupIdAdapter.isInstitutional(simplegManagersInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.isInstitutional(simplegManagersInstitutionalGroupName)).thenReturn(true);
 		assertTrue(consumer.ignoreChangelogEntry(addEntry));
 	}
 
@@ -146,8 +146,8 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		consumer.allowInstitutional = true;
 		String grouperName = "inst:sis:courses:some:course:students";
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
-		when(groupIdAdapter.isSimpleGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(true);
+		when(groupIdManager.isSimpleGroup(grouperName)).thenReturn(true);
+		when(groupIdManager.isInstitutional(grouperName)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 	}
 }

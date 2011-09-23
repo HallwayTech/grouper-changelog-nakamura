@@ -6,13 +6,13 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
-public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAdapter {
+public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdManager {
 
-	private static Log log = LogFactory.getLog(GroupIdAdapterImpl.class);
+	private static Log log = LogFactory.getLog(GroupIdManagerImpl.class);
 
 	private Set<String> stems;
 	private Set<String> provisonedStems;
@@ -41,7 +41,7 @@ public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAda
 
 	public static final String PROP_NAKID_ROLE_MAPPINGS = "role.map";
 
-	public GroupIdAdapterImpl(){
+	public GroupIdManagerImpl(){
 		stems = new HashSet<String>();
 		provisonedStems = new HashSet<String>();
 		adhocStems = new HashSet<String>();
@@ -127,20 +127,6 @@ public class GroupIdAdapterImpl extends BaseGroupIdAdapter implements GroupIdAda
 
 	public String getAllGroup(String groupName) {
 		return StringUtils.substringBeforeLast(groupName, ":") + ":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION;
-	}
-
-	public String toInstitutional(String grouperName){
-		String instName = null;
-		if (isInstitutional(grouperName)){
-			instName = grouperName;
-		}
-		else if (isSimpleGroup(grouperName) && isProvisioned(grouperName)){
-			instName = grouperName.replace(provisionedSimpleGroupsStem, institutionalSimpleGroupsStem);
-		}
-		else if (isCourseGroup(grouperName) && isProvisioned(grouperName)){
-			instName = grouperName.replace(provisionedCourseGroupsStem, institutionalCourseGroupsStem);
-		}
-		return instName;
 	}
 
 	public String toProvisioned(String grouperName){

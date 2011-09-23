@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
@@ -42,16 +42,18 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
 		simpleAdapter.loadConfiguration(consumerName);
-		groupIdAdapter = new GroupIdAdapterImpl();
-		groupIdAdapter.loadConfiguration(consumerName);
-		groupIdAdapter.setSimpleGroupIdAdapter(simpleAdapter);
+		
+		GroupIdManagerImpl gidMgr = new GroupIdManagerImpl();
+		gidMgr.loadConfiguration(consumerName);
+		gidMgr.setSimpleGroupIdAdapter(simpleAdapter);
+		groupIdManager = gidMgr;
 
 		HttpSimpleGroupNakamuraManagerImpl simpleManager = new HttpSimpleGroupNakamuraManagerImpl();
 		simpleManager.url = url;
 		simpleManager.username = username;
 		simpleManager.password = password;
 		simpleManager.createUsers = createUsers;
-		simpleManager.groupIdAdapter = groupIdAdapter;
+		simpleManager.groupIdAdapter = groupIdManager;
 		simpleManager.dryrun = dryrun;
 		simpleManager.pseudoGroupSuffixes = pseudoGroupSuffixes;
 
@@ -79,7 +81,8 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		try {
 			// try catch so we can track that we made some progress
 			for (ChangeLogEntry entry : changeLogEntryList) {
-				log.info("Processing changelog entry=" + entry.getSequenceNumber());
+				currentId = entry.getSequenceNumber();
+				log.info("Processing changelog entry=" + currentId);
 				if (!ignoreChangelogEntry(entry)){
 					processChangeLogEntry(entry);
 				}
@@ -116,12 +119,12 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		}
 		else {
 
-			if (allowInstitutional == false && groupIdAdapter.isInstitutional(grouperName)){
+			if (allowInstitutional == false && groupIdManager.isInstitutional(grouperName)){
 				log.debug("ignoring: Not processing institutional data : " + grouperName);
 				ignore = true;
 			}
 
-			if (!groupIdAdapter.isSimpleGroup(grouperName)){
+			if (!groupIdManager.isSimpleGroup(grouperName)){
 				log.debug("ignoring: Not a simple group : " + grouperName);
 				ignore = true;
 			}

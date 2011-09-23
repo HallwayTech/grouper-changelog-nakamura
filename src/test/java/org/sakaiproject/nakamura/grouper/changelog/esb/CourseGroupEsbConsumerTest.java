@@ -18,7 +18,7 @@ import org.mockito.internal.verification.Times;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
@@ -80,7 +80,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	private Member member2;
 
 	private NakamuraManager nakamuraManager;
-	private GroupIdAdapterImpl groupIdAdapter;
+	private GroupIdManagerImpl groupIdManager;
 
 	private CourseGroupEsbConsumer consumer;
 
@@ -105,7 +105,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		instGroupSubject = mock(Subject.class);
 		appGroupSubject = mock(Subject.class);
 
-		groupIdAdapter = mock(GroupIdAdapterImpl.class);
+		groupIdManager = mock(GroupIdManagerImpl.class);
 		nakamuraManager = mock(NakamuraManager.class);
 
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
@@ -137,34 +137,34 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(instLecturerGroup.getExtension()).thenReturn("lecturers");
 		when(instLecturerGroup.getName()).thenReturn(course1LecturersInstitutionalGroupName);
 
-		when(groupIdAdapter.isCourseGroup(course1LecturersApplicationGroupName)).thenReturn(true);
-		when(groupIdAdapter.isCourseGroup(course1StudentsApplicationGroupName)).thenReturn(true);
-		when(groupIdAdapter.isCourseGroup(course1StudentsInstitutionalGroupName)).thenReturn(true);
-		when(groupIdAdapter.isCourseGroup(course1AllApplicationGroupName)).thenReturn(true);
-		when(groupIdAdapter.isCourseGroup(course1AllInstitutionalGroupName)).thenReturn(true);
-		when(groupIdAdapter.isCourseGroup(invalidCourseGroupName)).thenReturn(false);
+		when(groupIdManager.isCourseGroup(course1LecturersApplicationGroupName)).thenReturn(true);
+		when(groupIdManager.isCourseGroup(course1StudentsApplicationGroupName)).thenReturn(true);
+		when(groupIdManager.isCourseGroup(course1StudentsInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.isCourseGroup(course1AllApplicationGroupName)).thenReturn(true);
+		when(groupIdManager.isCourseGroup(course1AllInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.isCourseGroup(invalidCourseGroupName)).thenReturn(false);
 
-		when(groupIdAdapter.isInstitutional(course1StudentsApplicationGroupName)).thenReturn(false);
-		when(groupIdAdapter.isInstitutional(course1StudentsInstitutionalGroupName)).thenReturn(true);
-		when(groupIdAdapter.isInstitutional(course1AllApplicationGroupName)).thenReturn(false);
-		when(groupIdAdapter.isInstitutional(course1AllInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.isInstitutional(course1StudentsApplicationGroupName)).thenReturn(false);
+		when(groupIdManager.isInstitutional(course1StudentsInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.isInstitutional(course1AllApplicationGroupName)).thenReturn(false);
+		when(groupIdManager.isInstitutional(course1AllInstitutionalGroupName)).thenReturn(true);
 
-		when(groupIdAdapter.getAllGroup(course1LecturersApplicationGroupName)).thenReturn(course1AllApplicationGroupName);
-		when(groupIdAdapter.getAllGroup(course1StudentsApplicationGroupName)).thenReturn(course1AllApplicationGroupName);
-		when(groupIdAdapter.getAllGroup(course1StudentsInstitutionalGroupName)).thenReturn(course1AllInstitutionalGroupName);
+		when(groupIdManager.getAllGroup(course1LecturersApplicationGroupName)).thenReturn(course1AllApplicationGroupName);
+		when(groupIdManager.getAllGroup(course1StudentsApplicationGroupName)).thenReturn(course1AllApplicationGroupName);
+		when(groupIdManager.getAllGroup(course1StudentsInstitutionalGroupName)).thenReturn(course1AllInstitutionalGroupName);
 
-		when(groupIdAdapter.toProvisioned(course1AllInstitutionalGroupName)).thenReturn(course1AllApplicationGroupName);
-		when(groupIdAdapter.toProvisioned(course1StudentsInstitutionalGroupName)).thenReturn(course1StudentsApplicationGroupName);
+		when(groupIdManager.toProvisioned(course1AllInstitutionalGroupName)).thenReturn(course1AllApplicationGroupName);
+		when(groupIdManager.toProvisioned(course1StudentsInstitutionalGroupName)).thenReturn(course1StudentsApplicationGroupName);
 
-		when(groupIdAdapter.getPseudoGroupParent(anyString())).thenReturn(courseGroupId);
+		when(groupIdManager.getPseudoGroupParent(anyString())).thenReturn(courseGroupId);
 
-		when(groupIdAdapter.getGroupId(course1StudentsApplicationGroupName)).thenReturn(courseStudentGroupId);
-		when(groupIdAdapter.getGroupId(course1StudentsInstitutionalGroupName)).thenReturn(courseStudentGroupId);
-		when(groupIdAdapter.getGroupId(course1LecturersInstitutionalGroupName)).thenReturn(courseLecturerGroupId);
+		when(groupIdManager.getGroupId(course1StudentsApplicationGroupName)).thenReturn(courseStudentGroupId);
+		when(groupIdManager.getGroupId(course1StudentsInstitutionalGroupName)).thenReturn(courseStudentGroupId);
+		when(groupIdManager.getGroupId(course1LecturersInstitutionalGroupName)).thenReturn(courseLecturerGroupId);
 
 		consumer = new CourseGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
-		consumer.groupIdAdapter = groupIdAdapter;
+		consumer.groupIdManager = groupIdManager;
 		consumer.configurationLoaded = true;
 		consumer.pseudoGroupSuffixes = ImmutableSet.of("student", "manager", "member", "ta", "lecturer");
 		consumer.triggerRole = "students";
@@ -216,14 +216,14 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 	public void testAddGroup() throws GroupModificationException{
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(course1StudentsApplicationGroupName);
-		when(groupIdAdapter.isCourseGroup(course1StudentsApplicationGroupName)).thenReturn(true);
-		when(groupIdAdapter.isInstitutional(course1StudentsApplicationGroupName)).thenReturn(false);
+		when(groupIdManager.isCourseGroup(course1StudentsApplicationGroupName)).thenReturn(true);
+		when(groupIdManager.isInstitutional(course1StudentsApplicationGroupName)).thenReturn(false);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
 		when(GroupFinder.findByName(session, course1StudentsApplicationGroupName, false)).thenReturn(group);
-		when(groupIdAdapter.getGroupId(course1StudentsApplicationGroupName)).thenReturn(courseStudentGroupId);
+		when(groupIdManager.getGroupId(course1StudentsApplicationGroupName)).thenReturn(courseStudentGroupId);
 		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(false);
-		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
+		when(groupIdManager.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
@@ -232,7 +232,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	public void testAddGroupDefaultTitle() throws GroupModificationException{
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(course1StudentsApplicationGroupName);
 		when(GroupFinder.findByName(session, course1StudentsApplicationGroupName, false)).thenReturn(group);
-		when(groupIdAdapter.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
+		when(groupIdManager.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 		when(stem.getDescription()).thenReturn(null);
 		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(false);
 
@@ -245,7 +245,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name))
 			.thenReturn(course1StudentsInstitutionalGroupName);
 		when(GroupFinder.findByName(session, course1StudentsInstitutionalGroupName, false)).thenReturn(group);
-		when(groupIdAdapter.getAllGroup(course1StudentsApplicationGroupName))
+		when(groupIdManager.getAllGroup(course1StudentsApplicationGroupName))
 			.thenReturn(course1AllApplicationGroupName);
 
 		Group appAllGroup = mock(Group.class);
@@ -265,7 +265,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name))
 			.thenReturn(course1StudentsInstitutionalGroupName);
 		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(false);
-		when(groupIdAdapter.getAllGroup(course1StudentsApplicationGroupName))
+		when(groupIdManager.getAllGroup(course1StudentsApplicationGroupName))
 			.thenReturn(course1AllApplicationGroupName);
 
 		Group instAllGroup = mock(Group.class);
@@ -285,7 +285,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name))
 			.thenReturn(course1StudentsApplicationGroupName);
 		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(true);
-		when(groupIdAdapter.isIncludeExcludeSubGroup(course1StudentsApplicationGroupName)).thenReturn(false);
+		when(groupIdManager.isIncludeExcludeSubGroup(course1StudentsApplicationGroupName)).thenReturn(false);
 		when(GroupFinder.findByName(session, course1StudentsApplicationGroupName, false)).thenReturn(group);
 
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
@@ -297,7 +297,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name))
 			.thenReturn(course1StudentsApplicationGroupName);
 		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(true);
-		when(groupIdAdapter.isIncludeExcludeSubGroup(course1StudentsApplicationGroupName)).thenReturn(false);
+		when(groupIdManager.isIncludeExcludeSubGroup(course1StudentsApplicationGroupName)).thenReturn(false);
 		when(GroupFinder.findByName(session, course1StudentsApplicationGroupName, false)).thenReturn(null);
 
 		consumer.processChangeLogEntries(ImmutableList.of(deleteEntry), metadata);
@@ -309,7 +309,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_DELETE.name))
 			.thenReturn(course1StudentsApplicationGroupName);
 		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(true);
-		when(groupIdAdapter.isIncludeExcludeSubGroup(course1StudentsApplicationGroupName)).thenReturn(false);
+		when(groupIdManager.isIncludeExcludeSubGroup(course1StudentsApplicationGroupName)).thenReturn(false);
 		when(GroupFinder.findByName(session, course1StudentsApplicationGroupName, false)).thenReturn(null);
 
 		consumer.deleteGroups = false;
@@ -320,7 +320,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	public void testAddAdminAsLecturer() throws GroupModificationException, UserModificationException{
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(course1StudentsApplicationGroupName);
 		when(GroupFinder.findByName(session, course1StudentsApplicationGroupName, false)).thenReturn(group);
-		when(groupIdAdapter.getGroupId(course1LecturersApplicationGroupName)).thenReturn(courseLecturerGroupId);
+		when(groupIdManager.getGroupId(course1LecturersApplicationGroupName)).thenReturn(courseLecturerGroupId);
 
 		consumer.addAdminAs = "lecturer";
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);

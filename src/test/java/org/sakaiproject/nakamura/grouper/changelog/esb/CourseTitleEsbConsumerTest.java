@@ -13,7 +13,7 @@ import junit.framework.TestCase;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
@@ -37,7 +37,7 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 
 	private CourseTitleEsbConsumer consumer;
 	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
-	private GroupIdAdapterImpl groupIdAdapter;
+	private GroupIdManagerImpl groupIdManager;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
 
@@ -45,17 +45,18 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		suppress(method(GrouperUtil.class, "getLog"));
 
 		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
-		groupIdAdapter = mock(GroupIdAdapterImpl.class);
+		groupIdManager = mock(GroupIdManagerImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		entry = mock(ChangeLogEntry.class);
 
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.STEM_UPDATE)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
+		when(entry.getSequenceNumber()).thenReturn((long)10);
 
 		consumer = new CourseTitleEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
-		consumer.groupIdAdapter = groupIdAdapter;
+		consumer.groupIdManager = groupIdManager;
 		consumer.configurationLoaded = true;
 		consumer.sectionStemPattern = Pattern.compile("edu:apps:sakaioae:courses:([^:]+):([^:]+)");
 	}
@@ -85,8 +86,8 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyChanged)).thenReturn("description");
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyNewValue)).thenReturn("newdescription");
 		when(nakamuraManager.groupExists("some_course")).thenReturn(true);
-		when(groupIdAdapter.getGroupId(VALID_STEM + ":students")).thenReturn("some_course-student");
-		when(groupIdAdapter.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
+		when(groupIdManager.getGroupId(VALID_STEM + ":students")).thenReturn("some_course-student");
+		when(groupIdManager.getPseudoGroupParent("some_course-student")).thenReturn("some_course");
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);

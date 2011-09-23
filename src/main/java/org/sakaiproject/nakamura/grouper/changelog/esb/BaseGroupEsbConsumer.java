@@ -11,7 +11,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
@@ -113,7 +114,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	protected NakamuraManager nakamuraManager;
 
 	// Convert grouperNames to OAE group ids
-	protected GroupIdAdapterImpl groupIdAdapter;
+	protected GroupIdManager  groupIdManager;
 
 	// groupType name for the include/exclude group structures we use in Grouper
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
@@ -186,8 +187,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	protected void processChangeLogEntry(ChangeLogEntry entry) throws IllegalStateException, GroupModificationException, UserModificationException {
 
 		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
-		String nakamuraGroupId = groupIdAdapter.getGroupId(grouperName);
-		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+		String nakamuraGroupId = groupIdManager.getGroupId(grouperName);
+		String parentGroupId = groupIdManager.getPseudoGroupParent(nakamuraGroupId);
 
 		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
 			processGroupAdd(grouperName, nakamuraGroupId, parentGroupId);
@@ -234,8 +235,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 				// This will provision a group in Sakai OAE when a group is created in the institutional
 				// When the group is modified in Sakai OAE it will be written back to Grouper in the
 				// Sakai OAE provisioned stem.
-				if (groupIdAdapter.isInstitutional(grouperName)) {
-					grouperName = groupIdAdapter.toProvisioned(grouperName);
+				if (groupIdManager.isInstitutional(grouperName)) {
+					grouperName = groupIdManager.toProvisioned(grouperName);
 				}
 
 				// Try to get the course description from the parent stem.
@@ -262,9 +263,9 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	 * @param grouperName
 	 */
 	private void handleAllRollUpGroup(String grouperName){
-		String applicationAllGroupName = groupIdAdapter.getAllGroup(grouperName);
-		if (groupIdAdapter.isInstitutional(grouperName)){
-			applicationAllGroupName = groupIdAdapter.toProvisioned(applicationAllGroupName);
+		String applicationAllGroupName = groupIdManager.getAllGroup(grouperName);
+		if (groupIdManager.isInstitutional(grouperName)){
+			applicationAllGroupName = groupIdManager.toProvisioned(applicationAllGroupName);
 		}
 		// Create app:sakaioae:provisioned:course:X:all if it doesn't exist
 		Group applicationAllGroup = GroupFinder.findByName(getGrouperSession(), applicationAllGroupName, false);
@@ -313,7 +314,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("START MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + subjectId);
 
 		if (member != null && "person".equals(member.getTypeName())
-				&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
+				&& !groupIdManager.isIncludeExcludeSubGroup(grouperName)){
 
 			if (createUsers){
 				nakamuraManager.createUser(subjectId);
@@ -328,8 +329,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 			// When a user is added to inst:sis:course:G:ROLE,
 			// Remove them from app:atlas:provisioned:course:G:ROLE_excludes
-			if (groupIdAdapter.isInstitutional(grouperName)){
-				String excludesGroupName = groupIdAdapter.toProvisioned(grouperName) + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
+			if (groupIdManager.isInstitutional(grouperName)){
+				String excludesGroupName = groupIdManager.toProvisioned(grouperName) + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
 				Group excludesGroup = GroupFinder.findByName(getGrouperSession(), excludesGroupName, false);
 				if (excludesGroup != null && excludesGroup.hasMember(member)){
 					excludesGroup.deleteMember(member);
@@ -357,7 +358,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 		if (member != null
 				&& "person".equals(member.getTypeName())
-				&& !groupIdAdapter.isIncludeExcludeSubGroup(grouperName)){
+				&& !groupIdManager.isIncludeExcludeSubGroup(grouperName)){
 			if (nakamuraManager.groupExists(nakamuraGroupId)) {
 				nakamuraManager.deleteMembership(nakamuraGroupId, subjectId);
 			}
@@ -367,8 +368,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 			// When a user is removed from inst:sis:course:G:ROLE,
 			// Remove them from app:atlas:provisioned:course:G:ROLE_includes
-			if (groupIdAdapter.isInstitutional(grouperName)){
-				String includesGroupName = groupIdAdapter.toProvisioned(grouperName) + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+			if (groupIdManager.isInstitutional(grouperName)){
+				String includesGroupName = groupIdManager.toProvisioned(grouperName) + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
 
 				Group includesGroup = GroupFinder.findByName(getGrouperSession(), includesGroupName, false);
 				if (includesGroup != null && includesGroup.hasMember(member)){
@@ -433,7 +434,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 				}
 				// We can send one request with all of the membership adds for this group
 				// Users who are already in members will have no effect in OAE
-				String childGroupId = groupIdAdapter.getGroupId(child.getName());
+				String childGroupId = groupIdManager.getGroupId(child.getName());
 				log.info("Syncing " + memberIds.size() + " memberships from " + child.getName() + " to " + childGroupId);
 				nakamuraManager.addMemberships(childGroupId, memberIds);
 			}

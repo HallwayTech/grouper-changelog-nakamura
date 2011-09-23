@@ -13,7 +13,7 @@ import junit.framework.TestCase;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -31,7 +31,7 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 
 	private RestrictedCourseGroupEsbConsumer consumer;
 	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
-	private GroupIdAdapterImpl groupIdAdapter;
+	private GroupIdManagerImpl groupIdManager;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
 
@@ -47,12 +47,12 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 		entry = mock(ChangeLogEntry.class);
 
 		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
-		groupIdAdapter = mock(GroupIdAdapterImpl.class);
+		groupIdManager = mock(GroupIdManagerImpl.class);
 
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
 		consumer = new RestrictedCourseGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
-		consumer.groupIdAdapter = groupIdAdapter;
+		consumer.groupIdManager = groupIdManager;
 		consumer.configurationLoaded = true;
 
 		List<String> enabledStems = Arrays.asList(ENABLED_STEMS);
@@ -71,8 +71,8 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 	private void prepEntry(String grouperName){
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName).thenReturn(grouperName);
-		when(groupIdAdapter.isCourseGroup(grouperName)).thenReturn(true);
-		when(groupIdAdapter.isInstitutional(grouperName)).thenReturn(false);
+		when(groupIdManager.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdManager.isInstitutional(grouperName)).thenReturn(false);
 	}
 
 	public void testDontIgnoreInRestrictionTable(){
