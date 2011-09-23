@@ -9,6 +9,7 @@ import org.sakaiproject.nakamura.grouper.changelog.GroupIdAdapterImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
@@ -38,8 +39,13 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	// Configuration
 	public static final String PROP_SECTION_STEM_REGEX = "section.stem.regex";
 
+	// The property to set on the OAE group
 	public static final String COURSE_TITLE_PROPERTY = "sakai:group-title";
 
+	/**
+	 * Read the configuration from $GROUPER_HOME/conf/grouper-loader.properties.
+	 * Initialize the necessary components.
+	 */
 	protected void loadConfiguration(String consumerName) {
 		if (configurationLoaded){
 			return;
@@ -78,35 +84,22 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 
 		String consumerName = changeLogProcessorMetadata.getConsumerName();
 		loadConfiguration(consumerName);
-		
+
 		int entryCount = changeLogEntryList.size();
 		log.info("Received a batch of " + entryCount + " entries : " +
 				changeLogEntryList.get(0).getSequenceNumber() + " - " +
 				changeLogEntryList.get(entryCount - 1).getSequenceNumber());
-		
+
 		long currentId = -1;
 
 		// try catch so we can track that we made some progress
 		try {
 			for (ChangeLogEntry entry : changeLogEntryList) {
-				currentId = entry.getSequenceNumber();
-				log.info("Processing changelog entry=" + currentId);
-
-				if (ignoreChangelogEntry(entry)){
-					continue;
+				log.info("Processing changelog entry=" + entry.getSequenceNumber());
+				if (!ignoreChangelogEntry(entry)){
+					processChangeLogEntry(entry);
 				}
-
-				String stemName = entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name);
-				log.info("Start STEM_UPDATE : " + stemName);
-				String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupIdAdapter.getGroupId(stemName + ":students"));
-
-				if (parentGroupId != null && nakamuraManager.groupExists(parentGroupId)){
-					String description = entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyNewValue);
-					nakamuraManager.setProperty(parentGroupId, COURSE_TITLE_PROPERTY, description);
-				}
-				log.info("Finished STEM_UPDATE : " + stemName);
 			}
-
 			log.info("Finished the batch of " + entryCount + " entries : " +
 					changeLogEntryList.get(0).getSequenceNumber() + " - " +
 					changeLogEntryList.get(entryCount - 1).getSequenceNumber());
@@ -124,6 +117,33 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		}
 
 		return currentId;
+	}
+
+	/**
+	 * @param entry the {@link ChangeLogEntry} to process.
+	 */
+	protected void processChangeLogEntry(ChangeLogEntry entry) throws GroupModificationException{
+		String stemName = entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name);
+		String propertyName = entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyChanged);
+		String propertyValue = entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.propertyNewValue);
+		processStemUpdate(stemName, propertyName, propertyValue);
+	}
+
+	/**
+	 * Process a STEM_UPDATE event.
+	 * @param stemName the name of the stem
+	 * @param propertyName the name of the property that changed
+	 * @param propertyValue the new value mof the property
+	 * @throws GroupModificationException
+	 */
+	protected void processStemUpdate(String stemName, String propertyName, String propertyValue) throws GroupModificationException{
+		log.info("Start STEM_UPDATE : " + stemName);
+		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupIdAdapter.getGroupId(stemName + ":students"));
+
+		if (parentGroupId != null && nakamuraManager.groupExists(parentGroupId)){
+			nakamuraManager.setProperty(parentGroupId, COURSE_TITLE_PROPERTY, propertyValue);
+		}
+		log.info("Finished STEM_UPDATE : " + stemName);
 	}
 
 	/**

@@ -103,9 +103,8 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 		try {
 			for (ChangeLogEntry entry : changeLogEntryList) {
-				currentId = entry.getSequenceNumber();
-				log.info("Processing changelog entry=" + currentId);
-				if (! ignoreChangelogEntry(entry)){
+				log.info("Processing changelog entry=" + entry.getSequenceNumber());
+				if (!ignoreChangelogEntry(entry)){
 					processChangeLogEntry(entry);
 				}
 			}

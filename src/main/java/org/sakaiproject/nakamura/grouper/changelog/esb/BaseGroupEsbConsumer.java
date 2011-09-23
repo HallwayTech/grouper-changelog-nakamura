@@ -97,6 +97,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String DEFAULT_GROUP_TYPE_NAME_TRIGGER= "provisionToOAE";
 	protected String groupTypeNameTrigger;
 
+	// Has the configuration been loaded?
 	protected boolean configurationLoaded = false;
 
 	// Suffixes for the composite groups created for addIncludeExclude groups
@@ -108,10 +109,13 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	// Authenticated session for the Grouper API
 	protected GrouperSession grouperSession;
 
+	// Interact with OAE
 	protected NakamuraManager nakamuraManager;
+
+	// Convert grouperNames to OAE group ids
 	protected GroupIdAdapterImpl groupIdAdapter;
 
-
+	// groupType name for the include/exclude group structures we use in Grouper
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 
 	/**
@@ -205,6 +209,14 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		}
 	}
 
+	/**
+	 * Handle a group add event.
+	 * @param grouperName the full grouper name
+	 * @param nakamuraGroupId the id of the corresponding Authorizable in OAE
+	 * @param parentGroupId the id of the pseduoGroupParent of nakamuraGroupId
+	 * @throws GroupModificationException
+	 * @throws UserModificationException
+	 */
 	private void processGroupAdd(String grouperName, String nakamuraGroupId,
 			String parentGroupId) throws GroupModificationException, UserModificationException {
 
@@ -246,7 +258,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	}
 
 	/**
-	 * Create the app:course:all group.
+	 * Create the app:course:all group with the correct membership.
 	 * @param grouperName
 	 */
 	private void handleAllRollUpGroup(String grouperName){
@@ -268,6 +280,12 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.debug("Added " + institutionalRoleGroupSubject.getName() + " as a member of " + applicationAllGroupName);
 	}
 
+	/**
+	 * Process a GROUP_DELETE event.
+	 * @param grouperName the full grouper name
+	 * @param nakamuraGroupId the id of the corresponding Authorizable in OAE
+	 * @throws GroupModificationException
+	 */
 	private void processGroupDelete(String grouperName, String nakamuraGroupId) throws GroupModificationException {
 		log.info("START GROUP_DELETE : " + grouperName);
 		if (deleteGroups && grouperName.endsWith(triggerRole)){
@@ -281,6 +299,14 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("DONE GROUP_DELETE : " + grouperName);
 	}
 
+	/**
+	 * Process a MEMBERSHIP_ADD event.
+	 * @param grouperName the full grouper name
+	 * @param nakamuraGroupId the id of the corresponding Authorizable in OAE
+	 * @param subjectId the new member
+	 * @throws UserModificationException
+	 * @throws GroupModificationException
+	 */
 	private void processMembershipAdd(String grouperName, String nakamuraGroupId, String subjectId) throws UserModificationException, GroupModificationException {
 
 		Subject member = SubjectFinder.findByIdOrIdentifier(subjectId, false);
@@ -317,6 +343,13 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("END MEMBERSHIP_ADD, group: " + grouperName + " subjectId: " + subjectId);
 	}
 
+	/**
+	 * Process a MEMBERSHIP_DELETE event
+	 * @param grouperName the full grouper name
+	 * @param nakamuraGroupId the id of the corresponding Authorizable in OAE
+	 * @param subjectId the id of the member being removed
+	 * @throws GroupModificationException
+	 */
 	private void processMembershipDelete(String grouperName,
 			String nakamuraGroupId, String subjectId) throws GroupModificationException {
 		Subject member = SubjectFinder.findByIdOrIdentifier(subjectId, false);
@@ -349,10 +382,18 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		log.info("END MEMBERSHIP_DELETE, group: " + grouperName + " subjectId: " + subjectId);
 	}
 
+	/**
+	 * Process a GROUP_TYPE_ASSIGN event when a groupType is assigned to a Group.
+	 * @param grouperName the full grouper name
+	 * @param nakamuraGroupId the id of the corresponding Authorizable in OAE
+	 * @param parentGroupId the id of the pseudoGroupParent of nakamuraGroupId
+	 * @param groupTypeName the name of the groupType that was added to grouperName
+	 * @throws GroupModificationException
+	 * @throws UserModificationException
+	 */
 	private void processGroupTypeAssign(String grouperName,
 			String nakamuraGroupId, String parentGroupId, String groupTypeName)
 	throws GroupModificationException, UserModificationException {
-
 		log.info("START GROUP_TYPE_ASSIGN, group: " + grouperName + " groupTypeName: " + groupTypeName);
 		String extension = StringUtils.substringAfterLast(grouperName, ":");
 		if (extension.equals(triggerRole) && groupTypeName.equals(groupTypeNameTrigger)){
@@ -379,14 +420,19 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 		// Sync the memberships for each of the role groups
 		Stem courseStem = group.getParentStem();
+		// List the sibling groups
 		for (Group child : courseStem.getChildGroups(Scope.ONE)){
+
+			// Sync the memberships for each group except the :all group
 			if (!child.getExtension().equals(BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
 
+				// Ensure the users exist in OAE
 				List<String> memberIds = getMembersPersonSubjectIds(child);
 				for (String memberId : memberIds){
 					nakamuraManager.createUser(memberId);
 				}
-
+				// We can send one request with all of the membership adds for this group
+				// Users who are already in members will have no effect in OAE
 				String childGroupId = groupIdAdapter.getGroupId(child.getName());
 				log.info("Syncing " + memberIds.size() + " memberships from " + child.getName() + " to " + childGroupId);
 				nakamuraManager.addMemberships(childGroupId, memberIds);
@@ -426,6 +472,10 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		return grouperSession;
 	}
 
+	/**
+	 * Split the config option into an array
+	 * @param psgConfig the configuration for PROPS_PSEUDOGROUP_SUFFIXES
+	 */
 	public void setPseudoGroupSuffixes(String psgConfig) {
 		pseudoGroupSuffixes = new HashSet<String>();
 		for(String suffix: StringUtils.split(psgConfig, ",")){

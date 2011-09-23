@@ -79,10 +79,8 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		try {
 			// try catch so we can track that we made some progress
 			for (ChangeLogEntry entry : changeLogEntryList) {
-				currentId = entry.getSequenceNumber();
-				log.info("Processing changelog entry=" + currentId);
-
-				if (! ignoreChangelogEntry(entry)){
+				log.info("Processing changelog entry=" + entry.getSequenceNumber());
+				if (!ignoreChangelogEntry(entry)){
 					processChangeLogEntry(entry);
 				}
 			}
