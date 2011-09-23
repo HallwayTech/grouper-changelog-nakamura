@@ -32,7 +32,7 @@ public interface NakamuraManager {
 	 * @throws UserModificationException
 	 */
 	public void addMembership(String groupId, String subjectId) throws GroupModificationException, UserModificationException;
-	
+
 	/**
 	 * Add a list of subject sto a group.
 	 * @param groupId the id of the group in OAE
