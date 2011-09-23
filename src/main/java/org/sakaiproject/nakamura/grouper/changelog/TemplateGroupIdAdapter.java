@@ -65,7 +65,7 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 			log.error(e);
 			return null;
 		}
-		String originalExtension = grouperName.substring(grouperName.lastIndexOf(':') + 1);
+		String originalExtension = StringUtils.substringAfterLast(grouperName, ":");
 
 		// If the groupername ends in one of the include/exclude groups we remove that suffix.
 		for (String ieSuffix: includeExcludeSuffixes) {

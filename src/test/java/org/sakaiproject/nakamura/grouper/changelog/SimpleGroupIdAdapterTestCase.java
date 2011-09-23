@@ -27,6 +27,8 @@ public class SimpleGroupIdAdapterTestCase extends TestCase  {
 	public void testGetNakamuraIdMembers(){
 		assertEquals("newgroup_some_thing_else-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX,
 				adapter.getGroupId("newgroup:some:thing:else:" + SimpleGroupEsbConsumer.MEMBER_SUFFIX));
+		assertEquals("newgroup_some_thing_else-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX,
+				adapter.getGroupId("newgroup:some:thing:else:" + SimpleGroupEsbConsumer.MEMBER_SUFFIX + "_systemOfRecord"));
 	}
 
 	public void testGetNakamuraIdManagers(){

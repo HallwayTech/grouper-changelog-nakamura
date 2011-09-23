@@ -1,5 +1,6 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
+import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 
 public class SimpleGroupIdAdapter extends BaseGroupIdAdapter implements GroupIdAdapter {
@@ -19,15 +20,18 @@ public class SimpleGroupIdAdapter extends BaseGroupIdAdapter implements GroupIdA
 				nakamuraSuffix = psSuffix;
 			}
 			if (nakamuraGroupId.endsWith("_" + psSuffix)){
-				nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_")) + "-" + psSuffix;
+				nakamuraGroupId = StringUtils.substringBeforeLast(nakamuraGroupId, "_") + "-" + psSuffix;
 				break;
 			}
-			// If the groupername ends in _SUFFIX_systemOfRecord we change that to -SUFFIX
+			// If the grouperName ends in _SUFFIX_systemOfRecord we change that to -SUFFIX
 			for (String ieSuffix: includeExcludeSuffixes) {
 				if (nakamuraGroupId.endsWith("_" + psSuffix + ieSuffix)){
-					nakamuraGroupId = nakamuraGroupId.substring(0, nakamuraGroupId.lastIndexOf("_"));
-					int newlast = nakamuraGroupId.lastIndexOf("_");
-					nakamuraGroupId = nakamuraGroupId.substring(0,newlast) + "-" + nakamuraGroupId.substring(newlast + 1);
+					// nakamuraGroupId = some_group_SUFFIX
+					nakamuraGroupId = StringUtils.substringBeforeLast(nakamuraGroupId, "_");
+					// suffix = SUFFIX
+					String suffix = StringUtils.substringAfterLast(nakamuraGroupId, "_");
+					// nakamuraGroupId = some_group-SUFFIX
+					nakamuraGroupId = StringUtils.substringBeforeLast(nakamuraGroupId, "_") + "-" + suffix;
 					break;
 				}
 			}
