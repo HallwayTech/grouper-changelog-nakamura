@@ -34,8 +34,8 @@ public class GroupIdManagerTestCase extends TestCase {
 		tmplAdapter = new TemplateGroupIdAdapter();
 		String pattern =  "([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)";
 		String template = "'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]";
-		tmplAdapter.setPattern(Pattern.compile(pattern));
-		tmplAdapter.setNakamuraIdTemplate(template);
+		tmplAdapter.pattern = Pattern.compile(pattern);
+		tmplAdapter.nakamuraIdTemplate = template;
 		tmplAdapter.setPseudoGroupSuffixes(pseudoGroupSuffixes);
 		tmplAdapter.setIncludeExcludeSuffixes(includeExcludeSuffixes);
 		tmplAdapter.setRoleMap(roleMappings);

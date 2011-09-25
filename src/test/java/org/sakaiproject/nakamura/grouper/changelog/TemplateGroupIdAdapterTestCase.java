@@ -27,8 +27,8 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 	public void testGetNakamuraNameCourseStructure(){
 		String pattern = "([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)$";
 		String template = "g[0] + '_' + g[1] + '_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5]";
-		adaptor.setPattern(Pattern.compile(pattern));
-		adaptor.setNakamuraIdTemplate(template);
+		adaptor.pattern = Pattern.compile(pattern);
+		adaptor.nakamuraIdTemplate = template;
 		assertEquals("acad_term_subject_catalog_session_section",
 				adaptor.getGroupId("acad:term:subject:catalog:session:section"));
 	}
@@ -38,8 +38,8 @@ public class TemplateGroupIdAdapterTestCase extends TestCase {
 		String pattern =  "([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+)";
 		String template = "'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]";
 
-		adaptor.setPattern(Pattern.compile(pattern));
-		adaptor.setNakamuraIdTemplate(template);
+		adaptor.pattern = Pattern.compile(pattern);
+		adaptor.nakamuraIdTemplate = template;
 
 		assertEquals(null, adaptor.getGroupId(null));
 		assertEquals("course_MATH-GA_1410_1_001_FA11-members",

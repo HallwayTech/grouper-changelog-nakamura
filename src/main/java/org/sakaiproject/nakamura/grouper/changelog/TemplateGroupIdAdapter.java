@@ -1,5 +1,7 @@
 package org.sakaiproject.nakamura.grouper.changelog;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,6 +13,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
+
+import com.google.common.collect.ImmutableMap;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
@@ -33,9 +37,9 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 	private static Log log = LogFactory.getLog(TemplateGroupIdAdapter.class);
 
 	// Used to parse the grouper name of a provisioned course
-	private Pattern pattern;
+	protected Pattern pattern;
 	// Used to create an id for Sakai OAE
-	private String nakamuraIdTemplate;
+	protected String nakamuraIdTemplate;
 
 	// Configuration keys
 	public static final String PROP_REGEX = "TemplateGroupIdAdapter.groupName.regex";
@@ -47,8 +51,8 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 	public void loadConfiguration(String consumerName) {
 		super.loadConfiguration(consumerName);
 		String cfgPrefix = "changeLog.consumer." + consumerName + ".";
-		setPattern(Pattern.compile(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_REGEX, true)));
-		setNakamuraIdTemplate(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_TEMPLATE, true));
+		pattern = Pattern.compile(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_REGEX, true));
+		nakamuraIdTemplate = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_TEMPLATE, true);
 	}
 
 	@Override
@@ -91,10 +95,10 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 	}
 
 	/**
-	 * Create the course Id for OAE from the grouperName
-	 * @param grouperName
-	 * @return
-	 * @throws Exception 
+	 * Create the course Id for OAE from the grouperName using a template.
+	 * @param grouperName the name of a group in Grouper
+	 * @return the template filled in with matches from the pattern
+	 * @throws Exception
 	 */
 	private String applyTemplate(String grouperName) throws Exception{
 		Matcher matcher = pattern.matcher(grouperName);
@@ -102,27 +106,19 @@ public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupI
 		if (!matcher.find()){
 			throw new Exception(grouperName + " does not match the regex in ");
 		}
-		String[] g = new String[matcher.groupCount()];
-		for (int i = 1; i <= matcher.groupCount(); i++){
-			g[i-1] = matcher.group(i);
-		}
-		JexlEngine jexl = new JexlEngine();
-		Expression e = jexl.createExpression(nakamuraIdTemplate);
-		JexlContext jc = new MapContext();
-		jc.set("g", g);
 
+		List<String> g = new ArrayList<String>();
+		for (int i = 1; i <= matcher.groupCount(); i++){
+			g.add(matcher.group(i));
+		}
+
+		Expression e = new JexlEngine().createExpression(nakamuraIdTemplate);
+		JexlContext jc = new MapContext(ImmutableMap.of("g", (Object)g));
 		String nakamuraGroupId = (String)e.evaluate(jc);
+
 		if (nakamuraGroupId == null){
 			return null;
 		}
 		return nakamuraGroupId;
-	}
-
-	public void setPattern(Pattern pattern) {
-		this.pattern = pattern;
-	}
-
-	public void setNakamuraIdTemplate(String nakamuraIdTemplate) {
-		this.nakamuraIdTemplate = nakamuraIdTemplate;
 	}
 }
