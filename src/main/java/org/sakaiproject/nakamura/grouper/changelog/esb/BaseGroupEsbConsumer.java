@@ -383,7 +383,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 				 grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX, 
 				 grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX } ){
 			g = GroupFinder.findByName(getGrouperSession(), gName, false);
-			log.debug("finding " + gName + " : {}" + (g == null? "null" : "found"));
+			log.debug("finding " + gName + " : " + (g == null? "null" : "found"));
 			if (g != null && g.hasMember(member)){
 				log.debug("deleting " + member + " from " + gName);
 				g.deleteMember(member);
