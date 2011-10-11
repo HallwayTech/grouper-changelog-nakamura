@@ -126,7 +126,10 @@ public abstract class BaseHttpNakamuraManager {
 	}
 
 	/**
-	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
+	 * Use the OAE batch service to add multiple memberships in one HTTP POST
+	 * @param nakamuraGroupId the group the users will be added to
+	 * @param memberIds the ids of the users in OAE
+	 * @throws GroupModificationException
 	 */
 	public void addMemberships(String nakamuraGroupId, List<String> memberIds)
 			throws GroupModificationException {
