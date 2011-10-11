@@ -15,8 +15,10 @@ public abstract class BaseGroupIdAdapter {
 	protected Set<String> pseudoGroupSuffixes;
 	protected Set<String> includeExcludeSuffixes;
 	protected Map<String,String> roleMap;
+	protected Map<String,String> instRoleMap;
 
 	public static final String PROP_NAKID_ROLE_MAPPINGS = "role.map";
+	public static final String PROP_NAKID_INST_ROLE_MAPPINGS = "inst.to.prov.role.map";
 
 	// addIncludeExclude group suffix configs
 	public static final String PROP_SYSTEM_OF_RECORD_SUFFIX = "grouperIncludeExclude.systemOfRecord.extension.suffix";
@@ -34,6 +36,7 @@ public abstract class BaseGroupIdAdapter {
 	public void loadConfiguration(String consumerName) {
 		String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
 		setRoleMap(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_ROLE_MAPPINGS, true));
+		setInstititionalToProvisionedRoleMap(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_INST_ROLE_MAPPINGS, true));
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + BaseGroupEsbConsumer.PROP_PSEUDOGROUP_SUFFIXES, true));
 
 		includeExcludeSuffixes = new HashSet<String>();
@@ -98,4 +101,14 @@ public abstract class BaseGroupIdAdapter {
 		}
 	}
 
+	public void setInstititionalToProvisionedRoleMap(String propertyString) {
+		instRoleMap = new HashMap<String,String>();
+		for(String map: StringUtils.split(propertyString, ",")){
+			String[] m = StringUtils.split(map.trim(), ":");
+			if (m.length == 2){
+				instRoleMap.put(m[0], m[1]);
+			}
+		}
+
+	}
 }

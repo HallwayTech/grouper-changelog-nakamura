@@ -11,7 +11,8 @@ public class GroupIdManagerTestCase extends TestCase {
 
 	private Set<String> pseudoGroupSuffixes = ImmutableSet.of("student", "ta", "lecturer", "manager", "members");
 	private Set<String> includeExcludeSuffixes = ImmutableSet.of("_includes", "_excludes", "_systemOfRecord", "_systemOfRecordAndIncludes");
-	private String roleMappings = "TAs:ta, lecturers:lecturer, students:student, managers:manager";
+	private String roleMappings = "TAs:ta, lecturers:lecturer, students:student, managers:manager, instuctors:lecturer";
+	private String instMappings = "instructors:lecturers";
 
 	private String ADHOC_SIMPLEGROUPS_STEM = "apps:sakaioae:adhoc:simplegroups";
 	private String ADHOC_COURSEGROUPS_STEM = "apps:sakaioae:adhoc:groups";
@@ -41,6 +42,8 @@ public class GroupIdManagerTestCase extends TestCase {
 		tmplAdapter.setRoleMap(roleMappings);
 
 		manager = new GroupIdManagerImpl();
+		manager.setRoleMap(roleMappings);
+		manager.setInstititionalToProvisionedRoleMap(instMappings);
 		manager.setSimpleGroupIdAdapter(simpleAdapter);
 		manager.setTemplateGroupIdAdapter(tmplAdapter);
 		manager.setAdhocCourseGroupsStem(ADHOC_COURSEGROUPS_STEM);
@@ -49,6 +52,7 @@ public class GroupIdManagerTestCase extends TestCase {
 		manager.setProvisionedSimpleGroupsStem(PROV_SIMPLEGROUPS_STEM);
 		manager.setInstitutionalCourseGroupsStem(INST_COURSEGROUPS_STEM);
 		manager.setInstitutionalSimpleGroupsStem(INST_SIMPLEGROUPS_STEM);
+
 	}
 
 	public void testNullGroupId(){
@@ -257,5 +261,7 @@ public class GroupIdManagerTestCase extends TestCase {
 
 		assertEquals(PROV_COURSEGROUPS_STEM + ":X:students", manager.toProvisioned(INST_COURSEGROUPS_STEM + ":X:students"));
 		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:students", manager.toProvisioned(INST_SIMPLEGROUPS_STEM + ":X:students"));
+
+		assertEquals(PROV_COURSEGROUPS_STEM + ":X:lecturers",manager.toProvisioned(PROV_COURSEGROUPS_STEM + ":X:instructors"));
 	}
 }

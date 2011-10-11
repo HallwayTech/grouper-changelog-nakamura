@@ -66,6 +66,8 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     
     # Map group group names to sakai psuedo group roles
     changeLog.consumer.simpleGroup.role.map                = TAs:ta, lecturers:lecturer, students:student, managers:manager
+    # Map groups from the institutional to their provisioned counterparts
+    changeLog.consumer.simpleGroup.inst.to.prov.role.map   = instructors:lecturers
     # Identify sakai psuedo groups by their suffixes.
     changeLog.consumer.simpleGroup.pseudoGroup.suffixes    = member, manager, student, lecturer, ta
     changeLog.consumer.simpleGroup.pseudoGroup.suffixes = member, manager
@@ -134,6 +136,8 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseGroups.TemplateGroupIdAdapter.groupId.template = 'course_' + g[2] + '_' + g[3] + '_' + g[4] + '_' + g[5] + '_' + g[1] + '_' + g[6]
     # Map group group names to sakai psuedo group roles
     changeLog.consumer.courseGroups.role.map                                = TAs:ta, lecturers:lecturer, students:student, managers:manager
+    # Map groups from the institutional to their provisioned counterparts
+    changeLog.consumer.courseGroups.inst.to.prov.role.map   = instructors:lecturers
     # Identify sakai psuedo groups by their suffixes.
     changeLog.consumer.courseGroups.pseudoGroup.suffixes                    = member, manager, student, lecturer, ta
 

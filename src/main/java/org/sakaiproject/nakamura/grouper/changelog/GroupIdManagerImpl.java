@@ -39,8 +39,6 @@ public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdMan
 	public static final String PROP_INST_SIMPLE_GROUPS_STEM = "institutional.simplegroups.stem";
 	public static final String PROP_INST_COURSE_GROUPS_STEM = "institutional.coursegroups.stem";
 
-	public static final String PROP_NAKID_ROLE_MAPPINGS = "role.map";
-
 	public GroupIdManagerImpl(){
 		stems = new HashSet<String>();
 		provisonedStems = new HashSet<String>();
@@ -131,6 +129,11 @@ public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdMan
 
 	public String toProvisioned(String grouperName){
 		String provName = null;
+
+		if (grouperName == null){
+			return null;
+		}
+
 		if (isProvisioned(grouperName)){
 			provName = grouperName;
 		}
@@ -140,6 +143,15 @@ public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdMan
 		else if (isCourseGroup(grouperName) && isInstitutional(grouperName)){
 			provName = grouperName.replace(institutionalCourseGroupsStem, provisionedCourseGroupsStem);
 		}
+
+		if (provName != null){
+			String role = StringUtils.substringAfterLast(provName, ":");
+			if (instRoleMap.containsKey(role)){
+				role = instRoleMap.get(role);
+			}
+			provName = StringUtils.substringBeforeLast(provName, ":") + ":" + role;
+		}
+
 		return provName;
 	}
 
@@ -165,7 +177,7 @@ public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdMan
 		log.info(cfgPrefix + PROP_INST_SIMPLE_GROUPS_STEM + " : " + institutionalSimpleGroupsStem);
 		log.info(cfgPrefix + PROP_INST_COURSE_GROUPS_STEM + " : " + institutionalCourseGroupsStem);
 	}
-	
+
 	private boolean startsWith(String subject, String prefix){
 		if (subject == null || prefix == null){
 			return false;
