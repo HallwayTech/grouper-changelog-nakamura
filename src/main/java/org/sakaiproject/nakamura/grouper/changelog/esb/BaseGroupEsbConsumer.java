@@ -445,6 +445,9 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 				String childGroupId = groupIdManager.getGroupId(child.getName());
 				log.info("Syncing " + memberIds.size() + " memberships from " + child.getName() + " to " + childGroupId);
 				nakamuraManager.addMemberships(childGroupId, memberIds);
+
+				// handle the roll up group or each role.
+				handleAllRollUpGroup(child.getName());
 			}
 		}
 	}
