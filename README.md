@@ -30,7 +30,7 @@ The SimpleGroupEsbConsumer, CourseTitleEsbConsumer, and RestrictedCourseGroupEsb
 
 Clone this repository and use maven to build the jar.
 
-    git clone URL
+    git clone git://github.com/HallwayTech/grouper-changelog-nakamura.git
     cd grouper-changelog-nakamura
     export GROUPER_HOME=/apps/grouper/
     mvn clean package
