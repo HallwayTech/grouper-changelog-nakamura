@@ -6,6 +6,7 @@ import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpState;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
@@ -68,7 +69,7 @@ public class NakamuraHttpUtils {
 	 * @return a JSONObject of the response if the request returns JSON
 	 * @throws GroupModificationException if there was an error updating the group information.
 	 */
-	public static JSONObject http(HttpClient client, PostMethod method) throws GroupModificationException {
+	public static JSONObject http(HttpClient client, HttpMethod method) throws GroupModificationException {
 
 		method.setRequestHeader("User-Agent", HTTP_USER_AGENT);
 		method.setRequestHeader("Referer", HTTP_REFERER);
@@ -79,9 +80,9 @@ public class NakamuraHttpUtils {
 
 		boolean isJSONRequest = ! method.getPath().toString().endsWith(".html");
 
-		if (log.isDebugEnabled()){
+		if (log.isDebugEnabled() && method instanceof PostMethod){
 			log.debug(method.getName() + " " + method.getPath() + " params:");
-			for (NameValuePair nvp : method.getParameters()){
+			for (NameValuePair nvp : ((PostMethod)method).getParameters()){
 				log.debug(nvp.getName() + " = " + nvp.getValue());
 			}
 		}

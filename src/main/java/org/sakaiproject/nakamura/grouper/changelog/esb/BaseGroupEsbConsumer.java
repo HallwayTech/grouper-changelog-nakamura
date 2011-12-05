@@ -11,12 +11,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
+import org.sakaiproject.nakamura.grouper.changelog.api.WorldConstants;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
+
+import com.google.common.collect.ImmutableMap;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -118,6 +120,10 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 	// groupType name for the include/exclude group structures we use in Grouper
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
+
+	// TODO turn these into properties
+	public static final String DEFAULT_COURSE_TEMPLATE = "/var/templates/worlds/course/basic-course";
+	public static final String DEFAULT_SIMPLEGROUP_TEMPLATE = "/var/templates/worlds/course/simple-group";
 
 	/**
 	 * Load settings from grouper-loader.properties
@@ -245,7 +251,20 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 				if (description == null){
 					description = parentGroupId;
 				}
-				nakamuraManager.createWorld(grouperName, description);
+				String groupId = groupIdManager.getGroupId(grouperName);
+				String worldId = groupIdManager.getPseudoGroupParent(groupId);
+				String template = DEFAULT_SIMPLEGROUP_TEMPLATE;
+				String adminRole = "manager";
+				if (groupIdManager.isCourseGroup(grouperName)){
+					adminRole = "ta";
+					template = DEFAULT_COURSE_TEMPLATE;
+				}
+				nakamuraManager.createWorld(grouperName, worldId, worldId, description,
+						new String[0],
+						WorldConstants.MEMBERS_ONLY, WorldConstants.NO,
+						template,
+						"",
+						ImmutableMap.of("admin", adminRole));
 
 				if (StringUtils.trimToNull(addAdminAs) != null){
 					nakamuraManager.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
@@ -379,8 +398,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	 */
 	private void removeFromIncludeExcludeGroups(String grouperName, Subject member){
 		Group g = null;
-		for (String gName : new String[] { 
-				 grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX, 
+		for (String gName : new String[] {
+				 grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX,
 				 grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX } ){
 			g = GroupFinder.findByName(getGrouperSession(), gName, false);
 			log.debug("finding " + gName + " : " + (g == null? "null" : "found"));

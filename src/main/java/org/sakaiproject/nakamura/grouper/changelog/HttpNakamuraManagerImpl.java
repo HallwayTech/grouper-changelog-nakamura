@@ -3,6 +3,7 @@ package org.sakaiproject.nakamura.grouper.changelog;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
+import org.sakaiproject.nakamura.grouper.changelog.api.WorldConstants;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.log.AuditLogUtils;
@@ -65,9 +67,10 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 	public static final String WORLD_TEMPLATE_PARAM = "worldTemplate";
 	public static final String MESSAGE_PARAM = "message";
 	public static final String USERS_TO_ADD_PARAM = "usersToAdd";
+
 	public static final String COURSE_DEFAULT_ADMIN_ROLE = "lecturer";
 	public static final String SIMPLE_GROUP_DEFAULT_ADMIN_ROLE = "lecturer";
-	
+
 	// Sling params
 	public static final String OPERATION_PARAM = ":operation";
 	public static final String METHOD_PARAM = "method";
@@ -86,7 +89,6 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 	// Properties stored on authorizables in Sakai OAE
 	public static final String GROUPER_NAME_PROP = "grouper:name";
 	public static final String GROUPER_PROVISIONED_PROP = "grouper:provisioned";
-	public static final String TRUE_VAL = "true";
 
 	// Connection info for the OAE server
 	public URL url;
@@ -119,9 +121,6 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		userExistsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
 		groupExistsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
 	}
-	
-	private static final String DEFAULT_COURSE_TEMPLATE = "/var/templates/worlds/course/basic-course";
-	private static final String DEFAULT_SIMPLEGROUP_TEMPLATE = "/var/templates/worlds/course/simple-group";
 
 	/**
 	 * Create the full set of objects that are necessary to have a working
@@ -132,26 +131,14 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 	 * @throws GroupModificationException
 	 */
 	@Override
-	public void createWorld(String groupName, String description) throws GroupModificationException {
+	public void createWorld(String grouperName, String worldId, String title,
+			String description, String[] tags, String visibility,
+			String joinability, String template, String message,
+			Map<String, String> usersRolesToAdd)
+			throws GroupModificationException {
 
-		String groupId = groupIdAdapter.getGroupId(groupName);
-		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
-		log.debug(groupName + " converted to " + groupId + " for nakamura.");
-
-		// TODO - Fix this. Either key off of the lecturers group and grab the
-		// first member or use an attribute.
-		// We might not have members at add time.
-		String creator = username;
-		String adminRole = SIMPLE_GROUP_DEFAULT_ADMIN_ROLE;
-		String template = DEFAULT_SIMPLEGROUP_TEMPLATE;
-		if (this.groupIdAdapter.isCourseGroup(groupName)){
-			template = DEFAULT_COURSE_TEMPLATE;
-			adminRole = COURSE_DEFAULT_ADMIN_ROLE;
-		}
-		
-		JSONObject params = makeCreateWorldParams(parentGroupId, parentGroupId, new String[0], parentGroupId, 
-				"members-only", "no", template, "", 
-				ImmutableMap.of(creator, adminRole));
+		JSONObject params = makeCreateWorldParams(worldId, worldId, tags, worldId,
+				visibility, joinability, template, message, usersRolesToAdd);
 
 		PostMethod method = new PostMethod(url + WORLD_CREATE_URI);
 		method.setParameter(DATA_PARAM, params.toString());
@@ -160,13 +147,34 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		if(!dryrun){
 			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 			NakamuraHttpUtils.http(client, method);
+			setGrouperNameProperties(worldId, grouperName);
 		}
 
-	    log.info("Successfully created the OAE world " + parentGroupId + " for " + groupName);
+	    log.info("Successfully created the OAE world " + worldId + " for " + grouperName);
 	}
-	
 
-	private JSONObject makeCreateWorldParams(String id, String title, String[] tags, String description, 
+	/**
+	 * Set the grouper:* properties on the group authorizables in OAE
+	 * @param worldId
+	 * @param grouperName
+	 * @throws GroupModificationException
+	 */
+	private void setGrouperNameProperties(String worldId, String grouperName) throws GroupModificationException{
+		String parentId = groupIdAdapter.getPseudoGroupParent(worldId);
+		List<String> roles = getRoles(parentId);
+		for (String role : roles){
+			setProperties(worldId + "-" + role,
+				ImmutableMap.of(GROUPER_NAME_PROP, StringUtils.substringBeforeLast(grouperName, ":") + role,
+								GROUPER_PROVISIONED_PROP, "1"));
+		}
+	}
+
+	/**
+	 * For a description of the params see
+	 * {@link NakamuraManager#createWorld(String, String, String, String, String[], String, String, String, String, Map)}
+	 * @return the JSONObject the represents the new World request.
+	 */
+	private JSONObject makeCreateWorldParams(String id, String title, String[] tags, String description,
 			String visibility, String joinability, String template, String message, Map<String, String> usersRolesToAdd){
 		JSONObject params = new JSONObject();
 		params.put(ID_PARAM, id);
@@ -188,7 +196,7 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		return params;
 	}
 
-	/**
+	/*
 	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
 	 */
 	public void addMembership(String nakamuraGroupId, String memberId)
@@ -212,12 +220,6 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
         }
 	}
 
-	/**
-	 * Use the OAE batch service to add multiple memberships in one HTTP POST
-	 * @param nakamuraGroupId the group the users will be added to
-	 * @param memberIds the ids of the users in OAE
-	 * @throws GroupModificationException
-	 */
 	public void addMemberships(String nakamuraGroupId, List<String> memberIds)
 			throws GroupModificationException {
 
@@ -248,6 +250,7 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 			requests.add(req);
 		}
 		try {
+			// Use the OAE batch service to add multiple memberships in one HTTP POST
 			batchPost(requests);
 			for (String memberId : memberIds){
 				AuditLogUtils.audit(AuditLogUtils.USER_ADDED, memberId, parentGroupId, role, AuditLogUtils.SUCCESS);
@@ -262,8 +265,10 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		}
 	}
 
-	/**
-	 * POST http://localhost:8080/system/userManager/group/groupId.update.json :member=subjectId
+	/*
+	 * POST http://localhost:8080/system/userManager/group/groupId.update.json?
+	 * :member@Delete=memberId
+	 * :viewer@Delete=memberId
 	 */
 	public void deleteMembership(String nakamuraGroupId, String memberId)
 			throws GroupModificationException {
@@ -286,9 +291,6 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
         }
 	}
 
-	/**
-	 * @return if this group exists in Sakai OAE.
-	 */
 	public boolean groupExists(String groupId){
 		if (dryrun){
 			return false;
@@ -313,22 +315,35 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		return groupExistsInSakai.containsKey(groupId);
 	}
 
-	/**
-	 * POST http://localhost:8080/system/userManager/group/groupId.update.json key=value
+	/*
+	 * POST http://localhost:8080/system/userManager/group/groupId.update.json?key1=value1
 	 */
 	public void setProperty(String groupId, String key, String value) throws GroupModificationException {
+		 setProperties(groupId, ImmutableMap.of(key, value));
+	}
+
+	/*
+	 * POST http://localhost:8080/system/userManager/group/groupId.update.json?key1=value1&key2=value2...
+	 */
+	public void setProperties(String groupId, Map<String,String> properties) throws GroupModificationException {
 		PostMethod method = new PostMethod(url.toString() + getUpdateURI(groupId));
-		method.setParameter(key, value);
+		for (Entry<String,String> entry: properties.entrySet()){
+			method.setParameter(entry.getKey(), entry.getValue());
+		}
 		method.setParameter(CHARSET_PARAM, UTF_8);
 		try {
 			if (!dryrun){
         		NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), method);
-                AuditLogUtils.audit(AuditLogUtils.GROUP_MODIFIED, null, groupId, key + "=" + value, AuditLogUtils.SUCCESS);
-        	}
-        	log.info("Set " + groupId + " : "+ key + "=" + value);
+                for (Entry<String,String> entry: properties.entrySet()){
+                	AuditLogUtils.audit(AuditLogUtils.GROUP_MODIFIED, null, groupId,
+                			entry.getKey() + "=" + entry.getValue(), AuditLogUtils.SUCCESS);
+                	log.info("Set " + groupId + " : "+ entry.getKey() + "=" + entry.getValue());
+                }
+			}
 		}
 		catch (GrouperException ge){
-        	AuditLogUtils.audit(AuditLogUtils.GROUP_MODIFIED, null, groupId, key + "=" + value, AuditLogUtils.FAILURE);
+        	AuditLogUtils.audit(AuditLogUtils.GROUP_MODIFIED, null, groupId,
+        			properties.toString(), AuditLogUtils.FAILURE);
         	throw ge;
         }
 	}
@@ -453,8 +468,27 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		}
 	}
 
+	public List<String> getRoles(String worldId){
+		List<String> roles = new ArrayList<String>();
+		GetMethod get = new GetMethod(url + GROUP_PATH_PREFIX + "/" + worldId + ".json");
+		try {
+			JSONObject json = NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), get);
+			if (json != null){
+				JSONArray jsonRoles = json.getJSONArray("sakai:roles");
+				for (Object jRole : jsonRoles){
+					JSONObject j = (JSONObject)jRole;
+					roles.add((String)j.get("id"));
+				}
+			}
+		}
+		catch (GroupModificationException gme){
+			log.error("wtf? on a get?", gme);
+		}
+		return roles;
+	}
+
 	/**
-	 * Create a pseudoGroup in Sakai OAE. 
+	 * Create a pseudoGroup in Sakai OAE.
 	 * A pseudoGroup is an Authorizable that represents a role group for a course.
 	 * @param nakamuraGroupId the id of the psuedoGroup in OAE
 	 * @param groupName the name of the Grouper group.
@@ -468,15 +502,15 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		method.addParameter(":name", nakamuraGroupId);
 		method.addParameter(CHARSET_PARAM, UTF_8);
 		method.addParameter("sakai:group-id", nakamuraGroupId);
-		method.addParameter("sakai:excludeSearch", "true");
+		method.addParameter("sakai:excludeSearch", WorldConstants.TRUE);
 		method.addParameter("sakai:group-description", description);
 		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + role + ")");
-		method.addParameter("sakai:pseudoGroup", "true");
+		method.addParameter("sakai:pseudoGroup", WorldConstants.TRUE);
 		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
-		method.setParameter("sakai:group-joinable", "no");
+		method.setParameter("sakai:group-joinable", WorldConstants.NO);
 		method.addParameter(GROUPER_NAME_PROP, groupName.substring(0, groupName.lastIndexOf(":") + 1 )
 											+ nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));
-		method.setParameter(GROUPER_PROVISIONED_PROP, TRUE_VAL);
+		method.setParameter(GROUPER_PROVISIONED_PROP, WorldConstants.TRUE);
 
 		try {
 			if (!dryrun){
