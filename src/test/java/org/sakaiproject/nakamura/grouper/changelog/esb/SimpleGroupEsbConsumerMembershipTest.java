@@ -16,7 +16,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 
@@ -38,7 +38,7 @@ import edu.internet2.middleware.subject.Subject;
 public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 
 	private SimpleGroupEsbConsumer consumer;
-	private HttpSimpleGroupNakamuraManagerImpl nakamuraManager;
+	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry addEntry;
@@ -68,7 +68,7 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		when(subject.getTypeName()).thenReturn("person");
 		when(subject.getName()).thenReturn(subjectId);
 
-		nakamuraManager = mock(HttpSimpleGroupNakamuraManagerImpl.class);
+		nakamuraManager = mock(NakamuraManager.class);
 		groupIdManager = mock(GroupIdManagerImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");

@@ -6,7 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.HttpNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
@@ -48,7 +48,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		gidMgr.setSimpleGroupIdAdapter(simpleAdapter);
 		groupIdManager = gidMgr;
 
-		HttpSimpleGroupNakamuraManagerImpl simpleManager = new HttpSimpleGroupNakamuraManagerImpl();
+		HttpNakamuraManagerImpl simpleManager = new HttpNakamuraManagerImpl();
 		simpleManager.url = url;
 		simpleManager.username = username;
 		simpleManager.password = password;

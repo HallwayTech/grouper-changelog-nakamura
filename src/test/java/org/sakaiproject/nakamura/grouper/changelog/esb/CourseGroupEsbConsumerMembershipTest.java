@@ -17,7 +17,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 
@@ -56,7 +56,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 	private Subject subject;
 	private GrouperSession session;
 	private Stem stem;
-	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
+	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry addEntry;
@@ -75,7 +75,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		addEntry = mock(ChangeLogEntry.class);
 		deleteEntry = mock(ChangeLogEntry.class);
-		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
+		nakamuraManager = mock(NakamuraManager.class);
 		groupIdManager = mock(GroupIdManagerImpl.class);
 
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");

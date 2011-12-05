@@ -45,7 +45,7 @@ import edu.internet2.middleware.subject.SubjectNotFoundException;
 		NakamuraHttpUtils.class})
 public class BaseHttpNakamuraManagerTestCase extends TestCase {
 
-	private HttpSimpleGroupNakamuraManagerImpl nakamuraManager;
+	private HttpNakamuraManagerImpl nakamuraManager;
 
 	private HttpClient httpClient;
 
@@ -71,12 +71,13 @@ public class BaseHttpNakamuraManagerTestCase extends TestCase {
 		when(NakamuraHttpUtils.getHttpClient(any(URL.class), anyString(), anyString()))
 				.thenReturn(httpClient);
 
-		nakamuraManager = new HttpSimpleGroupNakamuraManagerImpl();
-		nakamuraManager.createUsers = true;
-		nakamuraManager.url = url;
-		nakamuraManager.emailAttribute = "email";
-		nakamuraManager.firstNameAttribute = "givenName";
-		nakamuraManager.lastNameAttribute = "sn";
+		HttpNakamuraManagerImpl nm = new HttpNakamuraManagerImpl();
+		nm.createUsers = true;
+		nm.url = url;
+		nm.emailAttribute = "email";
+		nm.firstNameAttribute = "givenName";
+		nm.lastNameAttribute = "sn";
+		this.nakamuraManager = nm;
 	}
 
 	@Test
@@ -103,7 +104,7 @@ public class BaseHttpNakamuraManagerTestCase extends TestCase {
 		when(user1.getAttributeValue("email")).thenReturn("EMAIL");
 
 		when(SubjectFinder.findByIdOrIdentifier(userId, true)).thenReturn(user1);
-		whenNew(PostMethod.class).withArguments(url.toString() + BaseHttpNakamuraManager.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
+		whenNew(PostMethod.class).withArguments(url.toString() + HttpNakamuraManagerImpl.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
 		nakamuraManager.createUser(userId);
 		verify(httpClient, times(1)).executeMethod(any(HttpMethod.class));
 
@@ -120,7 +121,7 @@ public class BaseHttpNakamuraManagerTestCase extends TestCase {
 		when(user1.getAttributeValue("email")).thenReturn("EMAIL");
 
 		when(SubjectFinder.findByIdOrIdentifier(userId, true)).thenReturn(user1);
-		whenNew(PostMethod.class).withArguments(url.toString() + BaseHttpNakamuraManager.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
+		whenNew(PostMethod.class).withArguments(url.toString() + HttpNakamuraManagerImpl.USER_CREATE_URI).thenReturn(mock(PostMethod.class));
 		nakamuraManager.dryrun = true;
 		nakamuraManager.createUser(userId);
 		verifyNoMoreInteractions(httpClient);

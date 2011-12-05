@@ -36,7 +36,7 @@ public abstract class BaseGroupIdAdapter {
 	public void loadConfiguration(String consumerName) {
 		String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
 		setRoleMap(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_ROLE_MAPPINGS, true));
-		setInstititionalToProvisionedRoleMap(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_INST_ROLE_MAPPINGS, true));
+		setInstititionalToProvisionedRoleMap(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_NAKID_INST_ROLE_MAPPINGS, false));
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + BaseGroupEsbConsumer.PROP_PSEUDOGROUP_SUFFIXES, true));
 
 		includeExcludeSuffixes = new HashSet<String>();
@@ -103,12 +103,13 @@ public abstract class BaseGroupIdAdapter {
 
 	public void setInstititionalToProvisionedRoleMap(String propertyString) {
 		instRoleMap = new HashMap<String,String>();
-		for(String map: StringUtils.split(propertyString, ",")){
-			String[] m = StringUtils.split(map.trim(), ":");
-			if (m.length == 2){
-				instRoleMap.put(m[0], m[1]);
+		if (propertyString != null){
+			for(String map: StringUtils.split(propertyString, ",")){
+				String[] m = StringUtils.split(map.trim(), ":");
+				if (m.length == 2){
+					instRoleMap.put(m[0], m[1]);
+				}
 			}
 		}
-
 	}
 }

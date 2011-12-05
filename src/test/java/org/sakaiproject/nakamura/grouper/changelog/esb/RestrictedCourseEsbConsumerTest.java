@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 
 import edu.internet2.middleware.grouper.GroupFinder;
 import edu.internet2.middleware.grouper.GrouperSession;
@@ -30,7 +30,7 @@ import edu.internet2.middleware.grouper.util.GrouperUtil;
 public class RestrictedCourseEsbConsumerTest extends TestCase {
 
 	private RestrictedCourseGroupEsbConsumer consumer;
-	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
+	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
@@ -46,7 +46,7 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		entry = mock(ChangeLogEntry.class);
 
-		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
+		nakamuraManager = mock(NakamuraManager.class);
 		groupIdManager = mock(GroupIdManagerImpl.class);
 
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");

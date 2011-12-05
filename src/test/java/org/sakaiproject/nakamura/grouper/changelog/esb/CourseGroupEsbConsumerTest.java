@@ -226,7 +226,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupIdManager.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
 	}
 
 	public void testAddGroupDefaultTitle() throws GroupModificationException{
@@ -237,7 +237,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(false);
 
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, courseGroupId);
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId);
 	}
 
 	public void testAddGroupInstitutional() throws GroupModificationException{
@@ -257,7 +257,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.allowInstitutional = true;
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 		verify(appAllGroup).addMember(instGroupSubject, false);
-		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
 	}
 
 	public void testAddInstitutionalAllGroup() throws GroupModificationException{
@@ -324,7 +324,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		consumer.addAdminAs = "lecturer";
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
 		verify(nakamuraManager).addMembership(courseLecturerGroupId, "admin");
 	}
 
@@ -347,7 +347,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 		verify(nakamuraManager, times(2)).createUser("user1");
 		verify(nakamuraManager).createUser("user2");
-		verify(nakamuraManager).createGroup(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, PARENT_DESCRIPTION);
 		verify(nakamuraManager).addMemberships(courseStudentGroupId, ImmutableList.of("user1", "user2"));
 		verify(nakamuraManager).addMemberships(courseLecturerGroupId, ImmutableList.of("user1"));
 	}

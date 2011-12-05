@@ -14,7 +14,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
 import com.google.common.collect.ImmutableList;
@@ -36,7 +36,7 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 	private static final String INVALID_STEM = "edu:apps:sakaioae:courses:some:stem:extra";
 
 	private CourseTitleEsbConsumer consumer;
-	private HttpCourseGroupNakamuraManagerImpl nakamuraManager;
+	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 	private ChangeLogProcessorMetadata metadata;
 	private ChangeLogEntry entry;
@@ -44,7 +44,7 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 	public void setUp(){
 		suppress(method(GrouperUtil.class, "getLog"));
 
-		nakamuraManager = mock(HttpCourseGroupNakamuraManagerImpl.class);
+		nakamuraManager = mock(NakamuraManager.class);
 		groupIdManager = mock(GroupIdManagerImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		entry = mock(ChangeLogEntry.class);

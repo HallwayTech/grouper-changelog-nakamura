@@ -5,8 +5,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.HttpNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
@@ -71,7 +71,7 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 		gidMgr.setTemplateGroupIdAdapter(templateAdapter);
 		groupIdManager = gidMgr;
 
-		HttpCourseGroupNakamuraManagerImpl courseManager = new HttpCourseGroupNakamuraManagerImpl();
+		HttpNakamuraManagerImpl courseManager = new HttpNakamuraManagerImpl();
 		courseManager.url = url;
 		courseManager.username = username;
 		courseManager.password = password;

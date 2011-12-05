@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import net.sf.json.JSONArray;
@@ -20,11 +21,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.log.AuditLogUtils;
 import org.sakaiproject.nakamura.grouper.changelog.util.NakamuraHttpUtils;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.MapMaker;
 
 import edu.internet2.middleware.grouper.SubjectFinder;
@@ -34,14 +37,15 @@ import edu.internet2.middleware.subject.Subject;
 /**
  * Shared functionality for the GroupAdapter classes goes in here.
  */
-public abstract class BaseHttpNakamuraManager {
+public class HttpNakamuraManagerImpl implements NakamuraManager {
 
-	private static Log log = LogFactory.getLog(BaseHttpNakamuraManager.class);
+	private static Log log = LogFactory.getLog(HttpNakamuraManagerImpl.class);
 
 	// URI for the OAE user and group management servlets.
 	public static final String USER_MANAGER_URI = "/system/userManager";
 	public static final String GROUP_CREATE_URI = USER_MANAGER_URI + "/group.create.json";
 	public static final String GROUP_PATH_PREFIX = USER_MANAGER_URI + "/group";
+	public static final String WORLD_CREATE_URI = "/system/world/create";
 	public static final String USER_CREATE_URI = USER_MANAGER_URI + "/user.create.json";
 
 	// Nakamura Batch servlet takes a JSONArray of JSONObjects that each represent a request
@@ -49,7 +53,22 @@ public abstract class BaseHttpNakamuraManager {
 	public static final String BATCH_REQUESTS_PARAM = "requests";
 	public static final String PARAMETERS_PARAM = "parameters";
 
+	// Creating worlds
+	public static final String DATA_PARAM = "data";
 	public static final String URL_PARAM = "url";
+	public static final String ID_PARAM = "id";
+	public static final String TITLE_PARAM = "title";
+	public static final String TAGS_PARAM = "tags";
+	public static final String DESCRIPTION_PARAM = "description";
+	public static final String VISIBILITY_PARAM = "visibility";
+	public static final String JOINABILITY_PARAM = "joinability";
+	public static final String WORLD_TEMPLATE_PARAM = "worldTemplate";
+	public static final String MESSAGE_PARAM = "message";
+	public static final String USERS_TO_ADD_PARAM = "usersToAdd";
+	public static final String COURSE_DEFAULT_ADMIN_ROLE = "lecturer";
+	public static final String SIMPLE_GROUP_DEFAULT_ADMIN_ROLE = "lecturer";
+	
+	// Sling params
 	public static final String OPERATION_PARAM = ":operation";
 	public static final String METHOD_PARAM = "method";
 	public static final String VIEWER_PARAM = ":viewer";
@@ -96,9 +115,77 @@ public abstract class BaseHttpNakamuraManager {
 	// Convert grouper names to Sakai OAE groupIds
 	public GroupIdManager groupIdAdapter;
 
-	public BaseHttpNakamuraManager(){
+	public HttpNakamuraManagerImpl(){
 		userExistsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
 		groupExistsInSakai = new MapMaker().expireAfterWrite(30, TimeUnit.SECONDS).makeMap();
+	}
+	
+	private static final String DEFAULT_COURSE_TEMPLATE = "/var/templates/worlds/course/basic-course";
+	private static final String DEFAULT_SIMPLEGROUP_TEMPLATE = "/var/templates/worlds/course/simple-group";
+
+	/**
+	 * Create the full set of objects that are necessary to have a working
+	 * course in Sakai OAE.
+	 *
+	 * Written on the back of the amazing John King who pulled out all of this
+	 * for nakamura/testscripts/SlingRuby/dataload/full_group_creator.rb
+	 * @throws GroupModificationException
+	 */
+	@Override
+	public void createWorld(String groupName, String description) throws GroupModificationException {
+
+		String groupId = groupIdAdapter.getGroupId(groupName);
+		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
+		log.debug(groupName + " converted to " + groupId + " for nakamura.");
+
+		// TODO - Fix this. Either key off of the lecturers group and grab the
+		// first member or use an attribute.
+		// We might not have members at add time.
+		String creator = username;
+		String adminRole = SIMPLE_GROUP_DEFAULT_ADMIN_ROLE;
+		String template = DEFAULT_SIMPLEGROUP_TEMPLATE;
+		if (this.groupIdAdapter.isCourseGroup(groupName)){
+			template = DEFAULT_COURSE_TEMPLATE;
+			adminRole = COURSE_DEFAULT_ADMIN_ROLE;
+		}
+		
+		JSONObject params = makeCreateWorldParams(parentGroupId, parentGroupId, new String[0], parentGroupId, 
+				"members-only", "no", template, "", 
+				ImmutableMap.of(creator, adminRole));
+
+		PostMethod method = new PostMethod(url + WORLD_CREATE_URI);
+		method.setParameter(DATA_PARAM, params.toString());
+		method.setParameter(CHARSET_PARAM, UTF_8);
+
+		if(!dryrun){
+			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+			NakamuraHttpUtils.http(client, method);
+		}
+
+	    log.info("Successfully created the OAE world " + parentGroupId + " for " + groupName);
+	}
+	
+
+	private JSONObject makeCreateWorldParams(String id, String title, String[] tags, String description, 
+			String visibility, String joinability, String template, String message, Map<String, String> usersRolesToAdd){
+		JSONObject params = new JSONObject();
+		params.put(ID_PARAM, id);
+		params.put(TITLE_PARAM, title);
+		params.put(TAGS_PARAM, "[\"" + StringUtils.join(tags, ",") + "\"]");
+		params.put(DESCRIPTION_PARAM, description);
+		params.put(VISIBILITY_PARAM, visibility);
+		params.put(JOINABILITY_PARAM, joinability);
+		params.put(WORLD_TEMPLATE_PARAM, template);
+		params.put(MESSAGE_PARAM, message);
+		JSONArray toAdd = new JSONArray();
+		for (Entry<String, String> entry : usersRolesToAdd.entrySet()){
+			JSONObject jsonEntry = new JSONObject();
+			jsonEntry.put("userid", entry.getKey());
+			jsonEntry.put("role", entry.getValue());
+			toAdd.add(jsonEntry);
+		}
+		params.put(USERS_TO_ADD_PARAM, toAdd.toString());
+		return params;
 	}
 
 	/**

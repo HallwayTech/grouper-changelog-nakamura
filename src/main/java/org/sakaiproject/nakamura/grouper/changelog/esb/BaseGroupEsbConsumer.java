@@ -245,7 +245,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 				if (description == null){
 					description = parentGroupId;
 				}
-				nakamuraManager.createGroup(grouperName, description);
+				nakamuraManager.createWorld(grouperName, description);
 
 				if (StringUtils.trimToNull(addAdminAs) != null){
 					nakamuraManager.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);

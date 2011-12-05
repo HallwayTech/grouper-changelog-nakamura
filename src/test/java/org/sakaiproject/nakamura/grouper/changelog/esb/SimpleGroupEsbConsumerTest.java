@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpSimpleGroupNakamuraManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -38,7 +38,7 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	private static final String parentId = "some_simpleg";
 
 	private SimpleGroupEsbConsumer consumer;
-	private HttpSimpleGroupNakamuraManagerImpl nakamuraManager;
+	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 
 	private GrouperSession session;
@@ -71,7 +71,7 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		session = mock(GrouperSession.class);
 		when(GrouperSession.startRootSession()).thenReturn(session);
 
-		nakamuraManager = mock(HttpSimpleGroupNakamuraManagerImpl.class);
+		nakamuraManager = mock(NakamuraManager.class);
 		groupIdManager = mock(GroupIdManagerImpl.class);
 		metadata = mock(ChangeLogProcessorMetadata.class);
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");

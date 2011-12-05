@@ -5,10 +5,11 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.nakamura.grouper.changelog.HttpNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
-import org.sakaiproject.nakamura.grouper.changelog.HttpCourseGroupNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
@@ -29,7 +30,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	protected Pattern sectionStemPattern;
 
 	// The interface to the SakaiOAE/nakamura server.
-	protected HttpCourseGroupNakamuraManagerImpl nakamuraManager;
+	protected NakamuraManager nm;
 
 	// Convert grouper names to nakamura group ids
 	protected GroupIdManagerImpl groupIdManager;
@@ -69,14 +70,15 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		gidMgr.setTemplateGroupIdAdapter(tmplAdapter);
 		groupIdManager = gidMgr;
 
-		nakamuraManager = new HttpCourseGroupNakamuraManagerImpl();
-		nakamuraManager.url = url;
-		nakamuraManager.username = username;
-		nakamuraManager.password = password;
-		nakamuraManager.groupIdAdapter = groupIdManager;
-		nakamuraManager.createUsers = createUsers;
-		nakamuraManager.dryrun = dryrun;
-		nakamuraManager.pseudoGroupSuffixes = pseudoGroupSuffixes;
+		HttpNakamuraManagerImpl nm = new HttpNakamuraManagerImpl();
+		nm.url = url;
+		nm.username = username;
+		nm.password = password;
+		nm.groupIdAdapter = groupIdManager;
+		nm.createUsers = createUsers;
+		nm.dryrun = dryrun;
+		nm.pseudoGroupSuffixes = pseudoGroupSuffixes;
+		this.nakamuraManager = nm;
 	}
 
 	@Override

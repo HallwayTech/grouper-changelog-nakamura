@@ -10,12 +10,12 @@ import edu.internet2.middleware.grouper.exception.GrouperException;
 public interface NakamuraManager {
 
 	/**
-	 * Create a group in Sakai OAE
+	 * Create a Sakai OAE World
 	 * @param groupName the full name of the group (includes stem)
-	 * @param the description for the group
+	 * @param description description for the group
 	 * @throws GroupModificationException
 	 */
-	public void createGroup(String groupName, String description) throws GroupModificationException;
+	public void createWorld(String groupName, String description) throws GroupModificationException;
 
 	/**
 	 * Create a user in Sakai OAE
