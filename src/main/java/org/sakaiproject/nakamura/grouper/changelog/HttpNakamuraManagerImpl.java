@@ -144,10 +144,17 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		method.setParameter(DATA_PARAM, params.toString());
 		method.setParameter(CHARSET_PARAM, UTF_8);
 
-		if(!dryrun){
-			HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
-			NakamuraHttpUtils.http(client, method);
-			setGrouperNameProperties(worldId, grouperName);
+		try {
+			if(!dryrun){
+				HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
+				NakamuraHttpUtils.http(client, method);
+				AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, worldId, description, AuditLogUtils.SUCCESS);
+				setGrouperNameProperties(worldId, grouperName);
+			}
+		}
+		catch (GroupModificationException gme){
+			AuditLogUtils.audit(AuditLogUtils.GROUP_CREATED, null, worldId, description, AuditLogUtils.FAILURE);
+			throw gme;
 		}
 
 	    log.info("Successfully created the OAE world " + worldId + " for " + grouperName);
@@ -160,11 +167,10 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 	 * @throws GroupModificationException
 	 */
 	private void setGrouperNameProperties(String worldId, String grouperName) throws GroupModificationException{
-		String parentId = groupIdAdapter.getPseudoGroupParent(worldId);
-		List<String> roles = getRoles(parentId);
+		List<String> roles = getRoles(worldId);
 		for (String role : roles){
 			setProperties(worldId + "-" + role,
-				ImmutableMap.of(GROUPER_NAME_PROP, StringUtils.substringBeforeLast(grouperName, ":") + role,
+				ImmutableMap.of(GROUPER_NAME_PROP, StringUtils.substringBeforeLast(grouperName, ":") + ":" + role,
 								GROUPER_PROVISIONED_PROP, "1"));
 		}
 	}
@@ -474,7 +480,7 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		try {
 			JSONObject json = NakamuraHttpUtils.http(NakamuraHttpUtils.getHttpClient(url, username, password), get);
 			if (json != null){
-				JSONArray jsonRoles = json.getJSONArray("sakai:roles");
+				JSONArray jsonRoles = json.getJSONObject("properties").getJSONArray("sakai:roles");
 				for (Object jRole : jsonRoles){
 					JSONObject j = (JSONObject)jRole;
 					roles.add((String)j.get("id"));
