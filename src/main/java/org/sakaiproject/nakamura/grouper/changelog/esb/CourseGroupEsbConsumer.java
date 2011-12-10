@@ -9,6 +9,7 @@ import org.sakaiproject.nakamura.grouper.changelog.HttpNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
@@ -143,12 +144,11 @@ public class CourseGroupEsbConsumer extends BaseGroupEsbConsumer {
 			ignore = true;
 		}
 		else {
-
 			if (allowInstitutional == false && groupIdManager.isInstitutional(grouperName)){
 				log.info("ignoring " + sequenceNumber + " : Not processing institutional data : " + grouperName);
 				ignore = true;
 			}
-			if (!groupIdManager.isCourseGroup(grouperName)){
+			if (!GroupIdManager.COURSE.equals(groupIdManager.getWorldType(grouperName))){
 				log.info("ignoring " + sequenceNumber + " : Not a course group : " + grouperName);
 				ignore = true;
 			}

@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 
 import edu.internet2.middleware.grouper.Group;
@@ -84,10 +85,10 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(groupIdManager.getInstitutionalSimpleGroupsStem()).thenReturn("inst:sis:simplegroups");
 		when(groupIdManager.getProvisionedSimpleGroupsStem()).thenReturn("edu:apps:sakaiaoe:provisioned:simplegroups");
 
-		when(groupIdManager.isSimpleGroup(invalidGroupName)).thenReturn(false);
-		when(groupIdManager.isSimpleGroup(simplegManagersApplicationGroupName)).thenReturn(true);
-		when(groupIdManager.isSimpleGroup(simplegManagersInstitutionalGroupName)).thenReturn(true);
-		when(groupIdManager.isSimpleGroup(simplegAllInstitutionalGroupName)).thenReturn(true);
+		when(groupIdManager.getWorldType(invalidGroupName)).thenReturn(null);
+		when(groupIdManager.getWorldType(simplegManagersApplicationGroupName)).thenReturn(GroupIdManager.SIMPLE);
+		when(groupIdManager.getWorldType(simplegManagersInstitutionalGroupName)).thenReturn(GroupIdManager.SIMPLE);
+		when(groupIdManager.getWorldType(simplegAllInstitutionalGroupName)).thenReturn(GroupIdManager.SIMPLE);
 
 		when(groupIdManager.isInstitutional(simplegAllInstitutionalGroupName)).thenReturn(true);
 		when(groupIdManager.isInstitutional(simplegManagersInstitutionalGroupName)).thenReturn(true);
@@ -146,7 +147,7 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		consumer.allowInstitutional = true;
 		String grouperName = "inst:sis:courses:some:course:students";
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName);
-		when(groupIdManager.isSimpleGroup(grouperName)).thenReturn(true);
+		when(groupIdManager.getWorldType(grouperName)).thenReturn(GroupIdManager.SIMPLE);
 		when(groupIdManager.isInstitutional(grouperName)).thenReturn(true);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 	}

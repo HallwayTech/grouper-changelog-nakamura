@@ -8,6 +8,7 @@ import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
 import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
@@ -123,8 +124,7 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 				log.debug("ignoring: Not processing institutional data : " + grouperName);
 				ignore = true;
 			}
-
-			if (!groupIdManager.isSimpleGroup(grouperName)){
+			if (!GroupIdManager.SIMPLE.equals(groupIdManager.getWorldType(grouperName))){
 				log.debug("ignoring: Not a simple group : " + grouperName);
 				ignore = true;
 			}

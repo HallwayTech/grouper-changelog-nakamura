@@ -22,6 +22,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.WorldConstants;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
@@ -130,6 +131,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(group.getParentStem()).thenReturn(stem);
 		when(group.getExtension()).thenReturn("students");
 		when(group.getName()).thenReturn(course1StudentsInstitutionalGroupName);
+		when(group.getAttributeOrFieldValue(BaseGroupEsbConsumer.PROP_WORLD_TEMPLATE_PATH, false, false)).thenReturn("worldTemplate");
 
 		when(GrouperSession.startRootSession()).thenReturn(session);
 
@@ -138,16 +140,18 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		when(SubjectFinder.findByIdOrIdentifier(course1StudentsInstitutionalGroupName, false)).thenReturn(instGroupSubject);
 		when(SubjectFinder.findByIdOrIdentifier(course1StudentsApplicationGroupName, false)).thenReturn(appGroupSubject);
+		when(GroupFinder.findByName(session, course1StudentsApplicationGroupName, false)).thenReturn(group);
+		when(GroupFinder.findByName(session, course1StudentsInstitutionalGroupName, false)).thenReturn(group);
 
 		when(instLecturerGroup.getExtension()).thenReturn("lecturers");
 		when(instLecturerGroup.getName()).thenReturn(course1LecturersInstitutionalGroupName);
 
-		when(groupIdManager.isCourseGroup(course1LecturersApplicationGroupName)).thenReturn(true);
-		when(groupIdManager.isCourseGroup(course1StudentsApplicationGroupName)).thenReturn(true);
-		when(groupIdManager.isCourseGroup(course1StudentsInstitutionalGroupName)).thenReturn(true);
-		when(groupIdManager.isCourseGroup(course1AllApplicationGroupName)).thenReturn(true);
-		when(groupIdManager.isCourseGroup(course1AllInstitutionalGroupName)).thenReturn(true);
-		when(groupIdManager.isCourseGroup(invalidCourseGroupName)).thenReturn(false);
+		when(groupIdManager.getWorldType(course1LecturersApplicationGroupName)).thenReturn(GroupIdManager.COURSE);
+		when(groupIdManager.getWorldType(course1StudentsApplicationGroupName)).thenReturn(GroupIdManager.COURSE);
+		when(groupIdManager.getWorldType(course1StudentsInstitutionalGroupName)).thenReturn(GroupIdManager.COURSE);
+		when(groupIdManager.getWorldType(course1AllApplicationGroupName)).thenReturn(GroupIdManager.COURSE);
+		when(groupIdManager.getWorldType(course1AllInstitutionalGroupName)).thenReturn(GroupIdManager.COURSE);
+		when(groupIdManager.getWorldType(invalidCourseGroupName)).thenReturn(null);
 
 		when(groupIdManager.isInstitutional(course1StudentsApplicationGroupName)).thenReturn(false);
 		when(groupIdManager.isInstitutional(course1StudentsInstitutionalGroupName)).thenReturn(true);
@@ -173,6 +177,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.configurationLoaded = true;
 		consumer.pseudoGroupSuffixes = ImmutableSet.of("student", "manager", "member", "ta", "lecturer");
 		consumer.triggerRole = "students";
+		consumer.addAdminAs = "ta";
 	}
 
 	public void testIgnoreInvalidEntryType() throws Exception{
@@ -221,7 +226,6 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 	public void testAddGroup() throws GroupModificationException{
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(course1StudentsApplicationGroupName);
-		when(groupIdManager.isCourseGroup(course1StudentsApplicationGroupName)).thenReturn(true);
 		when(groupIdManager.isInstitutional(course1StudentsApplicationGroupName)).thenReturn(false);
 		assertFalse(consumer.ignoreChangelogEntry(addEntry));
 
@@ -231,7 +235,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupIdManager.getInstitutionalCourseGroupsStem()).thenReturn("no-match");
 
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, "parent description", new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, BaseGroupEsbConsumer.DEFAULT_COURSE_TEMPLATE, "", ImmutableMap.of("admin", "ta"));
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, "parent description",
+				new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, "worldTemplate", "",
+				ImmutableMap.of("admin", "ta"));
 	}
 
 	public void testAddGroupDefaultTitle() throws GroupModificationException{
@@ -242,7 +248,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(false);
 
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, courseGroupId, new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, BaseGroupEsbConsumer.DEFAULT_COURSE_TEMPLATE, "", ImmutableMap.of("admin", "ta"));
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, courseGroupId,
+				new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, "worldTemplate", "",
+				ImmutableMap.of("admin", "ta"));
 	}
 
 	public void testAddGroupInstitutional() throws GroupModificationException{
@@ -262,7 +270,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.allowInstitutional = true;
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
 		verify(appAllGroup).addMember(instGroupSubject, false);
-		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, "parent description", new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, BaseGroupEsbConsumer.DEFAULT_COURSE_TEMPLATE, "", ImmutableMap.of("admin", "ta"));
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, "parent description", 
+				new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, "worldTemplate", "", 
+				ImmutableMap.of("admin", "ta"));
 	}
 
 	public void testAddInstitutionalAllGroup() throws GroupModificationException{
@@ -329,7 +339,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 
 		consumer.addAdminAs = "lecturer";
 		consumer.processChangeLogEntries(ImmutableList.of(addEntry), metadata);
-		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, "parent description", new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, BaseGroupEsbConsumer.DEFAULT_COURSE_TEMPLATE, "", ImmutableMap.of("admin", "ta"));
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, "parent description",
+				new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, "worldTemplate", "",
+				ImmutableMap.of("admin", "lecturer"));
 		verify(nakamuraManager).addMembership(courseLecturerGroupId, "admin");
 	}
 
@@ -352,7 +364,9 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 		verify(nakamuraManager, times(2)).createUser("user1");
 		verify(nakamuraManager).createUser("user2");
-		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, "parent description", new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, BaseGroupEsbConsumer.DEFAULT_COURSE_TEMPLATE, "", ImmutableMap.of("admin", "ta"));
+		verify(nakamuraManager).createWorld(course1StudentsApplicationGroupName, courseGroupId, courseGroupId, "parent description",
+				new String[0], WorldConstants.MEMBERS_ONLY, WorldConstants.NO, "worldTemplate", "",
+				ImmutableMap.of("admin", "ta"));
 		verify(nakamuraManager).addMemberships(courseStudentGroupId, ImmutableList.of("user1", "user2"));
 		verify(nakamuraManager).addMemberships(courseLecturerGroupId, ImmutableList.of("user1"));
 	}

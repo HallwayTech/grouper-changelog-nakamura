@@ -81,52 +81,24 @@ public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdMan
 
 	}
 
-	protected boolean isAdhoc(String grouperName){
-		if (grouperName != null){
-			return startsWith(grouperName, adhocCourseGroupsStem) ||
-					startsWith(grouperName, adhocSimpleGroupsStem);
+	@Override
+	public String getWorldType(String grouperName){
+		String type = null;
+		if (isCourseGroup(grouperName)){
+			type = COURSE;
 		}
-		return false;
+		else if (isSimpleGroup(grouperName)){
+			type = SIMPLE;
+		}
+		return type;
 	}
 
-	protected boolean isProvisioned(String grouperName){
-		if (grouperName != null){
-			return startsWith(grouperName, provisionedSimpleGroupsStem) ||
-					startsWith(grouperName, provisionedCourseGroupsStem);
-		}
-		return false;
-	}
-
-	public boolean isInstitutional(String grouperName){
-		if (grouperName != null){
-			return startsWith(grouperName, institutionalSimpleGroupsStem) ||
-					startsWith(grouperName, institutionalCourseGroupsStem);
-		}
-		return false;
-	}
-
-	public boolean isCourseGroup(String grouperName){
-		if (grouperName != null){
-			return startsWith(grouperName, adhocCourseGroupsStem) ||
-					startsWith(grouperName, provisionedCourseGroupsStem) ||
-					startsWith(grouperName ,institutionalCourseGroupsStem);
-		}
-		return false;
-	}
-
-	public boolean isSimpleGroup(String grouperName){
-		if (grouperName != null){
-			return startsWith(grouperName,adhocSimpleGroupsStem) ||
-					startsWith(grouperName,provisionedSimpleGroupsStem) ||
-					startsWith(grouperName,institutionalSimpleGroupsStem);
-		}
-		return false;
-	}
-
+	@Override
 	public String getAllGroup(String groupName) {
 		return StringUtils.substringBeforeLast(groupName, ":") + ":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION;
 	}
 
+	@Override
 	public String toProvisioned(String grouperName){
 		String provName = null;
 
@@ -155,6 +127,47 @@ public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdMan
 		return provName;
 	}
 
+	protected boolean isProvisioned(String grouperName){
+		if (grouperName != null){
+			return startsWith(grouperName, provisionedSimpleGroupsStem) ||
+					startsWith(grouperName, provisionedCourseGroupsStem);
+		}
+		return false;
+	}
+
+	public boolean isInstitutional(String grouperName){
+		if (grouperName != null){
+			return startsWith(grouperName, institutionalSimpleGroupsStem) ||
+					startsWith(grouperName, institutionalCourseGroupsStem);
+		}
+		return false;
+	}
+
+	protected boolean isAdhoc(String grouperName){
+		if (grouperName != null){
+			return startsWith(grouperName, adhocCourseGroupsStem) ||
+					startsWith(grouperName, adhocSimpleGroupsStem);
+		}
+		return false;
+	}
+
+	protected  boolean isCourseGroup(String grouperName){
+		if (grouperName != null){
+			return startsWith(grouperName, adhocCourseGroupsStem) ||
+					startsWith(grouperName, provisionedCourseGroupsStem) ||
+					startsWith(grouperName ,institutionalCourseGroupsStem);
+		}
+		return false;
+	}
+
+	protected boolean isSimpleGroup(String grouperName){
+		if (grouperName != null){
+			return startsWith(grouperName,adhocSimpleGroupsStem) ||
+					startsWith(grouperName,provisionedSimpleGroupsStem) ||
+					startsWith(grouperName,institutionalSimpleGroupsStem);
+		}
+		return false;
+	}
 
 	/**
 	 * Avoid using the static grouper loader stuff.

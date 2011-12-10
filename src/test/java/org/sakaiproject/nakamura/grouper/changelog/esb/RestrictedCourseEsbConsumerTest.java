@@ -71,7 +71,7 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 	private void prepEntry(String grouperName){
 		when(entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name)).thenReturn(grouperName).thenReturn(grouperName);
-		when(groupIdManager.isCourseGroup(grouperName)).thenReturn(true);
+		when(groupIdManager.getWorldType(grouperName)).thenReturn(GroupIdManagerImpl.COURSE);
 		when(groupIdManager.isInstitutional(grouperName)).thenReturn(false);
 	}
 

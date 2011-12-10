@@ -17,6 +17,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationException;
@@ -87,8 +88,8 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(groupIdManager.getPseudoGroupParent(groupId)).thenReturn("some_course");
 		when(groupIdManager.toProvisioned(instGrouperName)).thenReturn(grouperName);
 
-		when(groupIdManager.isCourseGroup(grouperName)).thenReturn(true);
-		when(groupIdManager.isCourseGroup(instGrouperName)).thenReturn(true);
+		when(groupIdManager.getWorldType(grouperName)).thenReturn(GroupIdManager.COURSE);
+		when(groupIdManager.getWorldType(instGrouperName)).thenReturn(GroupIdManager.COURSE);
 
 		when(groupIdManager.isInstitutional(grouperName)).thenReturn(false);
 		when(groupIdManager.isInstitutional(instGrouperName)).thenReturn(true);
