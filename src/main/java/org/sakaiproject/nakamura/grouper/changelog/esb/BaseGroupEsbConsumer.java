@@ -3,8 +3,11 @@ package org.sakaiproject.nakamura.grouper.changelog.esb;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -19,6 +22,7 @@ import org.sakaiproject.nakamura.grouper.changelog.exceptions.UserModificationEx
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 
 import edu.internet2.middleware.grouper.Group;
 import edu.internet2.middleware.grouper.GroupFinder;
@@ -121,9 +125,11 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	// groupType name for the include/exclude group structures we use in Grouper
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 
-	// TODO turn these into properties
-	public static final String DEFAULT_COURSE_TEMPLATE = "/var/templates/worlds/course/basic-course";
-	public static final String DEFAULT_SIMPLEGROUP_TEMPLATE = "/var/templates/worlds/course/simple-group";
+	public static final String DEFAULT_COURSE_WORLD_TEMPLATE = "/var/templates/worlds/course/basic-course.json";
+	public static final String DEFAULT_SIMPLE_WORLD_TEMPLATE = "/var/templates/worlds/group/simple-group.json";
+	private Map<String,String> defaultTemplates;
+
+	public static final String PROP_WORLD_TEMPLATE_PATH = "sakai:worldTemplatePath";
 
 	/**
 	 * Load settings from grouper-loader.properties
@@ -179,6 +185,17 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 		setPseudoGroupSuffixes(GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_PSEUDOGROUP_SUFFIXES, true));
 		log.info("pseudoGroupSuffixes = " + StringUtils.join(pseudoGroupSuffixes.iterator(), ","));
+
+		Builder<String, String> bld = new ImmutableMap.Builder<String, String>();
+		bld.put("course", DEFAULT_COURSE_WORLD_TEMPLATE);
+		bld.put("simple", DEFAULT_SIMPLE_WORLD_TEMPLATE);
+		for(Entry<Object, Object> entry: GrouperLoaderConfig.properties().entrySet()){
+			String key = (String)entry.getKey();
+			if (key.startsWith(cfgPrefix + ".world.template.")){
+				bld.put(StringUtils.substringAfterLast(key, "."), (String)entry.getValue());
+			}
+		}
+		defaultTemplates = bld.build();
 
 		configurationLoaded = true;
 	}
@@ -251,30 +268,100 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 				if (description == null){
 					description = parentGroupId;
 				}
+				String template = getWorldCreationTemplatePath(grouperName);
+				String worldType = groupIdManager.getWorldType(grouperName);
+				if (template == null){
+					template = defaultTemplates.get(worldType);
+				}
 				String groupId = groupIdManager.getGroupId(grouperName);
 				String worldId = groupIdManager.getPseudoGroupParent(groupId);
-				String template = DEFAULT_SIMPLEGROUP_TEMPLATE;
+				String title = worldId;
 				String adminRole = "manager";
-				if (groupIdManager.isCourseGroup(grouperName)){
-					adminRole = "ta";
-					template = DEFAULT_COURSE_TEMPLATE;
+				Builder<String, String> initialMembers = ImmutableMap.builder();
+				if (addAdminAs != null){
+					if (GroupIdManager.COURSE.equals(worldType)){
+						adminRole = addAdminAs;
+					}
+					initialMembers.put("admin", adminRole);
 				}
-				nakamuraManager.createWorld(grouperName, worldId, worldId, description,
+
+				nakamuraManager.createWorld(grouperName,
+						worldId,
+						title,
+						description,
 						new String[0],
-						WorldConstants.MEMBERS_ONLY, WorldConstants.NO,
+						WorldConstants.MEMBERS_ONLY,
+						WorldConstants.NO,
 						template,
 						"",
-						ImmutableMap.of("admin", adminRole));
+						initialMembers.build());
 
 				if (StringUtils.trimToNull(addAdminAs) != null){
 					nakamuraManager.addMembership(parentGroupId + "-" + addAdminAs, ADMIN_USERNAME);
 				}
 			}
-
 		} else {
 			log.error("Group added event received for a group that doesn't exist? " + grouperName);
 		}
 		log.info("DONE GROUP_ADD : " + grouperName);
+	}
+
+	/**
+	 * Get the path to the template for a group
+	 * @param grouperName the name of the group
+	 * @return the template to use when creating the OAE world
+	 */
+	private String getWorldCreationTemplatePath(String grouperName) {
+		String templatePath = null;
+
+		// appName will either be the grouperName or the converted inst name.
+		String instName = null;
+		String appName = grouperName;
+		if (groupIdManager.isInstitutional(grouperName)){
+			instName = grouperName;
+			appName = groupIdManager.toProvisioned(grouperName);
+		}
+
+		// Check the application tree first
+		Group appGroup = GroupFinder.findByName(getGrouperSession(), appName, false);
+		if (appGroup != null){
+			templatePath = getInheritedProperty(appGroup, PROP_WORLD_TEMPLATE_PATH);
+		}
+
+		// Try the institutional tree if its an inst group
+		if (templatePath == null && instName != null){
+			Group instGroup = GroupFinder.findByName(getGrouperSession(), instName, false);
+			if (instGroup != null){
+				templatePath = getInheritedProperty(instGroup, PROP_WORLD_TEMPLATE_PATH);
+			}
+		}
+
+		// Defaults
+		String worldType = groupIdManager.getWorldType(grouperName);
+		if (templatePath == null && worldType != null){
+			templatePath = defaultTemplates.get(worldType);
+		}
+		return templatePath;
+	}
+
+	/**
+	 * Fetch the property from a group or one of its parent stems
+	 * @param group where to start looking for the property
+	 * @param propertyName the name of the property to look for
+	 * @return the value of the property if found or null
+	 */
+	private String getInheritedProperty(Group group, String propertyName){
+		String value = null;
+		if (group != null){
+			value = group.getAttributeOrFieldValue(propertyName, false, false);
+			// Walk up the parent tree to find a template
+			Stem parent = group.getParentStem();
+			while (parent != null && value == null){
+				value = group.getAttributeOrFieldValue(propertyName, false, false);
+				parent = parent.getParentStem();
+			}
+		}
+		return value;
 	}
 
 	/**
