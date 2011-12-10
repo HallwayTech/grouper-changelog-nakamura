@@ -90,7 +90,7 @@ public interface NakamuraManager {
 	 * @param value the value to store
 	 * @throws GrouperException
 	 */
-	public void setProperty(String groupName, String key, String value) throws GroupModificationException;
+	public void setProperty(String groupId, String key, String value) throws GroupModificationException;
 
 	/**
 	 * Set properties on a group in OAE
