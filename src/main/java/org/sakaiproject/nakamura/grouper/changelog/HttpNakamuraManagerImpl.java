@@ -69,7 +69,18 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 	public static final String USERS_TO_ADD_PARAM = "usersToAdd";
 
 	public static final String COURSE_DEFAULT_ADMIN_ROLE = "lecturer";
-	public static final String SIMPLE_GROUP_DEFAULT_ADMIN_ROLE = "lecturer";
+	public static final String SIMPLE_GROUP_DEFAULT_ADMIN_ROLE = "manager";
+
+	// Creating Users
+	public static final String NAME_PARAM = ":name";
+	public static final String PWD_PARAM = "pwd";
+	public static final String PWD_CONFIRM_PARAM = "pwdConfirm";
+	public static final String FIRST_NAME_PARAM = "firstName";
+	public static final String LAST_NAME_PARAM = "lastName";
+	public static final String EMAIL_PARAM = "email";
+	public static final String TIMEZONE_PARAM = "timezone";
+	public static final String PROFILE_IMPORT_PARAM = ":sakai:profile-import";
+	public static final String LOCALE_PARAM = "locale";
 
 	// Sling params
 	public static final String OPERATION_PARAM = ":operation";
@@ -80,6 +91,7 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 	public static final String VIEWER_DELETE_PARAM = ":viewer@Delete";
 	public static final String MEMBER_DELETE_PARAM = ":member@Delete";
 
+	// Passed along with every request
 	public static final String CHARSET_PARAM = "_charset_";
 	public static final String UTF_8 = "utf-8";
 
@@ -97,12 +109,13 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 
 	public boolean createUsers = false;
 
-	// Avoid multiple user exists and user create HTTP calls
+	// User cache
 	protected Map<String,Boolean> userExistsInSakai;
 
+	// Group cache
 	protected Map<String,Boolean> groupExistsInSakai;
 
-	// Subject attributes for creating users
+	// Configurable subject attributes. Used when creating users in OAE.
 	public String firstNameAttribute;
 	public String lastNameAttribute;
 	public String emailAttribute;
@@ -396,15 +409,15 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 								.replaceAll("LASTNAME", lastName)
 								.replaceAll("EMAIL", email);
 
-			method.addParameter(":name", userId);
-			method.addParameter("pwd", randomPassword);
-			method.addParameter("pwdConfirm", randomPassword);
-			method.addParameter("firstName", firstName);
-			method.addParameter("lastName", lastName);
-			method.addParameter("email", email);
-			method.addParameter("timezone", "America/New_York");
-			method.addParameter("locale", "en_US");
-			method.addParameter(":sakai:profile-import", profileTemplate);
+			method.addParameter(NAME_PARAM, userId);
+			method.addParameter(PWD_PARAM, randomPassword);
+			method.addParameter(PWD_CONFIRM_PARAM, randomPassword);
+			method.addParameter(FIRST_NAME_PARAM, firstName);
+			method.addParameter(LAST_NAME_PARAM, lastName);
+			method.addParameter(EMAIL_PARAM, email);
+			method.addParameter(TIMEZONE_PARAM, "America/New_York");
+			method.addParameter(LOCALE_PARAM, "en_US");
+			method.addParameter(PROFILE_IMPORT_PARAM, profileTemplate);
 
 			NakamuraHttpUtils.http(client, method);
 			userExistsInSakai.put(userId, Boolean.TRUE);
