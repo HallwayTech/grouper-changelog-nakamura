@@ -19,7 +19,6 @@ package org.sakaiproject.nakamura.grouper.changelog.esb;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -62,9 +61,9 @@ import edu.internet2.middleware.subject.provider.SubjectTypeEnum;
 /**
  * Common data and methods for the other EsbConsumers.
  */
-public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
+public abstract class AbstractWorldEsbConsumer extends ChangeLogConsumerBase {
 
-	private static Log log = LogFactory.getLog(BaseGroupEsbConsumer.class);
+	private static Log log = LogFactory.getLog(AbstractWorldEsbConsumer.class);
 
 	public static final String CONFIG_PREFIX = "changeLog.consumer";
 
@@ -120,6 +119,10 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	public static final String DEFAULT_GROUP_TYPE_NAME_TRIGGER= "provisionToOAE";
 	protected String groupTypeNameTrigger;
 
+	public static final String PROP_WORLD_TYPE = "world.type";
+	public static final String DEFAULT_WORLD_TYPE = "course";
+	protected String worldType;
+	
 	// Has the configuration been loaded?
 	protected boolean configurationLoaded = false;
 
@@ -146,6 +149,9 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	private Map<String,String> defaultTemplates;
 
 	public static final String PROP_WORLD_TEMPLATE_PATH = "sakai:worldTemplatePath";
+	
+	public static final String MEMBER_SUFFIX = "member";
+	public static final String MANAGER_SUFFIX = "manager";
 
 	/**
 	 * Load settings from grouper-loader.properties
@@ -175,6 +181,8 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		deleteGroups = GrouperLoaderConfig.getPropertyBoolean(cfgPrefix + PROP_DELETE_GROUPS, DEFAULT_DELETE_GROUPS);
 		log.info("deleteGroups = " + deleteGroups);
 
+		worldType = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_WORLD_TYPE, DEFAULT_WORLD_TYPE);
+		log.info("worldType = " + worldType);
 		triggerRole = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_DELETE_ROLE, DEFAULT_DELETE_ROLE);
 		log.info("triggerRole = " + triggerRole);
 		addAdminAs = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_ADD_ADMIN_AS, "");

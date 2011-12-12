@@ -67,7 +67,7 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 
 	private static final long SEQUENCE_NUMBER = 25;
 
-	private CourseGroupEsbConsumer consumer;
+	private WorldEsbConsumer consumer;
 
 	// Mocks
 	private Subject subject;
@@ -127,12 +127,13 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.subjectId)).thenReturn(subjectId);
 		when(deleteEntry.getSequenceNumber()).thenReturn(SEQUENCE_NUMBER);
 
-		consumer = new CourseGroupEsbConsumer();
+		consumer = new WorldEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdManager = groupIdManager;
 		consumer.allowInstitutional = true;
 		consumer.configurationLoaded = true;
 		consumer.setPseudoGroupSuffixes("student, manager, member, ta, lecturer");
+		consumer.worldType = "course";
 	}
 
 	/// ---- Add Membership

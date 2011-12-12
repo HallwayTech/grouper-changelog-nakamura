@@ -40,12 +40,11 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
 import edu.internet2.middleware.grouper.util.GrouperUtil;
 
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(value = {GrouperUtil.class, GroupFinder.class, GrouperSession.class })
 public class RestrictedCourseEsbConsumerTest extends TestCase {
 
-	private RestrictedCourseGroupEsbConsumer consumer;
+	private RestrictedWorldEsbConsumer consumer;
 	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 	private ChangeLogProcessorMetadata metadata;
@@ -66,10 +65,11 @@ public class RestrictedCourseEsbConsumerTest extends TestCase {
 		groupIdManager = mock(GroupIdManagerImpl.class);
 
 		when(metadata.getConsumerName()).thenReturn("UnitTestConsumer");
-		consumer = new RestrictedCourseGroupEsbConsumer();
+		consumer = new RestrictedWorldEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdManager = groupIdManager;
 		consumer.configurationLoaded = true;
+		consumer.worldType = "course";
 
 		List<String> enabledStems = Arrays.asList(ENABLED_STEMS);
 		consumer.setEnabledStems(enabledStems);

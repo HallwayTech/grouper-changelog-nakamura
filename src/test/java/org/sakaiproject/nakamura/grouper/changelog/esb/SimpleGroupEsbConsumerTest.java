@@ -54,7 +54,7 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 	private static final String groupId = "some_simpleg-manager";
 	private static final String parentId = "some_simpleg";
 
-	private SimpleGroupEsbConsumer consumer;
+	private WorldEsbConsumer consumer;
 	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 
@@ -112,12 +112,13 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(groupIdManager.getAllGroupName(simplegManagersApplicationGroupName)).thenReturn(simplegAllApplicationGroupName);
 		when(groupIdManager.getApplicationGroupName(simplegAllInstitutionalGroupName)).thenReturn(simplegManagersApplicationGroupName);
 
-		consumer = new SimpleGroupEsbConsumer();
+		consumer = new WorldEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdManager = groupIdManager;
 		consumer.configurationLoaded = true;
 		consumer.triggerRole = "managers";
 		consumer.setPseudoGroupSuffixes("manager, member");
+		consumer.worldType = "simple";
 
 		addEntry = mock(ChangeLogEntry.class);
 		when(addEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)).thenReturn(true);

@@ -20,7 +20,7 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
-import org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer;
+import org.sakaiproject.nakamura.grouper.changelog.esb.WorldEsbConsumer;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -41,15 +41,15 @@ public class SimpleGroupIdAdapterTestCase extends TestCase  {
 	}
 
 	public void testGetNakamuraIdMembers(){
-		assertEquals("newgroup_some_thing_else-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX,
-				adapter.getGroupId("newgroup:some:thing:else:" + SimpleGroupEsbConsumer.MEMBER_SUFFIX));
-		assertEquals("newgroup_some_thing_else-" + SimpleGroupEsbConsumer.MEMBER_SUFFIX,
-				adapter.getGroupId("newgroup:some:thing:else:" + SimpleGroupEsbConsumer.MEMBER_SUFFIX + "_systemOfRecord"));
+		assertEquals("newgroup_some_thing_else-" + WorldEsbConsumer.MEMBER_SUFFIX,
+				adapter.getGroupId("newgroup:some:thing:else:" + WorldEsbConsumer.MEMBER_SUFFIX));
+		assertEquals("newgroup_some_thing_else-" + WorldEsbConsumer.MEMBER_SUFFIX,
+				adapter.getGroupId("newgroup:some:thing:else:" + WorldEsbConsumer.MEMBER_SUFFIX + "_systemOfRecord"));
 	}
 
 	public void testGetNakamuraIdManagers(){
-		assertEquals("newgroup_some_thing_else-" + SimpleGroupEsbConsumer.MANAGER_SUFFIX,
-				adapter.getGroupId("newgroup:some:thing:else:" + SimpleGroupEsbConsumer.MANAGER_SUFFIX));
+		assertEquals("newgroup_some_thing_else-" + WorldEsbConsumer.MANAGER_SUFFIX,
+				adapter.getGroupId("newgroup:some:thing:else:" + WorldEsbConsumer.MANAGER_SUFFIX));
 	}
 
 	public void testGetNakamuraIdParent(){

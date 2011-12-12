@@ -54,14 +54,14 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
  * order of their length. In that way we match more specific restrictions before
  * more general expressions.
  */
-public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
+public class RestrictedWorldEsbConsumer extends WorldEsbConsumer {
 
 	private static final String PROP_RESTRICTION_QUERY = "restriction.query";
 	private static final String PROP_DB_PROFILE = "db.profile";
 
 	private static final String DEFAULT_DB_PROFILE = "warehouse";
 
-	private static Log log = LogFactory.getLog(RestrictedCourseGroupEsbConsumer.class);
+	private static Log log = LogFactory.getLog(RestrictedWorldEsbConsumer.class);
 
 	// The regexes to match to the grouperName
 	private List<Pattern> enabledStems;
@@ -73,7 +73,7 @@ public class RestrictedCourseGroupEsbConsumer extends CourseGroupEsbConsumer {
 	 * Load up the configuration necessary to act on {@link ChangeLogEntry} objects.
 	 */
 	protected void loadConfiguration(String consumerName) {
-		String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
+		String cfgPrefix = AbstractWorldEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
 		if (!configurationLoaded){
 			restrictionQuery = GrouperLoaderConfig.getPropertyString(cfgPrefix + PROP_RESTRICTION_QUERY, true);
 			log.info("restrictionQuery = " + restrictionQuery);

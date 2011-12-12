@@ -38,14 +38,14 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogTypeBuiltin;
  * Update course titles in Sakai OAE when the description is updated on a stem.
  * The stem will be the last stem in the path to the role groups for that course.
  */
-public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
+public class WorldTitleEsbConsumer extends AbstractWorldEsbConsumer {
 
-	private static Log log = LogFactory.getLog(CourseTitleEsbConsumer.class);
+	private static Log log = LogFactory.getLog(WorldTitleEsbConsumer.class);
 
 	// Regex to determine if this is a section stem
 	protected Pattern sectionStemPattern;
 
-	// The interface to the SakaiOAE/nakamura server.
+	// The interface to the SakaiOAE  server.
 	protected NakamuraManager nm;
 
 	// Convert grouper names to nakamura group ids
@@ -54,6 +54,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	protected boolean configurationLoaded = false;
 
 	// Configuration
+	// The regex exnsures we only process stems at the section level
 	public static final String PROP_SECTION_STEM_REGEX = "section.stem.regex";
 
 	// The property to set on the OAE group
@@ -69,7 +70,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 		}
 		super.loadConfiguration(consumerName);
 
-		String cfgPrefix = BaseGroupEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
+		String cfgPrefix = AbstractWorldEsbConsumer.CONFIG_PREFIX + "." + consumerName + ".";
 		sectionStemPattern = Pattern.compile(
 				GrouperLoaderConfig.getPropertyString(
 						cfgPrefix + PROP_SECTION_STEM_REGEX, true));

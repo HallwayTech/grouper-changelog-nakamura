@@ -5,21 +5,18 @@ The Grouper changelog is a list of events in a Grouper system stored in the data
 
 This package includes 4 Grouper changelog consumers.
 
-### org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
-Provisions and updates "Simple Groups" and their memberships in Sakai OAE.
+### org.sakaiproject.nakamura.grouper.changelog.esb.WorldEsbConsumer
+Provisions and updates "Worlds" and their memberships in Sakai OAE.
 
-### org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
-Provisions and updates "Course Groups" and their memberships in Sakai OAE.
-
-### org.sakaiproject.nakamura.grouper.changelog.esb.RestrictedCourseGroupEsbConsumer
+### org.sakaiproject.nakamura.grouper.changelog.esb.RestrictedWorldEsbConsumer
 Functionally equivalent to the CourseGroupEsbConsumer. It only processes group actions if the group name matches a list stored in a database table. If you want to use the RestrictedCourseGroupEsbConsumer just replace the CourseGroupEsbConsumer class configuration for the with RestrictedCourseGroupEsbConsumer. Then add the SQL statement that retrieves a list of regular expressions to match group names. (see the example configuration below).
 
-### org.sakaiproject.nakamura.grouper.changelog.esb.CourseTitleEsbConsumer
+### org.sakaiproject.nakamura.grouper.changelog.esb.WorldTitleEsbConsumer
 Respond to stem updates by storing the description attribute on the sakai:group-title property.
 
 ## User Provisioning
 
-The SimpleGroupEsbConsumer, CourseTitleEsbConsumer, and RestrictedCourseGroupEsbConsumer will try to create users in Sakai OAE if they don't already exist. The consumer will try to get the user's full name from their grouper subject attributes. These attributes are configurable (see the examples below);
+The WorldEsbConsumer and RestrictedWorldEsbConsumer will try to create users in Sakai OAE if they don't already exist. The consumer will try to get the user's full name from their grouper subject attributes. These attributes are configurable (see the examples below);
 
 ## Build Prerequisites
 * git
@@ -47,7 +44,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     # Provision Simple Groups
 
     changeLog.consumer.simpleGroup.quartzCron = 0 0 * * * ?
-    changeLog.consumer.simpleGroup.class = org.sakaiproject.nakamura.grouper.changelog.esb.SimpleGroupEsbConsumer
+    changeLog.consumer.simpleGroup.class = org.sakaiproject.nakamura.grouper.changelog.esb.WorldEsbConsumer
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.simplegroups.adhoc.stem and nakamura.simplegroups.provisioned.stem
@@ -61,6 +58,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
                                                  || event.eventType eq 'MEMBERSHIP_DELETE' \
                                                  || event.eventType eq 'MEMBERSHIP_ADD')
 
+    changeLog.consumer.simpleGroup.world.type = simple
     changeLog.consumer.simpleGroup.trigger.role = member
     changeLog.consumer.courseGroups.group.type.name.trigger = provisionToSakaiOAE
     
@@ -121,6 +119,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
 
     # When this group is deleted we delete the sakai course shell.
     # When this group is given the type specified by group.type.name.trigger provision the course shell to OAE
+    changeLog.consumer.courseGroup.world.type = course
     changeLog.consumer.courseGroups.trigger.role = student
     changeLog.consumer.courseGroups.group.type.name.trigger = provisionToSakaiOAE
     # Add the sakai admin account as a lecturer

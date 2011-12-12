@@ -54,7 +54,7 @@ import edu.internet2.middleware.subject.Subject;
 @PrepareForTest(value = { GrouperUtil.class, GroupFinder.class, GrouperSession.class, SubjectFinder.class })
 public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 
-	private SimpleGroupEsbConsumer consumer;
+	private WorldEsbConsumer consumer;
 	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 	private ChangeLogProcessorMetadata metadata;
@@ -104,12 +104,13 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 		when(groupIdManager.getProvisionedSimpleGroupsStem()).thenReturn(provSimpleStem);
 		when(groupIdManager.getAdhocSimpleGroupsStem()).thenReturn(adhocSimpleGroupsStem);
 
-		consumer = new SimpleGroupEsbConsumer();
+		consumer = new WorldEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdManager = groupIdManager;
 		consumer.configurationLoaded = true;
 		consumer.allowInstitutional = true;
 		consumer.setPseudoGroupSuffixes("manager, member");
+		consumer.worldType = "simple";
 
 		addEntry = mock(ChangeLogEntry.class);
 		when(addEntry.equalsCategoryAndAction(ChangeLogTypeBuiltin.MEMBERSHIP_ADD)).thenReturn(true);

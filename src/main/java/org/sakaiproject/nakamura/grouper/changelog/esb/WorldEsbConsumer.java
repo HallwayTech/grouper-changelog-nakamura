@@ -21,9 +21,10 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
-import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.HttpNakamuraManagerImpl;
+import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.util.ChangeLogUtils;
 
@@ -31,14 +32,33 @@ import edu.internet2.middleware.grouper.changeLog.ChangeLogEntry;
 import edu.internet2.middleware.grouper.changeLog.ChangeLogProcessorMetadata;
 
 /**
- * Provision Simple Groups and memberships to Sakai OAE.
+ * Provision and sync Course Groups in Sakai OAE with Grouper.
+ *
+ * Courses in Sakai OAE have a group authorizable for each role in the Course.
+ * At the time of this writing those were student, ta, lecturer.
+ *
+ * For each of these role groups we'll have a set of groups in Grouper.
+ *
+ * Example:
+ *
+ * Sakai OAE has a world named course0.
+ *
+ * Grouper would have the following:
+ * 1. $COURSE:$ROLE
+ * 2. $COURSE:$ROLE_includes
+ * 3. $COURSE:$ROLE_excludes
+ * 4. $COURSE:$ROLE_systemOfRecord
+ * 5. $COURSE:$ROLE_systemOfRecordAndIncludes
+ *
+ * Group 1 would have the effective membership: ((4 + 5) + 2) - 3.
+ *
+ * This class should act on flattened membership events on $COURSE:$ROLE.
+ * Since $COURSE:$ROLE is a composite group its membership depends on the
+ * state of the component groups (and subgroups).
  */
-public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
+public class WorldEsbConsumer extends AbstractWorldEsbConsumer {
 
-	private static Log log = LogFactory.getLog(SimpleGroupEsbConsumer.class);
-
-	public static final String MANAGER_SUFFIX = "manager";
-	public static final String MEMBER_SUFFIX = "member";
+	private static Log log = LogFactory.getLog(WorldEsbConsumer.class);
 
 	/**
 	 * Read the configuration from $GROUPER_HOME/conf/grouper-loader.properties.
@@ -59,32 +79,36 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 
 		SimpleGroupIdAdapter simpleAdapter = new SimpleGroupIdAdapter();
 		simpleAdapter.loadConfiguration(consumerName);
-		
-		GroupIdManagerImpl gidMgr = new GroupIdManagerImpl();
+		TemplateGroupIdAdapter templateAdapter = new TemplateGroupIdAdapter();
+		templateAdapter.loadConfiguration(consumerName);
+
+		GroupIdManagerImpl gidMgr = new GroupIdManagerImpl(); 
 		gidMgr.loadConfiguration(consumerName);
 		gidMgr.setSimpleGroupIdAdapter(simpleAdapter);
+		gidMgr.setTemplateGroupIdAdapter(templateAdapter);
 		groupIdManager = gidMgr;
 
-		HttpNakamuraManagerImpl simpleManager = new HttpNakamuraManagerImpl();
-		simpleManager.url = url;
-		simpleManager.username = username;
-		simpleManager.password = password;
-		simpleManager.createUsers = createUsers;
-		simpleManager.groupIdAdapter = groupIdManager;
-		simpleManager.dryrun = dryrun;
-		simpleManager.pseudoGroupSuffixes = pseudoGroupSuffixes;
+		HttpNakamuraManagerImpl courseManager = new HttpNakamuraManagerImpl();
+		courseManager.url = url;
+		courseManager.username = username;
+		courseManager.password = password;
+		courseManager.createUsers = createUsers;
+		courseManager.groupIdAdapter = groupIdManager;
+		courseManager.dryrun = dryrun;
+		courseManager.pseudoGroupSuffixes = pseudoGroupSuffixes;
 
-		simpleManager.firstNameAttribute = firstNameAttribute;
-		simpleManager.lastNameAttribute = lastNameAttribute;
-		simpleManager.emailAttribute = emailAttribute;
-		simpleManager.defaultEmailDomain = defaultEmailDomain;
-		nakamuraManager = simpleManager;
+		courseManager.firstNameAttribute = firstNameAttribute;
+		courseManager.lastNameAttribute = lastNameAttribute;
+		courseManager.emailAttribute = emailAttribute;
+		courseManager.defaultEmailDomain = defaultEmailDomain;
+		nakamuraManager = courseManager;
 	}
 
 	@Override
 	public long processChangeLogEntries(List<ChangeLogEntry> changeLogEntryList,
 			ChangeLogProcessorMetadata changeLogProcessorMetadata) {
 
+		// Load up the necessary components
 		String consumerName = changeLogProcessorMetadata.getConsumerName();
 		loadConfiguration(consumerName);
 
@@ -96,10 +120,9 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		long currentId = -1;
 
 		try {
-			// try catch so we can track that we made some progress
 			for (ChangeLogEntry entry : changeLogEntryList) {
 				currentId = entry.getSequenceNumber();
-				log.info("Processing changelog entry=" + currentId);
+				log.info("Processing changelog entry=" + currentId); 
 				if (!ignoreChangelogEntry(entry)){
 					processChangeLogEntry(entry);
 				}
@@ -110,7 +133,6 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 		}
 		// Stop processing changelog entries.
 		catch (Exception e) {
-
 			if (currentId == -1) {
 				log.error("Didn't process any records.");
 				throw new RuntimeException("Couldn't process any records");
@@ -126,22 +148,24 @@ public class SimpleGroupEsbConsumer extends BaseGroupEsbConsumer {
 	 * @param entry a change log entry
 	 * @return whether or not to ignore this entry
 	 */
-	public boolean ignoreChangelogEntry(ChangeLogEntry entry){
+	protected boolean ignoreChangelogEntry(ChangeLogEntry entry){
 		boolean ignore = false;
 		Long sequenceNumber = entry.getSequenceNumber();
 		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
+		if (log.isTraceEnabled()){
+			log.trace(entry.toStringDeep());
+		}
 		if (grouperName == null){
-			log.debug("ignoring: Unable to get the group name from the entry : " + entry.toStringDeep());
+			log.info("ignoring: " + sequenceNumber + " Unable to get the group name from the entry. ");
 			ignore = true;
 		}
 		else {
-
 			if (allowInstitutional == false && groupIdManager.isInstitutional(grouperName)){
-				log.debug("ignoring: Not processing institutional data : " + grouperName);
+				log.info("ignoring " + sequenceNumber + " : Not processing institutional data : " + grouperName);
 				ignore = true;
 			}
-			if (!GroupIdManager.SIMPLE.equals(groupIdManager.getWorldType(grouperName))){
-				log.debug("ignoring: Not a simple group : " + grouperName);
+			if (!worldType.equals(groupIdManager.getWorldType(grouperName))){
+				log.info("ignoring " + sequenceNumber + " : Not a " + worldType + " group : " + grouperName);
 				ignore = true;
 			}
 

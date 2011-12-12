@@ -51,7 +51,7 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 	private static final String VALID_STEM = "edu:apps:sakaioae:courses:some:stem";
 	private static final String INVALID_STEM = "edu:apps:sakaioae:courses:some:stem:extra";
 
-	private CourseTitleEsbConsumer consumer;
+	private WorldTitleEsbConsumer consumer;
 	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 	private ChangeLogProcessorMetadata metadata;
@@ -70,7 +70,7 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		when(entry.retrieveValueForLabel(ChangeLogLabels.STEM_UPDATE.name)).thenReturn(VALID_STEM);
 		when(entry.getSequenceNumber()).thenReturn((long)10);
 
-		consumer = new CourseTitleEsbConsumer();
+		consumer = new WorldTitleEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdManager = groupIdManager;
 		consumer.configurationLoaded = true;
@@ -107,6 +107,6 @@ public class CourseTitleEsbConsumerTest extends TestCase {
 		assertFalse(consumer.ignoreChangelogEntry(entry));
 
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
-		verify(nakamuraManager).setProperty("some_course", CourseTitleEsbConsumer.COURSE_TITLE_PROPERTY, "newdescription");
+		verify(nakamuraManager).setProperty("some_course", WorldTitleEsbConsumer.COURSE_TITLE_PROPERTY, "newdescription");
 	}
 }

@@ -104,7 +104,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 	private NakamuraManager nakamuraManager;
 	private GroupIdManagerImpl groupIdManager;
 
-	private CourseGroupEsbConsumer consumer;
+	private WorldEsbConsumer consumer;
 
 	public void setUp(){
 		suppress(method(GrouperUtil.class, "getLog"));
@@ -147,7 +147,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(group.getParentStem()).thenReturn(stem);
 		when(group.getExtension()).thenReturn("students");
 		when(group.getName()).thenReturn(course1StudentsInstitutionalGroupName);
-		when(group.getAttributeOrFieldValue(BaseGroupEsbConsumer.PROP_WORLD_TEMPLATE_PATH, false, false)).thenReturn("worldTemplate");
+		when(group.getAttributeOrFieldValue(WorldEsbConsumer.PROP_WORLD_TEMPLATE_PATH, false, false)).thenReturn("worldTemplate");
 
 		when(GrouperSession.startRootSession()).thenReturn(session);
 
@@ -187,13 +187,14 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupIdManager.getGroupId(course1StudentsInstitutionalGroupName)).thenReturn(courseStudentGroupId);
 		when(groupIdManager.getGroupId(course1LecturersInstitutionalGroupName)).thenReturn(courseLecturerGroupId);
 
-		consumer = new CourseGroupEsbConsumer();
+		consumer = new WorldEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;
 		consumer.groupIdManager = groupIdManager;
 		consumer.configurationLoaded = true;
 		consumer.pseudoGroupSuffixes = ImmutableSet.of("student", "manager", "member", "ta", "lecturer");
 		consumer.triggerRole = "students";
 		consumer.addAdminAs = "ta";
+		consumer.worldType = "course";
 	}
 
 	public void testIgnoreInvalidEntryType() throws Exception{
@@ -367,7 +368,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_TYPE_ASSIGN.groupName))
 			.thenReturn(course1StudentsInstitutionalGroupName);
 		when(entry.retrieveValueForLabel(ChangeLogLabels.GROUP_TYPE_ASSIGN.typeName))
-			.thenReturn(BaseGroupEsbConsumer.DEFAULT_GROUP_TYPE_NAME_TRIGGER);
+			.thenReturn(AbstractWorldEsbConsumer.DEFAULT_GROUP_TYPE_NAME_TRIGGER);
 
 		when(GroupFinder.findByName(session, course1StudentsInstitutionalGroupName, false)).thenReturn(group);
 		when(GroupFinder.findByName(session, course1LecturersInstitutionalGroupName, false)).thenReturn(instLecturerGroup);
@@ -376,7 +377,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(instLecturerGroup.getMembers()).thenReturn(ImmutableSet.of(member1));
 
 		consumer.allowInstitutional = true;
-		consumer.groupTypeNameTrigger = BaseGroupEsbConsumer.DEFAULT_GROUP_TYPE_NAME_TRIGGER;
+		consumer.groupTypeNameTrigger = AbstractWorldEsbConsumer.DEFAULT_GROUP_TYPE_NAME_TRIGGER;
 		consumer.processChangeLogEntries(ImmutableList.of(entry), metadata);
 		verify(nakamuraManager, times(2)).createUser("user1");
 		verify(nakamuraManager).createUser("user2");
