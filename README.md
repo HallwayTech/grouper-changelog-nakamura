@@ -9,7 +9,7 @@ This package includes 4 Grouper changelog consumers.
 Provisions and updates "Worlds" and their memberships in Sakai OAE.
 
 ### org.sakaiproject.nakamura.grouper.changelog.esb.RestrictedWorldEsbConsumer
-Functionally equivalent to the CourseGroupEsbConsumer. It only processes group actions if the group name matches a list stored in a database table. If you want to use the RestrictedCourseGroupEsbConsumer just replace the CourseGroupEsbConsumer class configuration for the with RestrictedCourseGroupEsbConsumer. Then add the SQL statement that retrieves a list of regular expressions to match group names. (see the example configuration below).
+Functionally equivalent to the WorldEsbConsumer. It only processes group actions if the group name matches a list stored in a database table. If you want to use the RestrictedWorldEsbConsumer just replace the WorldEsbConsumer class configuration for the with RestrictedWorldEsbConsumer. Then add the SQL statement that retrieves a list of regular expressions to match group names. (see the example configuration below).
 
 ### org.sakaiproject.nakamura.grouper.changelog.esb.WorldTitleEsbConsumer
 Respond to stem updates by storing the description attribute on the sakai:group-title property.
@@ -99,8 +99,8 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     #########################################################################################################################
 
     changeLog.consumer.courseGroups.quartzCron = 0 0 * * * ?
-    # changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.RestrictedCourseGroupEsbConsumer
-    changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.CourseGroupEsbConsumer
+    # changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.RestrictedWorldEsbConsumer
+    changeLog.consumer.courseGroups.class = org.sakaiproject.nakamura.grouper.changelog.esb.WorldEsbConsumer
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.courses.adhoc.stem and nakamura.courses.provisioned.stem
@@ -169,7 +169,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     changeLog.consumer.courseGroups.dryrun = false
     changeLog.consumer.courseGroups.delete.groups = false
     
-    # Required for the RestrictedCourseGroupEsbConsumer
+    # Required for the RestrictedWorldEsbConsumer
     # SQL query for a list of db LIKE expressions
     # changeLog.consumer.courseGroups.restriction.query = SELECT RESTRICTION FROM COURSE_RESTRICTIONS WHERE SAKAIOAE = 1
     # Optional if you want to change the database connection profile
@@ -179,7 +179,7 @@ Configure the Grouper loader to run the two jobs. Add the following to ${GROUPER
     #########################################################################################################################
 
     changeLog.consumer.courseTitles.quartzCron = 0 0 * * * ?
-    changeLog.consumer.courseTitles.class = org.sakaiproject.nakamura.grouper.changelog.esb.CourseTitleEsbConsumer
+    changeLog.consumer.courseTitles.class = org.sakaiproject.nakamura.grouper.changelog.esb.WorldEsbConsumer
 
     # You may have to change this stem. 
     # If you do make sure to update nakamura.courses.adhoc.stem and nakamura.courses.provisioned.stem
