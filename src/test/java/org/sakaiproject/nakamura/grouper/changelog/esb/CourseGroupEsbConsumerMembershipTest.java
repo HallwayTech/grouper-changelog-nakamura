@@ -85,8 +85,8 @@ public class CourseGroupEsbConsumerMembershipTest extends TestCase {
 		when(subject.getName()).thenReturn(subjectId);
 
 		when(groupIdManager.getGroupId(grouperName)).thenReturn(groupId);
-		when(groupIdManager.getPseudoGroupParent(groupId)).thenReturn("some_course");
-		when(groupIdManager.toProvisioned(instGrouperName)).thenReturn(grouperName);
+		when(groupIdManager.getWorldId(groupId)).thenReturn("some_course");
+		when(groupIdManager.getApplicationGroupName(instGrouperName)).thenReturn(grouperName);
 
 		when(groupIdManager.getWorldType(grouperName)).thenReturn(GroupIdManager.COURSE);
 		when(groupIdManager.getWorldType(instGrouperName)).thenReturn(GroupIdManager.COURSE);

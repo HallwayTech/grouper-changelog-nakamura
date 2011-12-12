@@ -15,11 +15,11 @@ public class BaseGroupIdAdapterTest extends TestCase {
 	}
 
 	public void testGetPseudoGroupParent(){
-		assertEquals("some-group", gAdapter.getPseudoGroupParent("some-group"));
-		assertEquals("some-group", gAdapter.getPseudoGroupParent("some-group-student"));
+		assertEquals("some-group", gAdapter.getWorldId("some-group"));
+		assertEquals("some-group", gAdapter.getWorldId("some-group-student"));
 
-		assertEquals("some_group", gAdapter.getPseudoGroupParent("some_group"));
-		assertEquals("some_group", gAdapter.getPseudoGroupParent("some_group-student"));
-		assertEquals("some_group_student", gAdapter.getPseudoGroupParent("some_group_student"));
+		assertEquals("some_group", gAdapter.getWorldId("some_group"));
+		assertEquals("some_group", gAdapter.getWorldId("some_group-student"));
+		assertEquals("some_group_student", gAdapter.getWorldId("some_group_student"));
 	}
 }

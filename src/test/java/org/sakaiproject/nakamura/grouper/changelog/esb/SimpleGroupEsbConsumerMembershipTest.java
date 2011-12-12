@@ -82,7 +82,7 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 
 		when(groupIdManager.getGroupId(grouperName)).thenReturn(groupId);
 		when(groupIdManager.getGroupId(instGrouperName)).thenReturn(groupId);
-		when(groupIdManager.toProvisioned(instGrouperName)).thenReturn(grouperName);
+		when(groupIdManager.getApplicationGroupName(instGrouperName)).thenReturn(grouperName);
 
 		when(groupIdManager.getInstitutionalSimpleGroupsStem()).thenReturn(instSimpleStem);
 		when(groupIdManager.getProvisionedSimpleGroupsStem()).thenReturn(provSimpleStem);

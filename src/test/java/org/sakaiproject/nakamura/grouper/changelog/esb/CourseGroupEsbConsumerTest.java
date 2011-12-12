@@ -158,14 +158,14 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(groupIdManager.isInstitutional(course1AllApplicationGroupName)).thenReturn(false);
 		when(groupIdManager.isInstitutional(course1AllInstitutionalGroupName)).thenReturn(true);
 
-		when(groupIdManager.getAllGroup(course1LecturersApplicationGroupName)).thenReturn(course1AllApplicationGroupName);
-		when(groupIdManager.getAllGroup(course1StudentsApplicationGroupName)).thenReturn(course1AllApplicationGroupName);
-		when(groupIdManager.getAllGroup(course1StudentsInstitutionalGroupName)).thenReturn(course1AllInstitutionalGroupName);
+		when(groupIdManager.getAllGroupName(course1LecturersApplicationGroupName)).thenReturn(course1AllApplicationGroupName);
+		when(groupIdManager.getAllGroupName(course1StudentsApplicationGroupName)).thenReturn(course1AllApplicationGroupName);
+		when(groupIdManager.getAllGroupName(course1StudentsInstitutionalGroupName)).thenReturn(course1AllInstitutionalGroupName);
 
-		when(groupIdManager.toProvisioned(course1AllInstitutionalGroupName)).thenReturn(course1AllApplicationGroupName);
-		when(groupIdManager.toProvisioned(course1StudentsInstitutionalGroupName)).thenReturn(course1StudentsApplicationGroupName);
+		when(groupIdManager.getApplicationGroupName(course1AllInstitutionalGroupName)).thenReturn(course1AllApplicationGroupName);
+		when(groupIdManager.getApplicationGroupName(course1StudentsInstitutionalGroupName)).thenReturn(course1StudentsApplicationGroupName);
 
-		when(groupIdManager.getPseudoGroupParent(anyString())).thenReturn(courseGroupId);
+		when(groupIdManager.getWorldId(anyString())).thenReturn(courseGroupId);
 
 		when(groupIdManager.getGroupId(course1StudentsApplicationGroupName)).thenReturn(courseStudentGroupId);
 		when(groupIdManager.getGroupId(course1StudentsInstitutionalGroupName)).thenReturn(courseStudentGroupId);
@@ -258,7 +258,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name))
 			.thenReturn(course1StudentsInstitutionalGroupName);
 		when(GroupFinder.findByName(session, course1StudentsInstitutionalGroupName, false)).thenReturn(group);
-		when(groupIdManager.getAllGroup(course1StudentsApplicationGroupName))
+		when(groupIdManager.getAllGroupName(course1StudentsApplicationGroupName))
 			.thenReturn(course1AllApplicationGroupName);
 
 		Group appAllGroup = mock(Group.class);
@@ -280,7 +280,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.GROUP_ADD.name))
 			.thenReturn(course1StudentsInstitutionalGroupName);
 		when(nakamuraManager.groupExists(courseGroupId)).thenReturn(false);
-		when(groupIdManager.getAllGroup(course1StudentsApplicationGroupName))
+		when(groupIdManager.getAllGroupName(course1StudentsApplicationGroupName))
 			.thenReturn(course1AllApplicationGroupName);
 
 		Group instAllGroup = mock(Group.class);

@@ -211,7 +211,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 
 		String grouperName = ChangeLogUtils.getGrouperNameFromChangelogEntry(entry);
 		String nakamuraGroupId = groupIdManager.getGroupId(grouperName);
-		String parentGroupId = groupIdManager.getPseudoGroupParent(nakamuraGroupId);
+		String parentGroupId = groupIdManager.getWorldId(nakamuraGroupId);
 
 		if (entry.equalsCategoryAndAction(ChangeLogTypeBuiltin.GROUP_ADD)) {
 			processGroupAdd(grouperName, nakamuraGroupId, parentGroupId);
@@ -259,7 +259,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 				// When the group is modified in Sakai OAE it will be written back to Grouper in the
 				// Sakai OAE provisioned stem.
 				if (groupIdManager.isInstitutional(grouperName)) {
-					grouperName = groupIdManager.toProvisioned(grouperName);
+					grouperName = groupIdManager.getApplicationGroupName(grouperName);
 				}
 
 				// Try to get the course description from the parent stem.
@@ -274,7 +274,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 					template = defaultTemplates.get(worldType);
 				}
 				String groupId = groupIdManager.getGroupId(grouperName);
-				String worldId = groupIdManager.getPseudoGroupParent(groupId);
+				String worldId = groupIdManager.getWorldId(groupId);
 				String title = worldId;
 				String adminRole = "manager";
 				Builder<String, String> initialMembers = ImmutableMap.builder();
@@ -319,7 +319,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 		String appName = grouperName;
 		if (groupIdManager.isInstitutional(grouperName)){
 			instName = grouperName;
-			appName = groupIdManager.toProvisioned(grouperName);
+			appName = groupIdManager.getApplicationGroupName(grouperName);
 		}
 
 		// Check the application tree first
@@ -369,9 +369,9 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 	 * @param grouperName
 	 */
 	private void handleAllRollUpGroup(String grouperName){
-		String applicationAllGroupName = groupIdManager.getAllGroup(grouperName);
+		String applicationAllGroupName = groupIdManager.getAllGroupName(grouperName);
 		if (groupIdManager.isInstitutional(grouperName)){
-			applicationAllGroupName = groupIdManager.toProvisioned(applicationAllGroupName);
+			applicationAllGroupName = groupIdManager.getApplicationGroupName(applicationAllGroupName);
 		}
 		// Create app:sakaioae:provisioned:course:X:all if it doesn't exist
 		Group applicationAllGroup = GroupFinder.findByName(getGrouperSession(), applicationAllGroupName, false);
@@ -435,7 +435,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			// When a user is removed from inst:sis:course:G:ROLE,
 			// remove them from app:atlas:provisioned:course:G:ROLE_{includes,excludes}
 			if (groupIdManager.isInstitutional(grouperName)){
-				removeFromIncludeExcludeGroups(groupIdManager.toProvisioned(grouperName), member);
+				removeFromIncludeExcludeGroups(groupIdManager.getApplicationGroupName(grouperName), member);
 			}
 		}
 		else {
@@ -469,7 +469,7 @@ public abstract class BaseGroupEsbConsumer extends ChangeLogConsumerBase {
 			// When a user is removed from inst:sis:course:G:ROLE,
 			// remove them from app:atlas:provisioned:course:G:ROLE_{includes,excludes}
 			if (groupIdManager.isInstitutional(grouperName)){
-				removeFromIncludeExcludeGroups(groupIdManager.toProvisioned(grouperName), member);
+				removeFromIncludeExcludeGroups(groupIdManager.getApplicationGroupName(grouperName), member);
 			}
 		}
 		else {

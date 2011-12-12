@@ -79,7 +79,7 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 
 		when(groupIdManager.getGroupId(simplegManagersApplicationGroupName)).thenReturn(groupId);
 		when(groupIdManager.getGroupId(simplegManagersInstitutionalGroupName)).thenReturn(groupId);
-		when(groupIdManager.getPseudoGroupParent(groupId)).thenReturn(parentId);
+		when(groupIdManager.getWorldId(groupId)).thenReturn(parentId);
 
 		when(groupIdManager.getAdhocSimpleGroupsStem()).thenReturn("edu:apps:sakaiaoe:adhoc:simplegroups");
 		when(groupIdManager.getInstitutionalSimpleGroupsStem()).thenReturn("inst:sis:simplegroups");
@@ -93,8 +93,8 @@ public class SimpleGroupEsbConsumerTest extends TestCase {
 		when(groupIdManager.isInstitutional(simplegAllInstitutionalGroupName)).thenReturn(true);
 		when(groupIdManager.isInstitutional(simplegManagersInstitutionalGroupName)).thenReturn(true);
 
-		when(groupIdManager.getAllGroup(simplegManagersApplicationGroupName)).thenReturn(simplegAllApplicationGroupName);
-		when(groupIdManager.toProvisioned(simplegAllInstitutionalGroupName)).thenReturn(simplegManagersApplicationGroupName);
+		when(groupIdManager.getAllGroupName(simplegManagersApplicationGroupName)).thenReturn(simplegAllApplicationGroupName);
+		when(groupIdManager.getApplicationGroupName(simplegAllInstitutionalGroupName)).thenReturn(simplegManagersApplicationGroupName);
 
 		consumer = new SimpleGroupEsbConsumer();
 		consumer.nakamuraManager = nakamuraManager;

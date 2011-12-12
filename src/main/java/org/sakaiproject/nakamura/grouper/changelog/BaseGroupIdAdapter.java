@@ -65,7 +65,7 @@ public abstract class BaseGroupIdAdapter {
 	 * @param nakamuraGroupId
 	 * @return
 	 */
-	public String getPseudoGroupParent(String nakamuraGroupId){
+	public String getWorldId(String nakamuraGroupId){
 		int dash = nakamuraGroupId.lastIndexOf("-");
 		if (dash != -1){
 			String afterDash = nakamuraGroupId.substring(dash + 1);

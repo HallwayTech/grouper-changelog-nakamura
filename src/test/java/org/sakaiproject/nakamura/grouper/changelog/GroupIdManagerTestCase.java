@@ -242,26 +242,26 @@ public class GroupIdManagerTestCase extends TestCase {
 	}
 
 	public void testGetAllGroup(){
-		assertEquals(INST_COURSEGROUPS_STEM + ":X:all",manager.getAllGroup(INST_COURSEGROUPS_STEM + ":X:students"));
-		assertEquals(INST_SIMPLEGROUPS_STEM + ":X:all", manager.getAllGroup(INST_SIMPLEGROUPS_STEM + ":X:students"));
+		assertEquals(INST_COURSEGROUPS_STEM + ":X:all",manager.getAllGroupName(INST_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(INST_SIMPLEGROUPS_STEM + ":X:all", manager.getAllGroupName(INST_SIMPLEGROUPS_STEM + ":X:students"));
 
-		assertEquals(ADHOC_COURSEGROUPS_STEM + ":X:all", manager.getAllGroup(ADHOC_COURSEGROUPS_STEM + ":X:students"));
-		assertEquals(ADHOC_SIMPLEGROUPS_STEM + ":X:all", manager.getAllGroup(ADHOC_SIMPLEGROUPS_STEM + ":X:students"));
+		assertEquals(ADHOC_COURSEGROUPS_STEM + ":X:all", manager.getAllGroupName(ADHOC_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(ADHOC_SIMPLEGROUPS_STEM + ":X:all", manager.getAllGroupName(ADHOC_SIMPLEGROUPS_STEM + ":X:students"));
 
-		assertEquals(PROV_COURSEGROUPS_STEM + ":X:all", manager.getAllGroup(PROV_COURSEGROUPS_STEM + ":X:students"));
-		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:all", manager.getAllGroup(PROV_SIMPLEGROUPS_STEM + ":X:students"));
+		assertEquals(PROV_COURSEGROUPS_STEM + ":X:all", manager.getAllGroupName(PROV_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:all", manager.getAllGroupName(PROV_SIMPLEGROUPS_STEM + ":X:students"));
 	}
 
-	public void testToProvisioned(){
-		assertEquals(PROV_COURSEGROUPS_STEM + ":X:students",manager.toProvisioned(PROV_COURSEGROUPS_STEM + ":X:students"));
-		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:students", manager.toProvisioned(PROV_SIMPLEGROUPS_STEM + ":X:students"));
+	public void testGetApplicationGroupName(){
+		assertEquals(PROV_COURSEGROUPS_STEM + ":X:students",manager.getApplicationGroupName(PROV_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:students", manager.getApplicationGroupName(PROV_SIMPLEGROUPS_STEM + ":X:students"));
 
-		assertEquals(null, manager.toProvisioned(ADHOC_COURSEGROUPS_STEM + ":X:students"));
-		assertEquals(null, manager.toProvisioned(ADHOC_SIMPLEGROUPS_STEM + ":X:students"));
+		assertEquals(null, manager.getApplicationGroupName(ADHOC_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(null, manager.getApplicationGroupName(ADHOC_SIMPLEGROUPS_STEM + ":X:students"));
 
-		assertEquals(PROV_COURSEGROUPS_STEM + ":X:students", manager.toProvisioned(INST_COURSEGROUPS_STEM + ":X:students"));
-		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:students", manager.toProvisioned(INST_SIMPLEGROUPS_STEM + ":X:students"));
+		assertEquals(PROV_COURSEGROUPS_STEM + ":X:students", manager.getApplicationGroupName(INST_COURSEGROUPS_STEM + ":X:students"));
+		assertEquals(PROV_SIMPLEGROUPS_STEM + ":X:students", manager.getApplicationGroupName(INST_SIMPLEGROUPS_STEM + ":X:students"));
 
-		assertEquals(PROV_COURSEGROUPS_STEM + ":X:lecturers",manager.toProvisioned(PROV_COURSEGROUPS_STEM + ":X:instructors"));
+		assertEquals(PROV_COURSEGROUPS_STEM + ":X:lecturers",manager.getApplicationGroupName(PROV_COURSEGROUPS_STEM + ":X:instructors"));
 	}
 }

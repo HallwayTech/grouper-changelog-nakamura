@@ -220,7 +220,7 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 	 */
 	public void addMembership(String nakamuraGroupId, String memberId)
 			throws GroupModificationException {
-		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+		String parentGroupId = groupIdAdapter.getWorldId(nakamuraGroupId);
 		String role = StringUtils.substringAfterLast(nakamuraGroupId, "-");
 		PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
         method.addParameter(MEMBER_PARAM, memberId);
@@ -250,7 +250,7 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 			return;
 		}
 
-		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+		String parentGroupId = groupIdAdapter.getWorldId(nakamuraGroupId);
 		String role = StringUtils.substringAfterLast(nakamuraGroupId, "-");
 
 		JSONArray requests = new JSONArray();
@@ -291,7 +291,7 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 	 */
 	public void deleteMembership(String nakamuraGroupId, String memberId)
 			throws GroupModificationException {
-		String parentGroupId = groupIdAdapter.getPseudoGroupParent(nakamuraGroupId);
+		String parentGroupId = groupIdAdapter.getWorldId(nakamuraGroupId);
         String role = StringUtils.substringAfterLast(nakamuraGroupId, "-");
         PostMethod method = new PostMethod(url.toString() + getUpdateURI(nakamuraGroupId));
         method.addParameter(MEMBER_DELETE_PARAM, memberId);
@@ -438,7 +438,7 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 	 * @throws GroupModificationException
 	 */
 	public void deleteGroup(String groupId, String groupName) throws GroupModificationException {
-		String parentGroupId = groupIdAdapter.getPseudoGroupParent(groupId);
+		String parentGroupId = groupIdAdapter.getWorldId(groupId);
 		HttpClient client = NakamuraHttpUtils.getHttpClient(url, username, password);
 
 		JSONArray batchRequests = new JSONArray();
@@ -525,7 +525,7 @@ public class HttpNakamuraManagerImpl implements NakamuraManager {
 		method.addParameter("sakai:group-description", description);
 		method.addParameter("sakai:group-title", nakamuraGroupId + "(" + role + ")");
 		method.addParameter("sakai:pseudoGroup", WorldConstants.TRUE);
-		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getPseudoGroupParent(nakamuraGroupId));
+		method.addParameter("sakai:pseudogroupparent", groupIdAdapter.getWorldId(nakamuraGroupId));
 		method.setParameter("sakai:group-joinable", WorldConstants.NO);
 		method.addParameter(GROUPER_NAME_PROP, groupName.substring(0, groupName.lastIndexOf(":") + 1 )
 											+ nakamuraGroupId.substring(nakamuraGroupId.lastIndexOf("-") + 1));

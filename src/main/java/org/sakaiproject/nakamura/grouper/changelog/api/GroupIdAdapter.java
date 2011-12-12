@@ -1,7 +1,7 @@
 package org.sakaiproject.nakamura.grouper.changelog.api;
 
 /**
- * A strategy to map names from grouper to Nakamura.
+ * A strategy to map names from grouper to Sakai OAE.
  */
 public interface GroupIdAdapter {
 
@@ -18,5 +18,5 @@ public interface GroupIdAdapter {
 	 * @param groupId
 	 * @return
 	 */
-	public String getPseudoGroupParent(String groupId);
+	public String getWorldId(String groupId);
 }

@@ -142,7 +142,7 @@ public class CourseTitleEsbConsumer extends BaseGroupEsbConsumer {
 	 */
 	protected void processStemUpdate(String stemName, String propertyName, String propertyValue) throws GroupModificationException{
 		log.info("Start STEM_UPDATE : " + stemName);
-		String parentGroupId = groupIdManager.getPseudoGroupParent(groupIdManager.getGroupId(stemName + ":students"));
+		String parentGroupId = groupIdManager.getWorldId(groupIdManager.getGroupId(stemName + ":students"));
 
 		if (parentGroupId != null && nakamuraManager.groupExists(parentGroupId)){
 			nakamuraManager.setProperty(parentGroupId, COURSE_TITLE_PROPERTY, propertyValue);

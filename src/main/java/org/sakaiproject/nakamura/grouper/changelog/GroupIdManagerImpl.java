@@ -94,12 +94,12 @@ public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdMan
 	}
 
 	@Override
-	public String getAllGroup(String groupName) {
+	public String getAllGroupName(String groupName) {
 		return StringUtils.substringBeforeLast(groupName, ":") + ":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION;
 	}
 
 	@Override
-	public String toProvisioned(String grouperName){
+	public String getApplicationGroupName(String grouperName){
 		String provName = null;
 
 		if (grouperName == null){
