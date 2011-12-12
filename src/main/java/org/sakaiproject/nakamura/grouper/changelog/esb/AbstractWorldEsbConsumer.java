@@ -28,7 +28,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.AbstractGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.WorldConstants;
@@ -401,7 +401,7 @@ public abstract class AbstractWorldEsbConsumer extends ChangeLogConsumerBase {
 		Group applicationAllGroup = GroupFinder.findByName(getGrouperSession(), applicationAllGroupName, false);
 		if (applicationAllGroup == null){
 			applicationAllGroup = Group.saveGroup(getGrouperSession(), null, null,
-					applicationAllGroupName, BaseGroupIdAdapter.ALL_GROUP_EXTENSION,
+					applicationAllGroupName, AbstractGroupIdAdapter.ALL_GROUP_EXTENSION,
 					null, SaveMode.INSERT, true);
 			log.debug("Created " + applicationAllGroupName);
 		}
@@ -510,8 +510,8 @@ public abstract class AbstractWorldEsbConsumer extends ChangeLogConsumerBase {
 	private void removeFromIncludeExcludeGroups(String grouperName, Subject member){
 		Group g = null;
 		for (String gName : new String[] {
-				 grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX,
-				 grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX } ){
+				 grouperName + AbstractGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX,
+				 grouperName + AbstractGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX } ){
 			g = GroupFinder.findByName(getGrouperSession(), gName, false);
 			log.debug("finding " + gName + " : " + (g == null? "null" : "found"));
 			if (g != null && g.hasMember(member)){
@@ -563,7 +563,7 @@ public abstract class AbstractWorldEsbConsumer extends ChangeLogConsumerBase {
 		for (Group child : courseStem.getChildGroups(Scope.ONE)){
 
 			// Sync the memberships for each group except the :all group
-			if (!child.getExtension().equals(BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
+			if (!child.getExtension().equals(AbstractGroupIdAdapter.ALL_GROUP_EXTENSION)){
 
 				// Ensure the users exist in OAE
 				List<String> memberIds = getMembersPersonSubjectIds(child);

@@ -26,7 +26,7 @@ import org.sakaiproject.nakamura.grouper.changelog.esb.WorldEsbConsumer;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
-public abstract class BaseGroupIdAdapter {
+public abstract class AbstractGroupIdAdapter {
 
 	protected Set<String> pseudoGroupSuffixes;
 	protected Set<String> includeExcludeSuffixes;

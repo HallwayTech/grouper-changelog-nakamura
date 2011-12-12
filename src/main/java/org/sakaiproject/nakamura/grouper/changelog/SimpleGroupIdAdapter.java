@@ -19,7 +19,7 @@ package org.sakaiproject.nakamura.grouper.changelog;
 import org.apache.commons.lang.StringUtils;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdAdapter;
 
-public class SimpleGroupIdAdapter extends BaseGroupIdAdapter implements GroupIdAdapter {
+public class SimpleGroupIdAdapter extends AbstractGroupIdAdapter implements GroupIdAdapter {
 
 	@Override
 	public String getGroupId(String grouperName) {

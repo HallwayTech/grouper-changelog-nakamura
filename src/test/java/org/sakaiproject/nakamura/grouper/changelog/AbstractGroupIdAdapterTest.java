@@ -20,9 +20,9 @@ import junit.framework.TestCase;
 
 import com.google.common.collect.ImmutableSet;
 
-public class BaseGroupIdAdapterTest extends TestCase {
+public class AbstractGroupIdAdapterTest extends TestCase {
 
-	private BaseGroupIdAdapter gAdapter;
+	private AbstractGroupIdAdapter gAdapter;
 
 	@Override
 	public void setUp(){

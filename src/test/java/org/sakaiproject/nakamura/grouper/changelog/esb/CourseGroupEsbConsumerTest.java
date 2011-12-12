@@ -36,7 +36,7 @@ import junit.framework.TestCase;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.AbstractGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
@@ -152,7 +152,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		when(GrouperSession.startRootSession()).thenReturn(session);
 
 		when(Group.saveGroup(session, null, null, course1AllApplicationGroupName,
-				BaseGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true)).thenReturn(appAllGroup);
+				AbstractGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true)).thenReturn(appAllGroup);
 
 		when(SubjectFinder.findByIdOrIdentifier(course1StudentsInstitutionalGroupName, false)).thenReturn(instGroupSubject);
 		when(SubjectFinder.findByIdOrIdentifier(course1StudentsApplicationGroupName, false)).thenReturn(appGroupSubject);
@@ -310,7 +310,7 @@ public class CourseGroupEsbConsumerTest extends TestCase {
 		verify(appAllGroup).addMember(instGroupSubject, false);
 		verifyStatic();
 		Group.saveGroup(session, null, null, course1AllApplicationGroupName,
-				BaseGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true);
+				AbstractGroupIdAdapter.ALL_GROUP_EXTENSION, null, SaveMode.INSERT, true);
 	}
 
 	public void testDeleteGroupIsNotNull() throws GroupModificationException{

@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.AbstractGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.HttpNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
@@ -169,7 +169,7 @@ public class WorldEsbConsumer extends AbstractWorldEsbConsumer {
 				ignore = true;
 			}
 
-			if (grouperName.endsWith(":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION)){
+			if (grouperName.endsWith(":" + AbstractGroupIdAdapter.ALL_GROUP_EXTENSION)){
 				log.info("ignoring:  " + sequenceNumber + " all group: " + grouperName);
 				ignore = true;
 			}

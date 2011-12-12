@@ -25,6 +25,7 @@ import org.sakaiproject.nakamura.grouper.changelog.HttpNakamuraManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.SimpleGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.TemplateGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
 import org.sakaiproject.nakamura.grouper.changelog.exceptions.GroupModificationException;
 
@@ -49,7 +50,7 @@ public class WorldTitleEsbConsumer extends AbstractWorldEsbConsumer {
 	protected NakamuraManager nm;
 
 	// Convert grouper names to nakamura group ids
-	protected GroupIdManagerImpl groupIdManager;
+	protected GroupIdManager groupIdManager;
 
 	protected boolean configurationLoaded = false;
 

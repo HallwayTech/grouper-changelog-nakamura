@@ -30,7 +30,7 @@ import junit.framework.TestCase;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.sakaiproject.nakamura.grouper.changelog.BaseGroupIdAdapter;
+import org.sakaiproject.nakamura.grouper.changelog.AbstractGroupIdAdapter;
 import org.sakaiproject.nakamura.grouper.changelog.GroupIdManagerImpl;
 import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 import org.sakaiproject.nakamura.grouper.changelog.api.NakamuraManager;
@@ -153,8 +153,8 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 	}
 
 	public void testAddMembershipIncludeRemovesProvisionedExcludes() throws GroupModificationException, UserModificationException{
-		String excludesName = grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
-		String includesName = grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+		String excludesName = grouperName + AbstractGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
+		String includesName = grouperName + AbstractGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
 		when(addEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_ADD.groupName)).thenReturn(instGrouperName);
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		when(groupIdManager.isIncludeExcludeSubGroup(excludesName)).thenReturn(true);
@@ -205,8 +205,8 @@ public class SimpleGroupEsbConsumerMembershipTest extends TestCase {
 	}
 
 	public void testDeleteMembershipIncludeRemovesProvisionedIncludesExcludes() throws GroupModificationException, UserModificationException{
-		String includesName = grouperName + BaseGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
-		String excludesName = grouperName + BaseGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
+		String includesName = grouperName + AbstractGroupIdAdapter.DEFAULT_INCLUDES_SUFFIX;
+		String excludesName = grouperName + AbstractGroupIdAdapter.DEFAULT_EXCLUDES_SUFFIX;
 		when(deleteEntry.retrieveValueForLabel(ChangeLogLabels.MEMBERSHIP_DELETE.groupName)).thenReturn(instGrouperName);
 		when(nakamuraManager.groupExists(groupId)).thenReturn(true);
 		when(groupIdManager.getGroupId(instGrouperName)).thenReturn(groupId);

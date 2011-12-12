@@ -26,7 +26,7 @@ import org.sakaiproject.nakamura.grouper.changelog.api.GroupIdManager;
 
 import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
 
-public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdManager {
+public class GroupIdManagerImpl extends AbstractGroupIdAdapter implements GroupIdManager {
 
 	private static Log log = LogFactory.getLog(GroupIdManagerImpl.class);
 
@@ -111,7 +111,7 @@ public class GroupIdManagerImpl extends BaseGroupIdAdapter implements GroupIdMan
 
 	@Override
 	public String getAllGroupName(String groupName) {
-		return StringUtils.substringBeforeLast(groupName, ":") + ":" + BaseGroupIdAdapter.ALL_GROUP_EXTENSION;
+		return StringUtils.substringBeforeLast(groupName, ":") + ":" + ALL_GROUP_EXTENSION;
 	}
 
 	@Override

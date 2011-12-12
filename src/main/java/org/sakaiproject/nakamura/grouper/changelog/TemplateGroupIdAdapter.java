@@ -48,7 +48,7 @@ import edu.internet2.middleware.grouper.app.loader.GrouperLoaderConfig;
  * nakamura.groupname.regex = "pre:fix:([^:]+):([^:]+):([^:]+)"
  * nakamura.nakamuraid.template = "'sakai_' + g[0] + '_' + g[1] + '_' + g[2]"
  */
-public class TemplateGroupIdAdapter extends BaseGroupIdAdapter implements GroupIdAdapter {
+public class TemplateGroupIdAdapter extends AbstractGroupIdAdapter implements GroupIdAdapter {
 
 	private static Log log = LogFactory.getLog(TemplateGroupIdAdapter.class);
 
