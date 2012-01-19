@@ -144,8 +144,8 @@ public abstract class AbstractWorldEsbConsumer extends ChangeLogConsumerBase {
 	// groupType name for the include/exclude group structures we use in Grouper
 	public static final String ADD_INCLUDE_EXCLUDE = "addIncludeExclude";
 
-	public static final String DEFAULT_COURSE_WORLD_TEMPLATE = "/var/templates/worlds/course/basic-course.json";
-	public static final String DEFAULT_SIMPLE_WORLD_TEMPLATE = "/var/templates/worlds/group/simple-group.json";
+	public static final String DEFAULT_COURSE_WORLD_TEMPLATE = "/var/templates/worlds/course/basic-course";
+	public static final String DEFAULT_SIMPLE_WORLD_TEMPLATE = "/var/templates/worlds/group/simple-group";
 	private Map<String,String> defaultTemplates;
 
 	public static final String PROP_WORLD_TEMPLATE_PATH = "sakai:worldTemplatePath";
@@ -220,6 +220,10 @@ public abstract class AbstractWorldEsbConsumer extends ChangeLogConsumerBase {
 			}
 		}
 		defaultTemplates = bld.build();
+
+		for(Entry<String, String> entry: defaultTemplates.entrySet()){
+			log.info("defaultTemplates: " + entry.getKey() + " = " + (String)entry.getValue());
+		}
 
 		configurationLoaded = true;
 	}
